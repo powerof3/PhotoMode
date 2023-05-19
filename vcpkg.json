@@ -1,0 +1,21 @@
+{
+  "name": "photo-mode",
+  "version-string": "1.0.0",
+  "description": "",
+  "homepage": "",
+  "license": "MIT",
+  "dependencies": [
+    "boost-stl-interfaces",
+    "clib-util",
+    "directxtex",
+    {
+      "name": "imgui",
+      "features": [ "dx11-binding", "win32-binding", "freetype" ]
+    },
+    "rapidfuzz",
+    "rsm-binary-io",
+    "spdlog",
+    "srell",
+    "xbyak"
+  ]
+}

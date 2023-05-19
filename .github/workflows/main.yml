@@ -1,0 +1,25 @@
+name: Main
+
+on:
+  push:
+    branches: '**'
+    tags: '*'
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run:
+    uses: adya/pack-skse-mod/.github/workflows/pack.yml@main
+    with:
+      FOMOD_INCLUDE_PDB: true
+      FOMOD_MOD_NAME: "PhotoMode"
+      FOMOD_MOD_AUTHOR: "powerofthree"
+      FOMOD_MOD_NEXUS_ID: "91701"
+      FOMOD_SE_MIN_GAME_VERSION: '1.5'
+      FOMOD_AE_NAME: 'SSE v1.6+ ("Anniversary Edition")'
+      FOMOD_AE_DESCR: 'Select this if you are using Skyrim Anniversary Edition v1.6 or higher.'
+      FOMOD_AE_MIN_GAME_VERSION: '1.6'
+      FOMOD_REQUIRED_INSTALLATION_DIR: "Skyrim/Data"
+      PUBLISH_ARCHIVE_TYPE: '7z'
