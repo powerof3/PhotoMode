@@ -6,7 +6,7 @@ namespace Input
 	void Manager::LoadSettings(CSimpleIniA& a_ini)
 	{
 		ini::get_value(a_ini, allowMultiScreenshots, "MultiScreenshots", "Enable", ";Allow multi-screenshots by holding down the PrintScn key");
-		ini::get_value(a_ini, keyHeldDuration, "MultiScreenshots", "PrintScn hold duration", ";How long should PrintScn be held down before(in seconds).");
+		ini::get_value(a_ini, keyHeldDuration, "MultiScreenshots", "PrintScnHoldDuration", ";How long should PrintScn be held down before(in seconds).");
 	}
 
 	void Manager::Register()
@@ -258,7 +258,7 @@ namespace Input
 
 	void Manager::HideMenu(bool a_hide)
 	{
-		if (a_hide && RE::UI::GetSingleton()->menuSystemVisible) {
+		if (a_hide && RE::UI::GetSingleton()->IsShowingMenus()) {
 			RE::UI::GetSingleton()->ShowMenus(false);
 			menuHidden = true;
 		}
