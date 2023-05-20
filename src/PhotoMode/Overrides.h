@@ -158,7 +158,7 @@ namespace PhotoMode
 			"BMP",
 			"ChJSh",
 			"DST",
-			"Eee", 
+			"Eee",
 			"Eh",
 			"FV",
 			"I",
@@ -196,7 +196,7 @@ namespace PhotoMode
 			void ApplyExpression(RE::Actor* a_actor) const;
 
 			std::int32_t modifier{ 0 };
-			std::int32_t strength{ 0 };
+			float        strength{ 1.0f };
 		};
 
 		struct Modifier

@@ -47,7 +47,7 @@ namespace PhotoMode
 		return hotKey;
 	}
 
-    bool Manager::IsActive() const
+	bool Manager::IsActive() const
 	{
 		return activated;
 	}
@@ -264,16 +264,9 @@ namespace PhotoMode
 						using namespace MFG;
 
 						if (ImGui::TreeNode("Expressions##node")) {
-							constexpr const char* label[]{ "Expression", "##expression" };
-							constexpr int         min[2]{ 0, 0 };
-							constexpr int         max[]{ expressions.size() - 1, 100 };
-							const char*           format[]{ expressions[expressionData.modifier], "%d" };
-
-							if (ImGui::DragInt2Ex(label, &expressionData.modifier, 1.0, min, max, format, ImGuiSliderFlags_AlwaysClamp)) {
+							if (ImGui::EnumSlider("Expression", &expressionData.modifier, expressions)) {
 								expressionData.ApplyExpression(player);
 							}
-							ImGui::ActivateOnHover(label[1]);
-
 							ImGui::TreePop();
 						}
 
@@ -385,10 +378,10 @@ namespace PhotoMode
 
 			ImGui::PushItemFlag(ImGuiItemFlags_NoNav, true);
 			ImGui::TabItemButton("<", ImGuiTabItemFlags_Leading);
-		    ImGui::TabItemButton(">", ImGuiTabItemFlags_Trailing);
+			ImGui::TabItemButton(">", ImGuiTabItemFlags_Trailing);
 			ImGui::PopItemFlag();
 
-		    ImGui::EndTabBar();
+			ImGui::EndTabBar();
 		}
 
 		ImGui::End();

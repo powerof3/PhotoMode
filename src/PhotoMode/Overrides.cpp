@@ -57,7 +57,7 @@ namespace PhotoMode
 		{
 			if (const auto faceData = a_actor->GetFaceGenAnimationData()) {
 				faceData->exprOverride = false;
-				faceData->SetExpressionOverride(modifier, static_cast<float>(strength / 100.0f));
+				faceData->SetExpressionOverride(modifier, strength);
 				faceData->exprOverride = true;
 			}
 		}
@@ -74,7 +74,7 @@ namespace PhotoMode
 		{
 			if (const auto faceData = a_actor->GetFaceGenAnimationData()) {
 				RE::BSSpinLockGuard locker(faceData->lock);
-				faceData->phenomeKeyFrame.SetValue(idx, strength / 100.0f);
+				faceData->phenomeKeyFrame.SetValue(idx, static_cast<float>(strength / 100.0f));
 			}
 		}
 

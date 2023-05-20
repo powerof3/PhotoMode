@@ -18,9 +18,16 @@ namespace ImGui
 	bool OnOffToggle(const char* label, bool* a_toggle, const char* on = "YES", const char* off = "NO");
 
 	template <class E, std::size_t N>
-	void EnumSlider(const char* label, E* index, std::array<const char*, N> a_enum)
+	bool EnumSlider(const char* label, E* index, std::array<const char*, N> a_enum)
 	{
-		std::int32_t uIndex = stl::to_underlying(*index);
+		bool value_changed = false;
+
+	    std::int32_t uIndex;
+		if constexpr (std::is_enum_v<E>) {
+			uIndex = stl::to_underlying(*index);
+		} else {
+			uIndex = *index;
+		}
 		CenteredTextWithArrows(LabelPrefix(label).c_str(), a_enum[uIndex]);
 		if (IsItemHovered()) {
 			const bool pressedLeft = IsKeyPressed(ImGuiKey_LeftArrow);
@@ -32,16 +39,19 @@ namespace ImGui
 				uIndex = (uIndex - 1 + N) % N;
 			}
 			if (pressedLeft || pressedRight) {
-				*index = static_cast<E>(uIndex);
+				value_changed = true;
+
+			    *index = static_cast<E>(uIndex);
 			}
 		}
+		return value_changed;
 	}
 
 	bool ThinSliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, ImGuiSliderFlags flags);
 	bool ThinSliderInt(const char* label, int* v, int v_min, int v_max, const char* format, ImGuiSliderFlags flags);
 
 	void ActivateOnHover(const char* a_label);
-    bool OpenTabOnHover(const char* a_label, ImGuiTabItemFlags flags = 0);
+	bool OpenTabOnHover(const char* a_label, ImGuiTabItemFlags flags = 0);
 
     template <class T>
     bool DragOnHover(const char* a_label, T* v, float v_speed = 1.0f, T v_min = 0, T v_max = 100, const char* format = nullptr)

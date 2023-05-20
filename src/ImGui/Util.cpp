@@ -247,7 +247,11 @@ namespace ImGui
 	// https://github.com/libigl/libigl/issues/1300#issuecomment-1310174619
 	std::string LabelPrefix(const char* const label)
 	{
-		const float width = CalcItemWidth();
+		if (strlen(label) == 0) {
+			return label;
+		}
+
+	    const float width = CalcItemWidth();
 		const float x = GetCursorPosX();
 
 		Text(label);

@@ -311,6 +311,7 @@ namespace Input
 						break;
 					case RE::INPUT_DEVICE::kKeyboard:
 						{
+							io.AddKeyEvent(BSWinKeyToImGuiKey(static_cast<KEY>(key)), button->IsPressed());
 							if (button->QUserEvent() == RE::UserEvents::GetSingleton()->screenshot) {
 								if (button->IsDown()) {
 									QueueScreenshot(false);
@@ -323,7 +324,6 @@ namespace Input
 								const auto UI = RE::UI::GetSingleton();
 								UI->ShowMenus(!UI->IsShowingMenus());
 							}
-							io.AddKeyEvent(BSWinKeyToImGuiKey(static_cast<KEY>(key)), button->IsPressed());
 						}
 						break;
 					default:
