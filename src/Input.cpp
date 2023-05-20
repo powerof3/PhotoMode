@@ -298,17 +298,6 @@ namespace Input
 					}
 				} else {
 					switch (event->GetDevice()) {
-					case RE::INPUT_DEVICE::kMouse:
-						{
-							if (key < ImGuiMouseButton_COUNT) {
-								io.AddMouseButtonEvent(key, button->IsPressed());
-							} else if (key == RE::BSWin32MouseDevice::Keys::kWheelUp) {
-								io.AddMouseWheelEvent(0, button->Value());
-							} else if (key == RE::BSWin32MouseDevice::Keys::kWheelDown) {
-								io.AddMouseWheelEvent(0, -button->Value());
-							}
-						}
-						break;
 					case RE::INPUT_DEVICE::kKeyboard:
 						{
 							io.AddKeyEvent(BSWinKeyToImGuiKey(static_cast<KEY>(key)), button->IsPressed());
@@ -325,6 +314,19 @@ namespace Input
 								UI->ShowMenus(!UI->IsShowingMenus());
 							}
 						}
+						break;
+					/*case RE::INPUT_DEVICE::kMouse:
+						{
+							if (key < ImGuiMouseButton_COUNT) {
+								io.AddMouseButtonEvent(key, button->IsPressed());
+							} else if (key == RE::BSWin32MouseDevice::Keys::kWheelUp) {
+								io.AddMouseWheelEvent(0, button->Value());
+							} else if (key == RE::BSWin32MouseDevice::Keys::kWheelDown) {
+								io.AddMouseWheelEvent(0, -button->Value());
+							}
+						}
+						break;*/
+					case RE::INPUT_DEVICE::kGamepad:
 						break;
 					default:
 						break;
