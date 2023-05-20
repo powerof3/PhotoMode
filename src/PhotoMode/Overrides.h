@@ -133,25 +133,24 @@ namespace PhotoMode
 	namespace MFG
 	{
 		inline constexpr std::array expressions{
-			"DialogueAnger",
-			"DialogueFear",
-			"DialogueHappy",
-			"DialogueSad",
-			"DialogueSurprise",
-			"DialoguePuzzled",
-			"DialogueDisgusted",
-			"MoodNeutral",
-			"MoodAnger",
-			"MoodFear",
-			"MoodHappy",
-			"MoodSad",
-			"MoodSurprise",
-			"MoodPuzzled",
-			"MoodDisgusted",
-			"CombatAnger",
-			"CombatShout"
+			"Dialogue Anger",
+			"Dialogue Fear",
+			"Dialogue Happy",
+			"Dialogue Sad",
+			"Dialogue Surprise",
+			"Dialogue Puzzled",
+			"Dialogue Disgusted",
+			"Mood Neutral",
+			"Mood Anger",
+			"Mood Fear",
+			"Mood Happy",
+			"Mood Sad",
+			"Mood Surprise",
+			"Mood Puzzled",
+			"Mood Disgusted",
+			"Combat Anger",
+			"Combat Shout"
 		};
-		// add fake padding for menu
 		inline constexpr std::array phonemes{
 			"Aah",
 			"BigAah",
@@ -170,7 +169,6 @@ namespace PhotoMode
 			"Th",
 			"W"
 		};
-		// add fake padding for menu
 		inline constexpr std::array modifiers{
 			"BlinkLeft",
 			"BlinkRight",

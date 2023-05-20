@@ -297,7 +297,7 @@ namespace ImGui
 
 		const bool isHovered = IsItemHovered();
 		if (!isHovered) {
-			PushStyleColor(ImGuiCol_Text, ImVec4{ 0.66f, 0.66f, 0.66f, 1.0f });
+			PushStyleColor(ImGuiCol_Text, ImVec4{ 0.60f, 0.60f, 0.60f, 1.0f });
 		}
 
 		if (isHovered) {
@@ -445,7 +445,7 @@ namespace ImGui
 
 	void ActivateOnHover(const char* a_label)
 	{
-		if (!IsItemActive() && IsItemHovered()) {
+		if (!IsItemActive() && IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
 			ActivateItem(GetID(a_label));
 		}
 	}
@@ -456,5 +456,4 @@ namespace ImGui
 		ActivateOnHover(a_label);
 		return result;
 	}
-
 }
