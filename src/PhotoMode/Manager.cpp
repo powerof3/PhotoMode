@@ -393,21 +393,23 @@ namespace PhotoMode
 			return;
 		}
 
-		const auto viewport = ImGui::GetMainViewport();
-		const auto drawList = ImGui::GetBackgroundDrawList();
+		const auto        viewport = ImGui::GetMainViewport();
+		const auto        drawList = ImGui::GetBackgroundDrawList();
+		const static auto width = viewport->Size.x;
+		const static auto height = viewport->Size.y;
 
 		constexpr auto col = IM_COL32(255, 255, 255, 85);
 
-		const static auto third_width = viewport->Size.x / 3;
-		const static auto third_height = viewport->Size.y / 3;
+		const static auto third_width = width / 3;
+		const static auto third_height = height / 3;
 
 		// Draw the horizontal lines
-		drawList->AddLine(ImVec2(0, third_height), ImVec2(viewport->Size.x, third_height), col);
-		drawList->AddLine(ImVec2(0, third_height * 2), ImVec2(viewport->Size.x, third_height * 2), col);
+		drawList->AddLine(ImVec2(0, third_height), ImVec2(viewport->Size.x, third_height), col, 3);
+		drawList->AddLine(ImVec2(0, third_height * 2), ImVec2(viewport->Size.x, third_height * 2), col, 3);
 
 		// Draw the vertical lines
-		drawList->AddLine(ImVec2(third_width, 0), ImVec2(third_width, viewport->Size.y), col);
-		drawList->AddLine(ImVec2(third_width * 2, 0), ImVec2(third_width * 2, viewport->Size.y), col);
+		drawList->AddLine(ImVec2(third_width, 0), ImVec2(third_width, viewport->Size.y), col, 3);
+		drawList->AddLine(ImVec2(third_width * 2, 0), ImVec2(third_width * 2, viewport->Size.y), col, 3);
 	}
 
 	void Manager::DrawBar() const
