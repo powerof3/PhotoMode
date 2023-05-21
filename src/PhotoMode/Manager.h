@@ -27,7 +27,6 @@ namespace PhotoMode
 
 	private:
 		void DrawControls();
-		void DrawGrid() const;
 		void DrawBar() const;
 
 		// kMenu | kActivate | kFighting | kJumping | kConsole | kSneaking

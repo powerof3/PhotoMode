@@ -14,8 +14,6 @@ namespace PhotoMode
 			float fov{};
 			float viewRoll{ 0.0f };
 			float translateSpeed{};
-
-			bool showGrid{ false };
 		};
 		struct Time
 		{

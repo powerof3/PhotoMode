@@ -33,14 +33,13 @@ namespace ImGui
 			const bool pressedLeft = IsKeyPressed(ImGuiKey_LeftArrow);
 			const bool pressedRight = IsKeyPressed(ImGuiKey_RightArrow) || IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter);
 			if (pressedLeft) {
-				uIndex = (uIndex + 1) % N;
+				uIndex = (uIndex - 1 + N) % N;
 			}
 			if (pressedRight) {
-				uIndex = (uIndex - 1 + N) % N;
+				uIndex = (uIndex + 1) % N;
 			}
 			if (pressedLeft || pressedRight) {
 				value_changed = true;
-
 			    *index = static_cast<E>(uIndex);
 			}
 		}

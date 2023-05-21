@@ -87,7 +87,6 @@ namespace PhotoMode
 
 		// revert current values not handled by originalState
 		currentState.camera.viewRoll = 0.0f;
-		currentState.camera.showGrid = false;
 		timescaleMult = 1.0f;
 		currentState.player.pos = RE::NiPoint3();
 
@@ -103,6 +102,9 @@ namespace PhotoMode
 
 		// reset expressions
 		MFG::RevertAllModifiers();
+
+		//reset grid
+		Grid::gridType = Grid::kDisabled;
 
 		// reset UI
 		RE::UI::GetSingleton()->ShowMenus(true);
@@ -188,7 +190,7 @@ namespace PhotoMode
 
 		DrawControls();
 		DrawBar();
-		DrawGrid();
+		Grid::Draw();
 
 		ImGui::End();
 	}
@@ -216,7 +218,7 @@ namespace PhotoMode
 					doResetWindow = false;
 				}
 
-				ImGui::OnOffToggle("Show Grid", &currentState.camera.showGrid);
+				ImGui::EnumSlider("Show Grid", &Grid::gridType, Grid::gridEnum);
 
 				ImGui::Slider("Field of View", &RE::PlayerCamera::GetSingleton()->worldFOV, 20.0f, 120.0f);
 				ImGui::Slider("View Roll", &currentState.camera.viewRoll, -2.0f, 2.0f);
@@ -385,31 +387,6 @@ namespace PhotoMode
 		}
 
 		ImGui::End();
-	}
-
-	void Manager::DrawGrid() const
-	{
-		if (!currentState.camera.showGrid) {
-			return;
-		}
-
-		const auto        viewport = ImGui::GetMainViewport();
-		const auto        drawList = ImGui::GetBackgroundDrawList();
-		const static auto width = viewport->Size.x;
-		const static auto height = viewport->Size.y;
-
-		constexpr auto col = IM_COL32(255, 255, 255, 85);
-
-		const static auto third_width = width / 3;
-		const static auto third_height = height / 3;
-
-		// Draw the horizontal lines
-		drawList->AddLine(ImVec2(0, third_height), ImVec2(viewport->Size.x, third_height), col, 3);
-		drawList->AddLine(ImVec2(0, third_height * 2), ImVec2(viewport->Size.x, third_height * 2), col, 3);
-
-		// Draw the vertical lines
-		drawList->AddLine(ImVec2(third_width, 0), ImVec2(third_width, viewport->Size.y), col, 3);
-		drawList->AddLine(ImVec2(third_width * 2, 0), ImVec2(third_width * 2, viewport->Size.y), col, 3);
 	}
 
 	void Manager::DrawBar() const

@@ -315,7 +315,7 @@ namespace Input
 							}
 						}
 						break;
-					/*case RE::INPUT_DEVICE::kMouse:
+						/*case RE::INPUT_DEVICE::kMouse:
 						{
 							if (key < ImGuiMouseButton_COUNT) {
 								io.AddMouseButtonEvent(key, button->IsPressed());

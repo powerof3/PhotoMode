@@ -211,4 +211,32 @@ namespace PhotoMode
 
 		void RevertAllModifiers();
 	}
+
+	namespace Grid
+	{
+		enum Type
+		{
+		    kDisabled,
+			kRuleOfThirds,
+			kDiagonal,
+			kTriangle,
+			kGoldenRatio,
+			//kGoldenSpiral,
+			kGrid
+		};
+
+	    inline constexpr std::array gridEnum{
+			"Disabled",
+		    "Rule of Thirds",
+			"Diagonal",
+			"Triangle",
+			"Golden Ratio",
+			//"Golden Spiral",
+			"Grid"
+		};
+
+		inline Type gridType{ kDisabled };
+
+		void Draw();
+	}
 }
