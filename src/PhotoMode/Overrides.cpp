@@ -55,10 +55,16 @@ namespace PhotoMode
 	{
 		void Expression::ApplyExpression(RE::Actor* a_actor) const
 		{
-			if (const auto faceData = a_actor->GetFaceGenAnimationData()) {
-				faceData->exprOverride = false;
-				faceData->SetExpressionOverride(modifier, strength);
-				faceData->exprOverride = true;
+		    if (const auto faceData = a_actor->GetFaceGenAnimationData()) {
+				if (modifier == 0) {
+					faceData->ClearExpressionOverride();
+					faceData->Reset(0.0f, true, false, false, false);
+					RE::BSFaceGenManager::GetSingleton()->isReset = true;
+                } else {
+					faceData->exprOverride = false;
+					faceData->SetExpressionOverride(modifier - 1, strength);
+					faceData->exprOverride = true;
+				}
 			}
 		}
 
@@ -87,7 +93,6 @@ namespace PhotoMode
 			}
 
 			expressionData.modifier = 0;
-			expressionData.strength = 0;
 
 			for (std::uint32_t i = 0; i < phonemes.size(); i++) {
 				phonemeData[i].strength = 0;

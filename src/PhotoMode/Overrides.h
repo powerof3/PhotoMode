@@ -133,23 +133,24 @@ namespace PhotoMode
 	namespace MFG
 	{
 		inline constexpr std::array expressions{
-			"Dialogue Anger",
-			"Dialogue Fear",
-			"Dialogue Happy",
-			"Dialogue Sad",
-			"Dialogue Surprise",
-			"Dialogue Puzzled",
-			"Dialogue Disgusted",
-			"Mood Neutral",
-			"Mood Anger",
-			"Mood Fear",
-			"Mood Happy",
-			"Mood Sad",
-			"Mood Surprise",
-			"Mood Puzzled",
-			"Mood Disgusted",
-			"Combat Anger",
-			"Combat Shout"
+			"NONE",
+		    "DIALOGUE ANGER",
+			"DIALOGUE FEAR",
+			"DIALOGUE HAPPY",
+			"DIALOGUE SAD",
+			"DIALOGUE SURPRISE",
+			"DIALOGUE PUZZLED",
+			"DIALOGUE DISGUSTED",
+			"MOOD NEUTRAL",
+			"MOOD ANGER",
+			"MOOD FEAR",
+			"MOOD HAPPY",
+			"MOOD SAD",
+			"MOOD SURPRISE",
+			"MOOD PUZZLED",
+			"MOOD DISGUSTED",
+			"COMBAT ANGER",
+			"COMBAT SHOUT"
 		};
 		inline constexpr std::array phonemes{
 			"Aah",
@@ -193,7 +194,7 @@ namespace PhotoMode
 		{
 			void ApplyExpression(RE::Actor* a_actor) const;
 
-			std::int32_t modifier{ 0 };
+			std::int32_t modifier{ 0 }; // 0 is NONE
 			float        strength{ 1.0f };
 		};
 
@@ -226,13 +227,13 @@ namespace PhotoMode
 		};
 
 	    inline constexpr std::array gridEnum{
-			"Disabled",
-		    "Rule of Thirds",
-			"Diagonal",
-			"Triangle",
-			"Golden Ratio",
-			//"Golden Spiral",
-			"Grid"
+			"NONE",
+		    "THIRDS",
+			"DIAGONAL",
+			"TRIANGLE",
+			"GOLDEN RATIO",
+			//"GOLDEN SPIRAL",
+			"GRID"
 		};
 
 		inline Type gridType{ kDisabled };

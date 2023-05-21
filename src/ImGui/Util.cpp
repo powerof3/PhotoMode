@@ -445,7 +445,7 @@ namespace ImGui
 
 	void ActivateOnHover(const char* a_label)
 	{
-		if (!IsItemActive() && IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+		if (!IsItemActive() && IsItemHovered()) {
 			ActivateItem(GetID(a_label));
 		}
 	}

@@ -23,6 +23,7 @@ namespace PhotoMode
 			RE::DialogueMenu::MENU_NAME,
 			RE::TweenMenu::MENU_NAME,
 			RE::SleepWaitMenu::MENU_NAME,
+			RE::RaceSexMenu::MENU_NAME,
 			"CustomMenu"sv
 		};
 
@@ -218,7 +219,7 @@ namespace PhotoMode
 					doResetWindow = false;
 				}
 
-				ImGui::EnumSlider("Show Grid", &Grid::gridType, Grid::gridEnum);
+				ImGui::EnumSlider("Grid", &Grid::gridType, Grid::gridEnum);
 
 				ImGui::Slider("Field of View", &RE::PlayerCamera::GetSingleton()->worldFOV, 20.0f, 120.0f);
 				ImGui::Slider("View Roll", &currentState.camera.viewRoll, -2.0f, 2.0f);
