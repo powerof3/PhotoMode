@@ -86,6 +86,11 @@ namespace PhotoMode
 	{
 		originalState.SetState();
 
+		// revert DOF
+		if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
+			static_cast<RE::ImageSpaceEffectDepthOfField*>(effect)->enabled = true;
+		}
+
 		// revert current values not handled by originalState
 		currentState.camera.viewRoll = 0.0f;
 		timescaleMult = 1.0f;
@@ -227,8 +232,23 @@ namespace PhotoMode
 					&Cache::translateSpeedValue,  // fFreeCameraTranslationSpeed:Camera
 					0.1f, 50.0f);
 
-				const auto dofEffect = static_cast<RE::ImageSpaceEffectDepthOfField*>(RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]);
-				ImGui::OnOffToggle("Depth of Field", &dofEffect->enabled);
+				if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
+					if (ImGui::TreeNode("Depth of Field")) {
+						const auto dofEffect = static_cast<RE::ImageSpaceEffectDepthOfField*>(effect);
+
+						ImGui::OnOffToggle("Enabled", &dofEffect->enabled);
+
+						ImGui::BeginDisabled(!dofEffect->enabled);
+						ImGui::Slider("Strength", &Cache::DOF::blurMultiplier, 0.0f, 1.0f);
+						ImGui::Slider("Near Distance", &Cache::DOF::nearDist, 0.0f, 1000.0f);
+						ImGui::Slider("Near Range", &Cache::DOF::nearRange, 0.0f, 1000.0f);
+						ImGui::Slider("Far Distance", &Cache::DOF::farDist, 0.0f, 100000.0f);
+						ImGui::Slider("Far Range", &Cache::DOF::farRange, 0.0f, 100000.0f);
+						ImGui::EndDisabled();
+
+						ImGui::TreePop();
+					}
+				}
 
 				ImGui::EndTabItem();
 			}

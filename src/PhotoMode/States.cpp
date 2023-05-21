@@ -6,11 +6,24 @@ namespace PhotoMode
 	{
 		fov = RE::PlayerCamera::GetSingleton()->worldFOV;
 		translateSpeed = Cache::translateSpeedValue;
+
+		blurMultiplier = Cache::DOF::blurMultiplier;
+		nearDist = Cache::DOF::nearDist;
+		nearRange = Cache::DOF::nearRange;
+		farDist = Cache::DOF::farDist;
+		farRange = Cache::DOF::farRange;
 	}
 	void State::Camera::set()
 	{
 		RE::PlayerCamera::GetSingleton()->worldFOV = fov;
 		Cache::translateSpeedValue = translateSpeed;
+
+		Cache::DOF::blurMultiplier = blurMultiplier;
+		Cache::DOF::nearDist = nearDist;
+		Cache::DOF::nearRange = nearRange;
+		Cache::DOF::farDist = farDist;
+		Cache::DOF::farRange = farRange;
+
 		viewRoll = 0.0f;
 	}
 

@@ -14,6 +14,12 @@ namespace PhotoMode
 			float fov{};
 			float viewRoll{ 0.0f };
 			float translateSpeed{};
+
+			float blurMultiplier;
+			float nearDist;
+			float nearRange;
+			float farDist;
+			float farRange;
 		};
 		struct Time
 		{
