@@ -257,10 +257,16 @@ namespace PhotoMode
 				ImGui::OnOffToggle("Freeze Time", &RE::Main::GetSingleton()->freezeTime);
 				ImGui::Slider("Global Time Mult", &RE::BSTimer::GetCurrentGlobalTimeMult(), 0.0f, 2.0f);
 
+				ImGui::Dummy({ 0, 5 });
+
+				auto& gameHour = RE::Calendar::GetSingleton()->gameHour->value;
+				ImGui::Slider("Game Hour", &gameHour, 0.0f, 23.99f, std::format("{:%I:%M %p}", std::chrono::duration<float, std::ratio<3600>>(gameHour)).c_str());
 				if (ImGui::DragOnHover("Timescale Mult", &timescaleMult, 10, 1.0f, 1000.0f, "%fX")) {
-					static auto timescale = RE::TESForm::LookupByEditorID<RE::TESGlobal>("timescale");
+					static auto timescale = RE::Calendar::GetSingleton()->timeScale;
 					timescale->value = originalState.time.timescale * timescaleMult;
 				}
+
+				ImGui::Dummy({ 0, 5 });
 
 				ImGui::PushStyleColor(ImGuiCol_NavHighlight, { 0, 0, 0, 0 });
 				if (const auto weather = Override::weathers.GetFormResultFromCombo()) {

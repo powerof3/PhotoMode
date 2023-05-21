@@ -29,7 +29,8 @@ namespace PhotoMode
 			// members
 		    bool  freezeTime{ false };
 			float globalTimeMult{ 1.0f };
-			float timescale{};
+			float gameHour{};
+		    float timescale{};
 		};
 		struct Player
 		{

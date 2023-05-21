@@ -53,15 +53,15 @@ namespace ImGui
 	bool OpenTabOnHover(const char* a_label, ImGuiTabItemFlags flags = 0);
 
     template <class T>
-    bool DragOnHover(const char* a_label, T* v, float v_speed = 1.0f, T v_min = 0, T v_max = 100, const char* format = nullptr)
+    bool DragOnHover(const char* a_label, T* v, float v_speed = 1.0f, T v_min = 0, T v_max = 100, const char* format = nullptr, ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp)
     {
 		const auto newLabel = LabelPrefix(a_label);
 
 		bool result;
 		if constexpr (std::is_floating_point_v<T>) {
-			result = ImGui::DragFloat(newLabel.c_str(), v, v_speed, v_min, v_max, format ? format : "%f", ImGuiSliderFlags_AlwaysClamp);
+			result = ImGui::DragFloat(newLabel.c_str(), v, v_speed, v_min, v_max, format ? format : "%f", flags);
 		} else {
-			result = ImGui::DragInt(newLabel.c_str(), v, v_speed, v_min, v_max, format ? format : "%d", ImGuiSliderFlags_AlwaysClamp);
+			result = ImGui::DragInt(newLabel.c_str(), v, v_speed, v_min, v_max, format ? format : "%d", flags);
 		}
 		ActivateOnHover(newLabel.c_str());
 
@@ -69,15 +69,15 @@ namespace ImGui
     }
 
     template <class T>
-	bool Slider(const char* label, T* v, T v_min, T v_max)
+	bool Slider(const char* label, T* v, T v_min, T v_max, const char* format = nullptr, ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp)
 	{
         const auto newLabel = LabelPrefix(label);
 
 	    bool result;
 		if constexpr (std::is_floating_point_v<T>) {
-			result = ImGui::ThinSliderFloat(newLabel.c_str(), v, v_min, v_max, "%f", ImGuiSliderFlags_AlwaysClamp);
+			result = ImGui::ThinSliderFloat(newLabel.c_str(), v, v_min, v_max, format ? format : "%f", flags);
 		} else {
-			result = ImGui::ThinSliderInt(newLabel.c_str(), v, v_min, v_max, "%d", ImGuiSliderFlags_AlwaysClamp);
+			result = ImGui::ThinSliderInt(newLabel.c_str(), v, v_min, v_max, format ? format : "%d", flags);
 		}
 		ActivateOnHover(newLabel.c_str());
 

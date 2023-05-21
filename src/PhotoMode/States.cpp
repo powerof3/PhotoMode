@@ -31,13 +31,19 @@ namespace PhotoMode
 	{
 		freezeTime = RE::Main::GetSingleton()->freezeTime;
 		globalTimeMult = RE::BSTimer::GetCurrentGlobalTimeMult();
-		timescale = RE::TESForm::LookupByEditorID<RE::TESGlobal>("timescale")->value;
+
+        const auto calendar = RE::Calendar::GetSingleton();
+	    timescale = calendar->GetTimescale();
+		gameHour = calendar->gameHour->value;
 	}
 	void State::Time::set() const
 	{
 		RE::Main::GetSingleton()->freezeTime = freezeTime;
 		RE::BSTimer::GetCurrentGlobalTimeMult() = globalTimeMult;
-		RE::TESForm::LookupByEditorID<RE::TESGlobal>("timescale")->value = timescale;
+
+		const auto calendar = RE::Calendar::GetSingleton();
+	    calendar->timeScale->value = timescale;
+		calendar->gameHour->value = gameHour;
 	}
 
 	void State::Player::get()
