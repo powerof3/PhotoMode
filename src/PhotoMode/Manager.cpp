@@ -332,7 +332,7 @@ namespace PhotoMode
 
 						bool update = ImGui::Slider("Position Left/Right", &playerState.pos.x, -100.0f, 100.0f);
 						update |= ImGui::Slider("Position Near/Far", &playerState.pos.y, -100.0f, 100.0f);
-						update |= ImGui::Slider("Elevation", &playerState.pos.z, -100.0f, 100.0f);
+						// update |= ImGui::Slider("Elevation", &playerState.pos.z, -100.0f, 100.0f);
 
 						if (update) {
 							player->SetPosition({ originalState.player.pos + playerState.pos }, true);
