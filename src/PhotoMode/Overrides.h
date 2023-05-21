@@ -26,7 +26,7 @@ namespace PhotoMode
 					const auto player = RE::PlayerCharacter::GetSingleton();
 					formEDIDs.clear();
 					for (auto& [edid, idle] : forms) {
-						if (player->CanUseIdle(idle) && idle->CheckConditions(player, nullptr, false)) {
+						if (player->CanUseIdle(idle) && idle->CheckConditions(player, nullptr, true)) {
 							formEDIDs.push_back(edid);
 						}
 					}
@@ -112,10 +112,10 @@ namespace PhotoMode
 			}
 
 			// members
-			std::string                         name;
-			std::vector<std::string>            formEDIDs{};
-			std::unordered_map<std::string, T*> forms{};
-			std::int32_t                        index{};
+			std::string                                             name;
+			std::vector<std::string>                                formEDIDs{};
+			ankerl::unordered_dense::segmented_map<std::string, T*> forms{};
+			std::int32_t                                            index{};
 		};
 
 		inline Forms<RE::TESEffectShader>       effectShaders{ "Effect Shaders" };
@@ -134,7 +134,7 @@ namespace PhotoMode
 	{
 		inline constexpr std::array expressions{
 			"NONE",
-		    "DIALOGUE ANGER",
+			"DIALOGUE ANGER",
 			"DIALOGUE FEAR",
 			"DIALOGUE HAPPY",
 			"DIALOGUE SAD",
@@ -194,7 +194,7 @@ namespace PhotoMode
 		{
 			void ApplyExpression(RE::Actor* a_actor) const;
 
-			std::int32_t modifier{ 0 }; // 0 is NONE
+			std::int32_t modifier{ 0 };  // 0 is NONE
 			float        strength{ 1.0f };
 		};
 
@@ -217,7 +217,7 @@ namespace PhotoMode
 	{
 		enum Type
 		{
-		    kDisabled,
+			kDisabled,
 			kRuleOfThirds,
 			kDiagonal,
 			kTriangle,
@@ -226,9 +226,9 @@ namespace PhotoMode
 			kGrid
 		};
 
-	    inline constexpr std::array gridEnum{
+		inline constexpr std::array gridEnum{
 			"NONE",
-		    "THIRDS",
+			"THIRDS",
 			"DIAGONAL",
 			"TRIANGLE",
 			"GOLDEN RATIO",

@@ -6,7 +6,7 @@ namespace PhotoMode
 	{
 		void GetValidOverrides()
 		{
-			effectShaders.GetValidForms();
+		    effectShaders.GetValidForms();
 			effectVFX.GetValidForms();
 			weathers.GetValidForms();
 			idles.GetValidForms();

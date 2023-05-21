@@ -135,6 +135,7 @@ endif()
 find_package(directxtex CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(rapidfuzz CONFIG REQUIRED)
+find_package(unordered_dense CONFIG REQUIRED)
 
 find_path(SRELL_INCLUDE_DIRS "srell.hpp")
 find_path(CLIB_UTIL_INCLUDE_DIRS "ClibUtil/utils.hpp")
@@ -200,6 +201,7 @@ target_link_libraries(
 		Microsoft::DirectXTex
 		imgui::imgui
 		rapidfuzz::rapidfuzz
+		unordered_dense::unordered_dense
 )
 
 target_precompile_headers(

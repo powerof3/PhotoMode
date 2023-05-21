@@ -71,11 +71,11 @@ namespace ImGui
 
 		std::vector<std::pair<int, double>> itemScoreVector;
 		if (is_filtering) {
-			// Filter before opening to ensure we show the correct size window.
+		    // Filter before opening to ensure we show the correct size window.
 			// We won't get in here unless the popup is open.
 			for (int i = 0; i < items_count; i++) {
-				auto score = rapidfuzz::fuzz::partial_token_ratio(pattern_buffer, items[i].c_str());
-				if (score >= 70.0) {
+				auto score = rapidfuzz::fuzz::token_set_ratio(pattern_buffer, items[i].c_str());
+				if (score >= 60.0) {
 					itemScoreVector.push_back(std::make_pair(i, score));
 				}
 			}
