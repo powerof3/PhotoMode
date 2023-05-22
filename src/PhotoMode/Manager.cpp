@@ -171,6 +171,7 @@ namespace PhotoMode
 		activated = false;
 	}
 
+	// called by Input
 	void Manager::ToggleActive()
 	{
 		if (!activated) {
@@ -178,7 +179,10 @@ namespace PhotoMode
 				Activate();
 			}
 		} else {
-			Deactivate();
+			if (ImGui::GetIO().WantTextInput) {
+				return;
+			}
+		    Deactivate();
 		}
 	}
 
