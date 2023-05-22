@@ -24,6 +24,7 @@ namespace PhotoMode
 		[[nodiscard]] float GetViewRoll(float a_fallback) const;
 
 		void Draw();
+		void OnFrameUpdate() const;
 
 	private:
 		void DrawControls();
@@ -51,6 +52,7 @@ namespace PhotoMode
 		bool idlePlayed{ false };
 		bool weatherForced{ false };
 		bool effectsPlayed{ false };
+		bool imodPlayed{ false };
 
 		RE::ImageSpaceBaseData imageSpaceData{};
 	};

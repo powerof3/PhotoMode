@@ -51,7 +51,7 @@ namespace PhotoMode
 	{
 		const auto playerRef = RE::PlayerCharacter::GetSingleton();
 
-		visible = playerRef->Get3D() ? !playerRef->Get3D()->GetAppCulled() : true;
+		visible = playerRef->Get3D() ? !playerRef->Get3D()->GetAppCulled() : false;
 
 		rotZ = playerRef->GetAngleZ();
 		pos = playerRef->GetPosition();

@@ -109,6 +109,8 @@ namespace PhotoMode::Renderer
 				return;
 			}
 
+			photoMode->OnFrameUpdate();
+
 			//Predraw UI
 
 			ImGui_ImplDX11_NewFrame();

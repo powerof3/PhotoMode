@@ -125,7 +125,7 @@ namespace PhotoMode
 		inline Forms<RE::TESImageSpaceModifier> imods{ "ImageSpace Modifiers" };
 
 		void GetValidOverrides();
-		void RevertOverrides(bool& a_vfx, bool& a_weather, bool& a_idle);
+		void RevertOverrides(bool& a_vfx, bool& a_weather, bool& a_idle, bool& a_imod);
 
 		void InstallHooks();
 	}

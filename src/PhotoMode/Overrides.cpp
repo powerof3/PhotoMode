@@ -13,7 +13,7 @@ namespace PhotoMode
 			imods.GetValidForms();
 		}
 
-		void RevertOverrides(bool& a_vfx, bool& a_weather, bool& a_idle)
+		void RevertOverrides(bool& a_vfx, bool& a_weather, bool& a_idle, bool& a_imod)
 		{
 			if (a_vfx) {
 				effectShaders.Revert();
@@ -28,7 +28,10 @@ namespace PhotoMode
 				idles.Revert();
 				a_idle = false;
 			}
-			imods.Revert();
+			if (a_imod) {
+				imods.Revert();
+				a_imod = false;
+			}
 		}
 
 		// TESDataHandler idle array is not populated

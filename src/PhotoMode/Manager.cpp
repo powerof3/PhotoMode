@@ -105,7 +105,7 @@ namespace PhotoMode
 		}
 
 		// reset overrides
-		Override::RevertOverrides(effectsPlayed, weatherForced, idlePlayed);
+		Override::RevertOverrides(effectsPlayed, weatherForced, idlePlayed, imodPlayed);
 
 		// reset expressions
 		MFG::RevertAllModifiers();
@@ -206,7 +206,14 @@ namespace PhotoMode
 		ImGui::End();
 	}
 
-	void Manager::DrawControls()
+    void Manager::OnFrameUpdate() const
+    {
+		if (weatherForced) {
+			RE::Sky::GetSingleton()->lastWeatherUpdate = RE::Calendar::GetSingleton()->gameHour->value;
+		}
+	}
+
+    void Manager::DrawControls()
 	{
 		const auto viewport = ImGui::GetMainViewport();
 		const auto io = ImGui::GetIO();
@@ -259,7 +266,7 @@ namespace PhotoMode
 			}
 
 			if (ImGui::OpenTabOnHover("Time/Weather")) {
-				ImGui::OnOffToggle("Freeze Time", &RE::Main::GetSingleton()->freezeTime);
+			    ImGui::OnOffToggle("Freeze Time", &RE::Main::GetSingleton()->freezeTime);
 				ImGui::Slider("Global Time Mult", &RE::BSTimer::GetCurrentGlobalTimeMult(), 0.0f, 2.0f);
 
 				ImGui::Dummy({ 0, 5 });
@@ -277,7 +284,7 @@ namespace PhotoMode
 				ImGui::PushStyleColor(ImGuiCol_NavHighlight, { 0, 0, 0, 0 });
 				if (const auto weather = Override::weathers.GetFormResultFromCombo()) {
 					weatherForced = true;
-					Override::weathers.Apply(weather);
+				    Override::weathers.Apply(weather);
 				}
 				ImGui::PopStyleColor();
 
@@ -326,8 +333,6 @@ namespace PhotoMode
 					}
 
 					if (ImGui::OpenTabOnHover("Poses")) {
-						// disable nav flicker when moving across text input and combo
-						ImGui::PushStyleColor(ImGuiCol_NavHighlight, { 0, 0, 0, 0 });
 						if (const auto idle = Override::idles.GetFormResultFromCombo()) {
 							if (idlePlayed) {
 								Override::idles.Revert(false);
@@ -335,14 +340,10 @@ namespace PhotoMode
 							Override::idles.Apply(idle);
 							idlePlayed = true;
 						}
-						ImGui::PopStyleColor();
 						ImGui::EndTabItem();
 					}
 
 					if (ImGui::OpenTabOnHover("Effects")) {
-						// disable nav flicker when moving across text input and combo
-						ImGui::PushStyleColor(ImGuiCol_NavHighlight, { 0, 0, 0, 0 });
-
 						if (const auto effectShader = Override::effectShaders.GetFormResultFromCombo()) {
 							effectsPlayed = true;
 							Override::effectShaders.Apply(effectShader);
@@ -351,8 +352,6 @@ namespace PhotoMode
 							effectsPlayed = true;
 							Override::effectVFX.Apply(vfx);
 						}
-
-						ImGui::PopStyleColor();
 						ImGui::EndTabItem();
 					}
 
@@ -379,13 +378,10 @@ namespace PhotoMode
 			}
 
 			if (ImGui::OpenTabOnHover("Filter/Lighting")) {
-				// disable nav flicker when moving across text input and combo
-				ImGui::PushStyleColor(ImGuiCol_NavHighlight, { 0, 0, 0, 0 });
 				if (const auto imageSpace = Override::imods.GetFormResultFromCombo()) {
-					Override::imods.Apply(imageSpace);
+					imodPlayed = true;
+				    Override::imods.Apply(imageSpace);
 				}
-				ImGui::PopStyleColor();
-
 				if (const auto& overrideData = RE::ImageSpaceManager::GetSingleton()->overrideBaseData) {
 					ImGui::Slider("Brightness", &overrideData->cinematic.brightness, 0.0f, 3.0f);
 					ImGui::Slider("Saturation", &overrideData->cinematic.saturation, 0.0f, 3.0f);
