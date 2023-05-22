@@ -263,7 +263,7 @@ namespace PhotoMode
 				auto& gameHour = RE::Calendar::GetSingleton()->gameHour->value;
 				ImGui::Slider("Game Hour", &gameHour, 0.0f, 23.99f, std::format("{:%I:%M %p}", std::chrono::duration<float, std::ratio<3600>>(gameHour)).c_str());
 
-			    if (ImGui::DragOnHover("Timescale Mult", &timescaleMult, 10, 1.0f, 1000.0f, "%fX")) {
+			    if (ImGui::DragOnHover("Timescale Mult", &timescaleMult, 10, 1.0f, 1000.0f, "%.fX")) {
 					static auto timescale = RE::Calendar::GetSingleton()->timeScale;
 					timescale->value = originalState.time.timescale * timescaleMult;
 				}

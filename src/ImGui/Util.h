@@ -59,7 +59,7 @@ namespace ImGui
 
 		bool result;
 		if constexpr (std::is_floating_point_v<T>) {
-			result = ImGui::DragFloat(newLabel.c_str(), v, v_speed, v_min, v_max, format ? format : "%f", flags);
+			result = ImGui::DragFloat(newLabel.c_str(), v, v_speed, v_min, v_max, format ? format : "%.2f", flags);
 		} else {
 			result = ImGui::DragInt(newLabel.c_str(), v, v_speed, v_min, v_max, format ? format : "%d", flags);
 		}
@@ -75,7 +75,7 @@ namespace ImGui
 
 	    bool result;
 		if constexpr (std::is_floating_point_v<T>) {
-			result = ImGui::ThinSliderFloat(newLabel.c_str(), v, v_min, v_max, format ? format : "%f", flags);
+			result = ImGui::ThinSliderFloat(newLabel.c_str(), v, v_min, v_max, format ? format : "%.2f", flags);
 		} else {
 			result = ImGui::ThinSliderInt(newLabel.c_str(), v, v_min, v_max, format ? format : "%d", flags);
 		}

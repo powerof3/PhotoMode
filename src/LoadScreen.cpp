@@ -24,10 +24,10 @@ namespace LoadScreen
 	void Manager::Draw()
 	{
 		ImGui::EnumSlider("FullScreenArt", &fullscreenSSType, ssType);
-		ImGui::DragOnHover("FullScreen Art Chance", &fullscreenChance);
+		ImGui::Slider("FullScreen Art Chance", &fullscreenChance, 0, 100);
 
 		ImGui::EnumSlider("Painting", &paintingSSType, ssType);
-		ImGui::DragOnHover("Painting Chance", &paintingChance);
+		ImGui::Slider("Painting Chance", &paintingChance, 0, 100);
 	}
 
 	void Manager::PopulateLoadScreenObjects()

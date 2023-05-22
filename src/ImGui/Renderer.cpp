@@ -51,6 +51,7 @@ namespace PhotoMode::Renderer
 				auto& style = ImGui::GetStyle();
 				style.FrameRounding = 4.0f;
 				style.GrabRounding = 4.0f;
+				style.WindowRounding = 4.0f;
 
 				style.Colors[ImGuiCol_WindowBg] = { 0.0, 0.0, 0.0, 0.62f };
 				style.Colors[ImGuiCol_NavHighlight] = { 0.0, 0.0, 0.0, 0.0f };
