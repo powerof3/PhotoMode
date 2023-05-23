@@ -39,6 +39,12 @@ namespace PhotoMode
 							}
 						}
 					}
+					if constexpr (std::is_same_v<T, RE::TESWeather>) {
+						const auto it = std::ranges::find(formEDIDs, EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
+						index = it != formEDIDs.end() ?
+						            static_cast<std::int32_t>(std::distance(formEDIDs.begin(), it)) :
+						            0;
+					}
 				}
 			}
 
@@ -72,7 +78,14 @@ namespace PhotoMode
 			void Revert(bool a_resetIndex = true)
 			{
 				if (a_resetIndex) {
-					index = 0;
+					if constexpr (std::is_same_v<T, RE::TESWeather>) {
+						const auto it = std::ranges::find(formEDIDs, EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
+						index = it != formEDIDs.end() ?
+						            static_cast<std::int32_t>(std::distance(formEDIDs.begin(), it)) :
+						            0;
+					} else {
+						index = 0;
+					}
 				}
 
 				const auto player = RE::PlayerCharacter::GetSingleton();
@@ -94,7 +107,10 @@ namespace PhotoMode
 						currentProcess->PlayIdle(player, resetRootIdle, nullptr);
 					}
 				} else if constexpr (std::is_same_v<T, RE::TESWeather>) {
-					RE::Sky::GetSingleton()->ResetWeather();
+                    const auto sky = RE::Sky::GetSingleton();
+
+				    sky->ReleaseWeatherOverride();
+					sky->SetWeather(sky->currentWeather, false, true);
 				} else if constexpr (std::is_same_v<T, RE::TESImageSpaceModifier>) {
 					if (currentImod) {
 						RE::ImageSpaceModifierInstanceForm::Stop(currentImod);

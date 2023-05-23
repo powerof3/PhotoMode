@@ -270,7 +270,7 @@ namespace Input
 
 	EventResult Manager::ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*)
 	{
-		if (!a_evn) {
+		if (!a_evn || RE::UI::GetSingleton()->IsMenuOpen(RE::Console::MENU_NAME)) {
 			return EventResult::kContinue;
 		}
 
@@ -278,7 +278,7 @@ namespace Input
 		const auto photoMode = get<PhotoMode::Manager>();
 
 		for (auto event = *a_evn; event; event = event->next) {
-			if (event->eventType == RE::INPUT_EVENT_TYPE::kChar) {
+		    if (event->eventType == RE::INPUT_EVENT_TYPE::kChar) {
 				if (photoMode->IsActive()) {
 					io.AddInputCharacter(static_cast<RE::CharEvent*>(event)->keycode);
 				}
