@@ -9,19 +9,23 @@ namespace PhotoMode
 	public:
 		void LoadSettings(CSimpleIniA& a_ini);
 
-		std::uint32_t GetHotKey() const;
+		[[nodiscard]] std::uint32_t GetHotKey() const;
+
+	    [[nodiscard]] float         GetResetHoldDuration() const;
+		bool                        GetResetAll() const;
+	    void                        DoResetAll(bool a_enable);
+
+		[[nodiscard]] float         GetViewRoll(float a_fallback) const;
 
 		bool        IsActive() const;
 		static bool GetValid();
-
-		void Activate();
-		void Deactivate();
-		void ToggleActive();
+		void        Activate();
+		void        Deactivate();
+		void        ToggleActive();
 
 		void GetOriginalState();
-		void Revert(bool a_deactivate);
-
-		[[nodiscard]] float GetViewRoll(float a_fallback) const;
+		void Revert(bool a_deactivate = false);
+		void RevertTab(std::int32_t a_tabIndex);
 
 		void Draw();
 		void OnFrameUpdate() const;
@@ -31,28 +35,30 @@ namespace PhotoMode
 		void DrawBar() const;
 
 		// kMenu | kActivate | kFighting | kJumping | kConsole | kSneaking
-		static constexpr auto controlFlags = static_cast<RE::ControlMap::UEFlag>(1244);
+		static constexpr auto       controlFlags = static_cast<RE::ControlMap::UEFlag>(1244);
 
-		bool activated{ false };
+	    static constexpr std::array tabEnum = { "CAMERA"sv, "TIME"sv, "PLAYER"sv, "FILTERS"sv, "SCREENSHOTS"sv };
+		static constexpr std::array tabEnumLC = { "camera"sv, "time"sv, "player"sv, "filters"sv, "screenshots"sv };
 
-		// controls
+		bool         activated{ false };
+		std::int32_t tabIndex{ 0 };
+
 		std::uint32_t hotKey{ 49 };  // N
+		float         resetAllHoldDuration{ 0.5 };
+		bool          resetAll{ false };
 
-		// current state
-		State currentState{};
-
-		// state before photomode
 		State           originalState{};
 		RE::CameraState originalCameraState{ RE::CameraState::kThirdPerson };
-		bool            menuAlreadyHidden{ false };
-		bool            doResetWindow{};
+		State           currentState{};
+		bool            menusAlreadyHidden{ false };
+		bool            doResetWindow{ false };
 
 		float timescaleMult{ 1.0f };
-
-		bool idlePlayed{ false };
-		bool weatherForced{ false };
-		bool effectsPlayed{ false };
-		bool imodPlayed{ false };
+		bool  idlePlayed{ false };
+		bool  weatherForced{ false };
+		bool  effectsPlayed{ false };
+		bool  vfxPlayed{ false };
+		bool  imodPlayed{ false };
 
 		RE::ImageSpaceBaseData imageSpaceData{};
 	};

@@ -6,7 +6,7 @@ namespace Input
 	void Manager::LoadSettings(CSimpleIniA& a_ini)
 	{
 		ini::get_value(a_ini, allowMultiScreenshots, "MultiScreenshots", "Enable", ";Allow multi-screenshots by holding down the PrintScn key");
-		ini::get_value(a_ini, keyHeldDuration, "MultiScreenshots", "PrintScnHoldDuration", ";How long should PrintScn be held down before(in seconds).");
+		ini::get_value(a_ini, keyHeldDuration, "MultiScreenshots", "PrintScnHoldDuration", ";How long should PrintScn be held down (in seconds).");
 	}
 
 	void Manager::Register()
@@ -278,7 +278,7 @@ namespace Input
 		const auto photoMode = get<PhotoMode::Manager>();
 
 		for (auto event = *a_evn; event; event = event->next) {
-		    if (event->eventType == RE::INPUT_EVENT_TYPE::kChar) {
+			if (event->eventType == RE::INPUT_EVENT_TYPE::kChar) {
 				if (photoMode->IsActive()) {
 					io.AddInputCharacter(static_cast<RE::CharEvent*>(event)->keycode);
 				}
@@ -307,8 +307,12 @@ namespace Input
 								} else if (allowMultiScreenshots && button->HeldDuration() > keyHeldDuration) {
 									QueueScreenshot(true);
 								}
-							} else if (key == KEY::kR && button->IsDown()) {
-								photoMode->Revert(false);
+							} else if (key == KEY::kR) {
+								if (button->IsUp()) {
+									photoMode->Revert(false);
+								} else if (button->HeldDuration() > photoMode->GetResetHoldDuration()) {
+									photoMode->DoResetAll(true);
+								}
 							} else if (key == KEY::kT && button->IsDown()) {
 								const auto UI = RE::UI::GetSingleton();
 								UI->ShowMenus(!UI->IsShowingMenus());

@@ -110,7 +110,10 @@ namespace PhotoMode
                     const auto sky = RE::Sky::GetSingleton();
 
 				    sky->ReleaseWeatherOverride();
-					sky->SetWeather(sky->currentWeather, false, true);
+					if (const auto currentWeather = sky->currentWeather) {
+						sky->ResetWeather();
+						sky->ForceWeather(currentWeather, false);
+					}
 				} else if constexpr (std::is_same_v<T, RE::TESImageSpaceModifier>) {
 					if (currentImod) {
 						RE::ImageSpaceModifierInstanceForm::Stop(currentImod);
@@ -141,7 +144,6 @@ namespace PhotoMode
 		inline Forms<RE::TESImageSpaceModifier> imods{ "ImageSpace Modifiers" };
 
 		void GetValidOverrides();
-		void RevertOverrides(bool& a_vfx, bool& a_weather, bool& a_idle, bool& a_imod);
 
 		void InstallHooks();
 	}

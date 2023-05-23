@@ -35,17 +35,33 @@ namespace PhotoMode
 			return false;
 		}
 
-	    return true;
+		return true;
 	}
 
 	void Manager::LoadSettings(CSimpleIniA& a_ini)
 	{
 		ini::get_value(a_ini, hotKey, "PhotoMode", "Hotkey", ";Toggle photomode. Default is N\n;DXScanCodes : https://www.creationkit.com/index.php?title=Input_Script");
+		ini::get_value(a_ini, resetAllHoldDuration, "PhotoMode", "ResetAllHoldDuration", "How long should Reset key be held down (in seconds).");
 	}
 
 	std::uint32_t Manager::GetHotKey() const
 	{
 		return hotKey;
+	}
+
+	float Manager::GetResetHoldDuration() const
+	{
+		return resetAllHoldDuration;
+	}
+
+	bool Manager::GetResetAll() const
+	{
+		return resetAll;
+	}
+
+	void Manager::DoResetAll(bool a_enable)
+	{
+		resetAll = a_enable;
 	}
 
 	bool Manager::IsActive() const
@@ -67,7 +83,7 @@ namespace PhotoMode
 			originalCameraState = RE::CameraState::kThirdPerson;
 		}
 
-		menuAlreadyHidden = !RE::UI::GetSingleton()->IsShowingMenus();
+		menusAlreadyHidden = !RE::UI::GetSingleton()->IsShowingMenus();
 
 		// init imagespace
 		const auto IMGS = RE::ImageSpaceManager::GetSingleton();
@@ -84,55 +100,91 @@ namespace PhotoMode
 
 	void Manager::Revert(bool a_deactivate)
 	{
-		originalState.SetState();
-
-		// revert DOF
-		if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
-			static_cast<RE::ImageSpaceEffectDepthOfField*>(effect)->enabled = true;
-		}
-
-		// revert current values not handled by originalState
-		currentState.camera.viewRoll = 0.0f;
-		timescaleMult = 1.0f;
-		currentState.player.pos = RE::NiPoint3();
-
-		if (!currentState.player.visible) {
-			if (const auto root = RE::PlayerCharacter::GetSingleton()->Get3D()) {
-				root->CullGeometry(false);
-			}
-			currentState.player.visible = true;
-		}
-
-		// reset overrides
-		Override::RevertOverrides(effectsPlayed, weatherForced, idlePlayed, imodPlayed);
-
-		// reset expressions
-		MFG::RevertAllModifiers();
-
-		//reset grid
-		Grid::gridType = Grid::kDisabled;
-
-		// reset UI
-		RE::UI::GetSingleton()->ShowMenus(true);
-
-		// reset imagespace
-		const auto IMGS = RE::ImageSpaceManager::GetSingleton();
 		if (a_deactivate) {
-			IMGS->overrideBaseData = nullptr;
-		} else if (IMGS->overrideBaseData) {
-			if (IMGS->currentBaseData) {
-				imageSpaceData = *IMGS->currentBaseData;
+			RevertTab(-1);
+			// reset UI
+			if (!menusAlreadyHidden && !RE::UI::GetSingleton()->IsShowingMenus()) {
+				RE::UI::GetSingleton()->ShowMenus(true);
 			}
-			imageSpaceData.tint.amount = 0.0f;
-			imageSpaceData.tint.color = { 1.0f, 1.0f, 1.0f };
-			IMGS->overrideBaseData = &imageSpaceData;
-		}
-
-		// allow saving
-		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.reset(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
-
-		if (a_deactivate) {
+			tabIndex = 0;
 			doResetWindow = true;
+		} else {
+			RevertTab(resetAll ? -1 : tabIndex);
+			RE::DebugNotification(fmt::format("Photomode : {} settings reset", resetAll ? "All" : tabEnumLC[tabIndex]).c_str());
+		    if (resetAll) {
+				DoResetAll(false);
+			}
+		}
+	}
+
+	void Manager::RevertTab(std::int32_t a_tabIndex)
+	{
+		const bool resetAllTabs = a_tabIndex == -1;
+
+		// Camera
+		if (resetAllTabs || a_tabIndex == 0) {
+			originalState.camera.set();
+			// revert grid
+			Grid::gridType = Grid::kDisabled;
+			// revert DOF
+			if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
+				static_cast<RE::ImageSpaceEffectDepthOfField*>(effect)->enabled = true;
+			}
+			// revert view roll
+			currentState.camera.viewRoll = 0.0f;
+		}
+		// Time/Weather
+		if (resetAllTabs || a_tabIndex == 1) {
+			originalState.time.set();
+			timescaleMult = 1.0f;
+			// revert weather
+			if (weatherForced) {
+				Override::weathers.Revert();
+				weatherForced = false;
+			}
+		}
+		// Player
+		if (resetAllTabs || a_tabIndex == 2) {
+			originalState.player.set();
+			// revert current values
+			currentState.player.pos = RE::NiPoint3();
+			if (!currentState.player.visible) {
+				if (const auto root = RE::PlayerCharacter::GetSingleton()->Get3D()) {
+					root->CullGeometry(false);
+				}
+				currentState.player.visible = true;
+			}
+			// reset expressions
+			MFG::RevertAllModifiers();
+			// revert effects
+			if (effectsPlayed) {
+				Override::effectShaders.Revert();
+				effectsPlayed = false;
+			}
+			if (vfxPlayed) {
+				Override::effectVFX.Revert();
+				vfxPlayed = false;
+			}
+		}
+		// Filters
+		if (resetAllTabs || a_tabIndex == 3) {
+			// reset imagespace
+			const auto IMGS = RE::ImageSpaceManager::GetSingleton();
+			if (resetAllTabs) {
+				IMGS->overrideBaseData = nullptr;
+			} else if (IMGS->overrideBaseData) {
+				if (IMGS->currentBaseData) {
+					imageSpaceData = *IMGS->currentBaseData;
+				}
+				imageSpaceData.tint.amount = 0.0f;
+				imageSpaceData.tint.color = { 1.0f, 1.0f, 1.0f };
+				IMGS->overrideBaseData = &imageSpaceData;
+			}
+			// reset imod
+			if (imodPlayed) {
+				Override::imods.Revert();
+				imodPlayed = false;
+			}
 		}
 	}
 
@@ -163,9 +215,13 @@ namespace PhotoMode
 			}
 		}
 
+		// reset controls
 		const auto controlMap = RE::ControlMap::GetSingleton();
 		controlMap->ToggleControls(controlFlags, true);
 		controlMap->ignoreKeyboardMouse = false;
+
+		// allow saving
+		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.reset(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
 
 		activated = false;
 	}
@@ -181,7 +237,7 @@ namespace PhotoMode
 			if (ImGui::GetIO().WantTextInput) {
 				return;
 			}
-		    Deactivate();
+			Deactivate();
 		}
 	}
 
@@ -205,14 +261,14 @@ namespace PhotoMode
 		ImGui::End();
 	}
 
-    void Manager::OnFrameUpdate() const
-    {
+	void Manager::OnFrameUpdate() const
+	{
 		if (weatherForced) {
 			RE::Sky::GetSingleton()->lastWeatherUpdate = RE::Calendar::GetSingleton()->gameHour->value;
 		}
 	}
 
-    void Manager::DrawControls()
+	void Manager::DrawControls()
 	{
 		const auto viewport = ImGui::GetMainViewport();
 		const auto io = ImGui::GetIO();
@@ -231,6 +287,8 @@ namespace PhotoMode
 			RE::ControlMap::GetSingleton()->ignoreKeyboardMouse = io.WantTextInput;
 
 			if (ImGui::OpenTabOnHover("Camera", doResetWindow ? ImGuiTabItemFlags_SetSelected : 0)) {
+				tabIndex = 0;
+
 				if (doResetWindow) {
 					doResetWindow = false;
 				}
@@ -265,7 +323,9 @@ namespace PhotoMode
 			}
 
 			if (ImGui::OpenTabOnHover("Time/Weather")) {
-			    ImGui::OnOffToggle("Freeze Time", &RE::Main::GetSingleton()->freezeTime);
+				tabIndex = 1;
+
+				ImGui::OnOffToggle("Freeze Time", &RE::Main::GetSingleton()->freezeTime);
 				ImGui::Slider("Global Time Mult", &RE::BSTimer::GetCurrentGlobalTimeMult(), 0.0f, 2.0f);
 
 				ImGui::Dummy({ 0, 5 });
@@ -273,7 +333,7 @@ namespace PhotoMode
 				auto& gameHour = RE::Calendar::GetSingleton()->gameHour->value;
 				ImGui::Slider("Game Hour", &gameHour, 0.0f, 23.99f, std::format("{:%I:%M %p}", std::chrono::duration<float, std::ratio<3600>>(gameHour)).c_str());
 
-			    if (ImGui::DragOnHover("Timescale Mult", &timescaleMult, 10, 1.0f, 1000.0f, "%.fX")) {
+				if (ImGui::DragOnHover("Timescale Mult", &timescaleMult, 10, 1.0f, 1000.0f, "%.fX")) {
 					static auto timescale = RE::Calendar::GetSingleton()->timeScale;
 					timescale->value = originalState.time.timescale * timescaleMult;
 				}
@@ -283,7 +343,7 @@ namespace PhotoMode
 				ImGui::PushStyleColor(ImGuiCol_NavHighlight, { 0, 0, 0, 0 });
 				if (const auto weather = Override::weathers.GetFormResultFromCombo()) {
 					weatherForced = true;
-				    Override::weathers.Apply(weather);
+					Override::weathers.Apply(weather);
 				}
 				ImGui::PopStyleColor();
 
@@ -291,6 +351,8 @@ namespace PhotoMode
 			}
 
 			if (ImGui::OpenTabOnHover("Player")) {
+				tabIndex = 2;
+
 				static auto player = RE::PlayerCharacter::GetSingleton();
 				auto&       playerState = currentState.player;
 
@@ -348,7 +410,7 @@ namespace PhotoMode
 							Override::effectShaders.Apply(effectShader);
 						}
 						if (const auto vfx = Override::effectVFX.GetFormResultFromCombo()) {
-							effectsPlayed = true;
+							vfxPlayed = true;
 							Override::effectVFX.Apply(vfx);
 						}
 						ImGui::EndTabItem();
@@ -377,9 +439,11 @@ namespace PhotoMode
 			}
 
 			if (ImGui::OpenTabOnHover("Filter/Lighting")) {
+				tabIndex = 3;
+
 				if (const auto imageSpace = Override::imods.GetFormResultFromCombo()) {
 					imodPlayed = true;
-				    Override::imods.Apply(imageSpace);
+					Override::imods.Apply(imageSpace);
 				}
 				if (const auto& overrideData = RE::ImageSpaceManager::GetSingleton()->overrideBaseData) {
 					ImGui::Slider("Brightness", &overrideData->cinematic.brightness, 0.0f, 3.0f);
@@ -402,6 +466,8 @@ namespace PhotoMode
 			}
 
 			if (ImGui::OpenTabOnHover("Screenshots")) {
+				tabIndex = 4;
+
 				Screenshot::Manager::GetSingleton()->Draw();
 				ImGui::EndTabItem();
 			}
@@ -427,9 +493,10 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(ImVec2(center.x, (center.y + viewport->Size.y / 2) - offset), ImGuiCond_Always, ImVec2(0.5, 0.25));
 		ImGui::SetNextWindowBgAlpha(0.66f);
 
-		ImGui::BeginChild("##Tab", ImVec2(viewport->Size.x / 3.75f, offset * 0.8f), false, ImGuiWindowFlags_AlwaysAutoResize);
+		ImGui::BeginChild("##Tab", ImVec2(viewport->Size.x / 3.25f, offset * 0.8f), false, ImGuiWindowFlags_AlwaysAutoResize);
 		{
-			ImGui::CenterLabel("PRNTSCRN) TAKE SNAPSHOT T) TOGGLE MENU R) RESET N) EXIT");
+			const auto str = fmt::format("PRNTSCRN) TAKE SNAPSHOT T) TOGGLE MENU R) RESET {} N) EXIT", GetResetAll() ? "ALL" : tabEnum[tabIndex]);
+			ImGui::CenterLabel(str.c_str());
 		}
 		ImGui::EndChild();
 	}

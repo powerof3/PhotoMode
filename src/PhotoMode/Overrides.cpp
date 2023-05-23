@@ -6,32 +6,11 @@ namespace PhotoMode
 	{
 		void GetValidOverrides()
 		{
-		    effectShaders.GetValidForms();
-			effectVFX.GetValidForms();
 			weathers.GetValidForms();
 			idles.GetValidForms();
+			effectShaders.GetValidForms();
+			effectVFX.GetValidForms();
 			imods.GetValidForms();
-		}
-
-		void RevertOverrides(bool& a_vfx, bool& a_weather, bool& a_idle, bool& a_imod)
-		{
-			if (a_vfx) {
-				effectShaders.Revert();
-				effectVFX.Revert();
-				a_vfx = false;
-			}
-			if (a_weather) {
-				weathers.Revert();
-				a_weather = false;
-			}
-			if (a_idle) {
-				idles.Revert();
-				a_idle = false;
-			}
-			if (a_imod) {
-				imods.Revert();
-				a_imod = false;
-			}
 		}
 
 		// TESDataHandler idle array is not populated
