@@ -111,7 +111,7 @@ namespace PhotoMode
 		} else {
 			RevertTab(resetAll ? -1 : tabIndex);
 			RE::DebugNotification(fmt::format("Photomode : {} settings reset", resetAll ? "All" : tabEnumLC[tabIndex]).c_str());
-		    if (resetAll) {
+			if (resetAll) {
 				DoResetAll(false);
 			}
 		}
@@ -185,6 +185,10 @@ namespace PhotoMode
 				Override::imods.Revert();
 				imodPlayed = false;
 			}
+		}
+		// Screenshots
+		if (a_tabIndex == 4) {
+			Screenshot::Manager::GetSingleton()->Revert();
 		}
 	}
 
@@ -263,6 +267,7 @@ namespace PhotoMode
 
 	void Manager::OnFrameUpdate() const
 	{
+		RE::ControlMap::GetSingleton()->ignoreKeyboardMouse = ImGui::GetIO().WantTextInput;
 		if (weatherForced) {
 			RE::Sky::GetSingleton()->lastWeatherUpdate = RE::Calendar::GetSingleton()->gameHour->value;
 		}
@@ -271,7 +276,6 @@ namespace PhotoMode
 	void Manager::DrawControls()
 	{
 		const auto viewport = ImGui::GetMainViewport();
-		const auto io = ImGui::GetIO();
 
 		const static auto center = viewport->GetCenter();
 		const static auto third_width = viewport->Size.x / 3;
@@ -284,8 +288,6 @@ namespace PhotoMode
 		ImGui::Begin("PhotoMode", nullptr, ImGuiWindowFlags_NoMouseInputs);
 
 		if (ImGui::BeginTabBar("PhotoMode#TopBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
-			RE::ControlMap::GetSingleton()->ignoreKeyboardMouse = io.WantTextInput;
-
 			if (ImGui::OpenTabOnHover("Camera", doResetWindow ? ImGuiTabItemFlags_SetSelected : 0)) {
 				tabIndex = 0;
 
@@ -340,12 +342,10 @@ namespace PhotoMode
 
 				ImGui::Dummy({ 0, 15 });
 
-				ImGui::PushStyleColor(ImGuiCol_NavHighlight, { 0, 0, 0, 0 });
 				if (const auto weather = Override::weathers.GetFormResultFromCombo()) {
 					weatherForced = true;
 					Override::weathers.Apply(weather);
 				}
-				ImGui::PopStyleColor();
 
 				ImGui::EndTabItem();
 			}

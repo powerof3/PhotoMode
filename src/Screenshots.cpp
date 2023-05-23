@@ -49,6 +49,18 @@ namespace Screenshot
 		a_ini.SetLongValue("Screenshots", "PaintRadius", paintFilter.radius);
 	}
 
+    void Manager::Revert()
+	{
+		takeScreenshotAsTexture = true;
+		takeVanillaSS = true;
+		applyPaintFilter = true;
+
+		paintFilter.radius = 3;
+		paintFilter.intensity = 20;
+
+		LoadScreen::Manager::GetSingleton()->Revert();
+	}
+
     void Manager::Draw()
 	{
 		ImGui::OnOffToggle("Vanilla screenshots", &takeVanillaSS);

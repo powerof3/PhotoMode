@@ -25,6 +25,7 @@ namespace Screenshot
 	public:
 		void LoadSettings(CSimpleIniA& a_ini);
 		void SaveSettings(CSimpleIniA& a_ini) const;
+		void Revert();
 
 		void Draw();
 
