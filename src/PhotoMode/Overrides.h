@@ -37,7 +37,7 @@ namespace PhotoMode
 						}
 					}
 					if constexpr (std::is_same_v<T, RE::TESWeather>) {
-						const auto it = std::ranges::find(edidFormMap, EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
+						const auto it = edidFormMap.find(EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
 						index = it != edidFormMap.end() ?
 						            static_cast<std::int32_t>(std::distance(edidFormMap.begin(), it)) :
 						            0;
@@ -76,7 +76,7 @@ namespace PhotoMode
 			{
 				if (a_resetIndex) {
 					if constexpr (std::is_same_v<T, RE::TESWeather>) {
-						const auto it = std::ranges::find(edidFormMap, EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
+						const auto it = edidFormMap.find(EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
 						index = it != edidFormMap.end() ?
 						            static_cast<std::int32_t>(std::distance(edidFormMap.begin(), it)) :
 						            0;
