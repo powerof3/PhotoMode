@@ -20,29 +20,26 @@ namespace PhotoMode
 			void GetValidForms()
 			{
 				if constexpr (std::is_same_v<T, RE::TESIdleForm>) {
-					if (!resetRootIdle) {
-						resetRootIdle = RE::TESForm::LookupByEditorID<RE::TESIdleForm>("ResetRoot");
-					}
 					const auto player = RE::PlayerCharacter::GetSingleton();
-					formEDIDs.clear();
-					for (auto& [edid, idle] : forms) {
+					edidFormMap.clear();
+					for (auto& [edid, idle] : edidFormMap) {
 						if (player->CanUseIdle(idle) && idle->CheckConditions(player, nullptr, true)) {
-							formEDIDs.push_back(edid);
+							editorIDs.push_back(edid);
 						}
 					}
 				} else {
-					if (forms.empty()) {
+					if (edidFormMap.empty()) {
 						for (const auto& form : RE::TESDataHandler::GetSingleton()->GetFormArray<T>()) {
 							auto edid = EditorID::GetEditorID(form);
-							if (forms.emplace(edid, form).second) {
-								formEDIDs.emplace_back(edid);
+							if (edidFormMap.emplace(edid, form).second) {
+								editorIDs.emplace_back(edid);
 							}
 						}
 					}
 					if constexpr (std::is_same_v<T, RE::TESWeather>) {
-						const auto it = std::ranges::find(formEDIDs, EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
-						index = it != formEDIDs.end() ?
-						            static_cast<std::int32_t>(std::distance(formEDIDs.begin(), it)) :
+						const auto it = std::ranges::find(edidFormMap, EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
+						index = it != edidFormMap.end() ?
+						            static_cast<std::int32_t>(std::distance(edidFormMap.begin(), it)) :
 						            0;
 					}
 				}
@@ -79,9 +76,9 @@ namespace PhotoMode
 			{
 				if (a_resetIndex) {
 					if constexpr (std::is_same_v<T, RE::TESWeather>) {
-						const auto it = std::ranges::find(formEDIDs, EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
-						index = it != formEDIDs.end() ?
-						            static_cast<std::int32_t>(std::distance(formEDIDs.begin(), it)) :
+						const auto it = std::ranges::find(edidFormMap, EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
+						index = it != edidFormMap.end() ?
+						            static_cast<std::int32_t>(std::distance(edidFormMap.begin(), it)) :
 						            0;
 					} else {
 						index = 0;
@@ -124,16 +121,16 @@ namespace PhotoMode
 
 			T* GetFormResultFromCombo()
 			{
-				if (ImGui::ComboWithFilter(ImGui::LabelPrefix(name).c_str(), &index, formEDIDs)) {
-					return forms.find(formEDIDs[index])->second;
+				if (ImGui::ComboWithFilter(ImGui::LabelPrefix(name).c_str(), &index, editorIDs)) {
+					return edidFormMap.find(editorIDs[index])->second;
 				}
 				return nullptr;
 			}
 
 			// members
 			std::string                                             name;
-			std::vector<std::string>                                formEDIDs{};
-			ankerl::unordered_dense::segmented_map<std::string, T*> forms{};
+			std::vector<std::string>                                editorIDs{};
+			ankerl::unordered_dense::segmented_map<std::string, T*> edidFormMap{};
 			std::int32_t                                            index{};
 		};
 

@@ -6,7 +6,11 @@ namespace PhotoMode
 	{
 		void GetValidOverrides()
 		{
-			weathers.GetValidForms();
+			if (!resetRootIdle) {
+				resetRootIdle = RE::TESForm::LookupByEditorID<RE::TESIdleForm>("ResetRoot");
+			}
+
+		    weathers.GetValidForms();
 			idles.GetValidForms();
 			effectShaders.GetValidForms();
 			effectVFX.GetValidForms();
@@ -19,7 +23,7 @@ namespace PhotoMode
 			static bool thunk(RE::TESIdleForm* a_this, const char* a_str)
 			{
 				if (!string::is_empty(a_str)) {
-					idles.forms.emplace(a_str, a_this);
+					idles.edidFormMap.emplace(a_str, a_this);
 				}
 				return func(a_this, a_str);
 			}

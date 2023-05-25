@@ -66,8 +66,8 @@ namespace PhotoMode::Renderer
 					return;
 				}
 
-				io.FontDefault = io.Fonts->AddFontFromFileTTF(R"(Data\Fonts\Jost-SemiBold.ttf)", 22);
-				selectedFont = io.Fonts->AddFontFromFileTTF(R"(Data\Fonts\Jost-SemiBold.ttf)", 26);
+				io.FontDefault = io.Fonts->AddFontFromFileTTF(R"(Data\Fonts\Jost-Medium.ttf)", 22);
+				selectedFont = io.Fonts->AddFontFromFileTTF(R"(Data\Fonts\Jost-Medium.ttf)", 26);
 
 				logger::info("ImGui initialized.");
 
