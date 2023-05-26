@@ -71,7 +71,7 @@ namespace ImGui
 
 		std::vector<std::pair<int, double>> itemScoreVector;
 		if (is_filtering) {
-		    // Filter before opening to ensure we show the correct size window.
+			// Filter before opening to ensure we show the correct size window.
 			// We won't get in here unless the popup is open.
 			for (int i = 0; i < items_count; i++) {
 				auto score = rapidfuzz::fuzz::partial_token_ratio(pattern_buffer, items[i].c_str());
@@ -251,7 +251,7 @@ namespace ImGui
 			return label;
 		}
 
-	    const float width = CalcItemWidth();
+		const float width = CalcItemWidth();
 		const float x = GetCursorPosX();
 
 		Text(label);
@@ -295,6 +295,8 @@ namespace ImGui
 		if (!ItemAdd(total_bb, id, &frame_bb, false))
 			return;
 
+		RenderNavHighlight(frame_bb, id);
+
 		const bool isHovered = IsItemHovered();
 		if (!isHovered) {
 			PushStyleColor(ImGuiCol_Text, ImVec4{ 0.60f, 0.60f, 0.60f, 1.0f });
@@ -302,17 +304,17 @@ namespace ImGui
 
 		if (isHovered) {
 			PushFont(PhotoMode::Renderer::selectedFont);
-		    RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText, nullptr, nullptr, ImVec2(0.5f, 0.5f));
+			RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText, nullptr, nullptr, ImVec2(0.5f, 0.5f));
 		} else {
 			RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText, nullptr, nullptr, ImVec2(0.5f, 0.5f));
-		    PushFont(PhotoMode::Renderer::selectedFont);
+			PushFont(PhotoMode::Renderer::selectedFont);
 		}
 
 		RenderTextClipped(frame_bb.Min, frame_bb.Max, "<", nullptr, nullptr, ImVec2(0.01f, 0.5f));
 		RenderTextClipped(frame_bb.Min, frame_bb.Max, ">", nullptr, nullptr, ImVec2(0.99f, 0.5f));
 
 		PopFont();
-	    if (!isHovered) {
+		if (!isHovered) {
 			PopStyleColor();
 		}
 
@@ -323,7 +325,7 @@ namespace ImGui
 
 	bool OnOffToggle(const char* label, bool* a_toggle, const char* on, const char* off)
 	{
-	    CenteredTextWithArrows(LabelPrefix(label).c_str(), *a_toggle ? on : off);
+		CenteredTextWithArrows(LabelPrefix(label).c_str(), *a_toggle ? on : off);
 		if (IsItemHovered()) {
 			SetItemDefaultFocus();
 			if (IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter)) {
@@ -443,17 +445,19 @@ namespace ImGui
 		return ThinSliderScalar(label, ImGuiDataType_S32, v, &v_min, &v_max, format, flags, 0.5f);
 	}
 
-	void ActivateOnHover(const char* a_label)
+	void ActivateOnHover()
 	{
-		if (!IsItemActive() && IsItemHovered()) {
-			ActivateItem(GetID(a_label));
+		if (IsItemFocused()) {
+			ActivateItem(GetItemID());
 		}
 	}
 
 	bool OpenTabOnHover(const char* a_label, const ImGuiTabItemFlags flags)
 	{
-		const bool result = BeginTabItem(a_label, nullptr, flags);
-		ActivateOnHover(a_label);
-		return result;
+        const bool selected = BeginTabItem(a_label, nullptr, flags);
+		if (!selected) {
+			ActivateOnHover();
+		}
+		return selected;
 	}
 }

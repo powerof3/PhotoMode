@@ -54,7 +54,6 @@ namespace PhotoMode::Renderer
 				style.WindowRounding = 4.0f;
 
 				style.Colors[ImGuiCol_WindowBg] = { 0.0, 0.0, 0.0, 0.62f };
-				style.Colors[ImGuiCol_NavHighlight] = { 0.0, 0.0, 0.0, 0.0f };
 				style.Colors[ImGuiCol_Border] = { 0.6f, 0.6f, 0.6f, 1.0f };
 
 				if (!ImGui_ImplWin32_Init(desc.OutputWindow)) {

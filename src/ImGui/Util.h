@@ -49,7 +49,7 @@ namespace ImGui
 	bool ThinSliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, ImGuiSliderFlags flags);
 	bool ThinSliderInt(const char* label, int* v, int v_min, int v_max, const char* format, ImGuiSliderFlags flags);
 
-	void ActivateOnHover(const char* a_label);
+	void ActivateOnHover();
 	bool OpenTabOnHover(const char* a_label, ImGuiTabItemFlags flags = 0);
 
     template <class T>
@@ -63,7 +63,9 @@ namespace ImGui
 		} else {
 			result = ImGui::DragInt(newLabel.c_str(), v, v_speed, v_min, v_max, format ? format : "%d", flags);
 		}
-		ActivateOnHover(newLabel.c_str());
+		if (!IsItemActive()) {
+			ActivateOnHover();
+		}
 
         return result;
     }
@@ -79,8 +81,10 @@ namespace ImGui
 		} else {
 			result = ImGui::ThinSliderInt(newLabel.c_str(), v, v_min, v_max, format ? format : "%d", flags);
 		}
-		ActivateOnHover(newLabel.c_str());
+		if (!IsItemActive()) {
+			ActivateOnHover();
+		}
 
-		return result;
+        return result;
 	}
 }

@@ -21,6 +21,7 @@ namespace PhotoMode
 			RE::StatsMenu::MENU_NAME,
 			RE::ContainerMenu::MENU_NAME,
 			RE::DialogueMenu::MENU_NAME,
+			RE::CraftingMenu::MENU_NAME,
 			RE::TweenMenu::MENU_NAME,
 			RE::SleepWaitMenu::MENU_NAME,
 			RE::RaceSexMenu::MENU_NAME,
@@ -438,7 +439,7 @@ namespace PhotoMode
 				ImGui::EndTabItem();
 			}
 
-			if (ImGui::OpenTabOnHover("Filter/Lighting")) {
+			if (ImGui::OpenTabOnHover("Filters")) {
 				tabIndex = 3;
 
 				if (const auto imageSpace = Override::imods.GetFormResultFromCombo()) {
