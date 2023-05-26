@@ -73,7 +73,7 @@ namespace PhotoMode
 	{
 		originalState.GetState();
 
-		Override::GetValidOverrides();
+		Override::InitOverrides();
 
 		// this isn't updated per frame
 		currentState.player.visible = originalState.player.visible;
@@ -445,6 +445,9 @@ namespace PhotoMode
 					imodPlayed = true;
 					Override::imods.Apply(imageSpace);
 				}
+
+				ImGui::Dummy({ 0, 15 });
+
 				if (const auto& overrideData = RE::ImageSpaceManager::GetSingleton()->overrideBaseData) {
 					ImGui::Slider("Brightness", &overrideData->cinematic.brightness, 0.0f, 3.0f);
 					ImGui::Slider("Saturation", &overrideData->cinematic.saturation, 0.0f, 3.0f);

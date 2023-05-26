@@ -40,6 +40,23 @@ using RNG = clib_util::RNG;
 template <class T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
 
+template <class K, class D>
+using Map = ankerl::unordered_dense::segmented_map<K, D>;
+
+struct string_hash
+{
+	using is_transparent = void;  // enable heterogeneous overloads
+	using is_avalanching = void;  // mark class as high quality avalanching hash
+
+	[[nodiscard]] std::uint64_t operator()(std::string_view str) const noexcept
+	{
+		return ankerl::unordered_dense::hash<std::string_view>{}(str);
+	}
+};
+
+template <class D>
+using StringMap = ankerl::unordered_dense::segmented_map<std::string, D, string_hash, std::equal_to<>>;
+
 namespace stl
 {
 	using namespace SKSE::stl;

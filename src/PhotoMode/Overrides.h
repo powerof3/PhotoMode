@@ -6,42 +6,121 @@ namespace PhotoMode
 {
 	namespace Override
 	{
+		constexpr auto allMods = "ALL"sv;
+		constexpr auto ffForms = "FF FORMS"sv;
+
 		inline RE::TESIdleForm*           resetRootIdle;
 		inline RE::TESImageSpaceModifier* currentImod;
+		inline RE::TESWeather*            currentWeather;
 
-		// ugly but avoids polymorphism
 		template <class T>
-		struct Forms
+		class Forms
 		{
-			Forms(std::string a_name) :
-				name(std::move(a_name))
-			{}
-
-			void GetValidForms()
+		public:
+			void AddForm(const std::string& a_edid, T* a_form)
+			{
+				if (edidForms.emplace(a_edid, a_form).second) {
+					edids.push_back(a_edid);
+				}
+			}
+			void UpdateValidForms()
 			{
 				if constexpr (std::is_same_v<T, RE::TESIdleForm>) {
 					const auto player = RE::PlayerCharacter::GetSingleton();
-					edidFormMap.clear();
-					for (auto& [edid, idle] : edidFormMap) {
-						if (player->CanUseIdle(idle) && idle->CheckConditions(player, nullptr, true)) {
-							editorIDs.push_back(edid);
+
+					edids.clear();
+					for (auto& [edid, idle] : edidForms) {
+						if (player->CanUseIdle(idle) && idle->CheckConditions(player, nullptr, false)) {
+							edids.push_back(edid);
 						}
+					}
+				}
+			}
+			void ResetIndex()
+			{
+				if constexpr (std::is_same_v<T, RE::TESWeather>) {
+					const auto it = edidForms.find(EditorID::GetEditorID(currentWeather));
+					if (it != edidForms.end()) {
+						index = static_cast<std::int32_t>(std::distance(edidForms.begin(), it));
+					} else {
+						index = 0;
 					}
 				} else {
-					if (edidFormMap.empty()) {
+					index = 0;
+				}
+			}
+
+			T* GetComboWithFilterResult()
+			{
+				if (ImGui::ComboWithFilter("##forms", &index, edids)) {
+					return edidForms.find(edids[index])->second;
+				}
+				return nullptr;
+			}
+
+		private:
+			// members
+			StringMap<T*>            edidForms{};
+			std::vector<std::string> edids{};
+			std::int32_t             index{};
+		};
+
+		// modName, forms
+		template <class T>
+		class FilteredForms
+		{
+		public:
+			FilteredForms(std::string a_name) :
+				name(std::move(a_name))
+			{}
+
+			void AddForm(const std::string& a_edid, T* a_form)
+			{
+				std::string modName;
+				if (auto file = a_form->GetFile(0)) {
+					modName = file->fileName;
+				} else {
+					modName = ffForms;
+				}
+
+				modNameForms[allMods].AddForm(a_edid, a_form);
+				modNameForms[modName].AddForm(a_edid, a_form);
+			}
+			void InitForms()
+			{
+				if constexpr (!std::is_same_v<T, RE::TESIdleForm>) {
+					if (modNameForms.empty()) {
 						for (const auto& form : RE::TESDataHandler::GetSingleton()->GetFormArray<T>()) {
-							auto edid = EditorID::GetEditorID(form);
-							if (edidFormMap.emplace(edid, form).second) {
-								editorIDs.emplace_back(edid);
-							}
+							AddForm(EditorID::GetEditorID(form), form);
 						}
 					}
-					if constexpr (std::is_same_v<T, RE::TESWeather>) {
-						const auto it = edidFormMap.find(EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
-						index = it != edidFormMap.end() ?
-						            static_cast<std::int32_t>(std::distance(edidFormMap.begin(), it)) :
-						            0;
+				}
+
+				// ALL
+				// ...mods
+				// FF FORMS
+
+				if (modNames.empty()) {
+					modNames.reserve(modNameForms.size());
+					modNames.emplace_back(allMods);
+					for (const auto& file : RE::TESDataHandler::GetSingleton()->files) {
+						if (modNameForms.contains(file->fileName)) {
+							modNames.emplace_back(file->fileName);
+						}
 					}
+					if (modNameForms.contains(ffForms)) {
+						modNames.emplace_back(ffForms);
+					}
+				}
+
+				ResetIndex();
+			}
+			void ResetIndex()
+			{
+				curMod = allMods;
+				index = 0;
+				for (auto& [modName, formData] : modNameForms) {
+					formData.ResetIndex();
 				}
 			}
 
@@ -75,14 +154,7 @@ namespace PhotoMode
 			void Revert(bool a_resetIndex = true)
 			{
 				if (a_resetIndex) {
-					if constexpr (std::is_same_v<T, RE::TESWeather>) {
-						const auto it = edidFormMap.find(EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
-						index = it != edidFormMap.end() ?
-						            static_cast<std::int32_t>(std::distance(edidFormMap.begin(), it)) :
-						            0;
-					} else {
-						index = 0;
-					}
+					ResetIndex();
 				}
 
 				const auto player = RE::PlayerCharacter::GetSingleton();
@@ -104,11 +176,10 @@ namespace PhotoMode
 						currentProcess->PlayIdle(player, resetRootIdle, nullptr);
 					}
 				} else if constexpr (std::is_same_v<T, RE::TESWeather>) {
-                    const auto sky = RE::Sky::GetSingleton();
-
-				    sky->ReleaseWeatherOverride();
-					if (const auto currentWeather = sky->currentWeather) {
-						sky->ResetWeather();
+					const auto sky = RE::Sky::GetSingleton();
+					sky->ReleaseWeatherOverride();
+					sky->ResetWeather();
+					if (currentWeather) {
 						sky->ForceWeather(currentWeather, false);
 					}
 				} else if constexpr (std::is_same_v<T, RE::TESImageSpaceModifier>) {
@@ -121,26 +192,48 @@ namespace PhotoMode
 
 			T* GetFormResultFromCombo()
 			{
-				if (ImGui::ComboWithFilter(ImGui::LabelPrefix(name).c_str(), &index, editorIDs)) {
-					return edidFormMap.find(editorIDs[index])->second;
+				ImGuiContext* g = ImGui::GetCurrentContext();
+				ImGui::TextEx(name.c_str(), ImGui::FindRenderedTextEnd(name.c_str()));
+
+				ImGui::PushID(name.c_str());
+				ImGui::BeginGroup();
+				ImGui::PushMultiItemsWidths(2, ImGui::GetContentRegionAvail().x);
+
+				if (ImGui::ComboWithFilter("##mods", &index, modNames)) {
+					curMod = modNames[index];
+					modNameForms[curMod].UpdateValidForms();
 				}
-				return nullptr;
+
+				ImGui::PopItemWidth();
+				ImGui::SameLine(0, g->Style.ItemInnerSpacing.x);
+
+				T* result = modNameForms[curMod].GetComboWithFilterResult();
+
+				ImGui::PopItemWidth();
+
+				ImGui::EndGroup();
+				ImGui::PopID();
+
+				return result;
 			}
 
+		private:
 			// members
-			std::string                                             name;
-			std::vector<std::string>                                editorIDs{};
-			ankerl::unordered_dense::segmented_map<std::string, T*> edidFormMap{};
-			std::int32_t                                            index{};
+			std::string              name;
+			StringMap<Forms<T>>      modNameForms{};
+			std::vector<std::string> modNames{};
+			std::int32_t             index{};
+
+			std::string curMod{ allMods };
 		};
 
-		inline Forms<RE::TESEffectShader>       effectShaders{ "Effect Shaders" };
-		inline Forms<RE::BGSReferenceEffect>    effectVFX{ "Visual Effects" };
-		inline Forms<RE::TESWeather>            weathers{ "Weathers" };
-		inline Forms<RE::TESIdleForm>           idles{ "Idles" };
-		inline Forms<RE::TESImageSpaceModifier> imods{ "ImageSpace Modifiers" };
+		inline FilteredForms<RE::TESEffectShader>       effectShaders{ "Effect Shaders" };
+		inline FilteredForms<RE::BGSReferenceEffect>    effectVFX{ "Visual Effects" };
+		inline FilteredForms<RE::TESWeather>            weathers{ "Weathers" };
+		inline FilteredForms<RE::TESIdleForm>           idles{ "Idles" };
+		inline FilteredForms<RE::TESImageSpaceModifier> imods{ "ImageSpace Modifiers" };
 
-		void GetValidOverrides();
+		void InitOverrides();
 
 		void InstallHooks();
 	}

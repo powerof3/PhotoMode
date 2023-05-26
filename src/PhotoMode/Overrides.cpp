@@ -4,17 +4,20 @@ namespace PhotoMode
 {
 	namespace Override
 	{
-		void GetValidOverrides()
+		void InitOverrides()
 		{
 			if (!resetRootIdle) {
 				resetRootIdle = RE::TESForm::LookupByEditorID<RE::TESIdleForm>("ResetRoot");
 			}
 
-		    weathers.GetValidForms();
-			idles.GetValidForms();
-			effectShaders.GetValidForms();
-			effectVFX.GetValidForms();
-			imods.GetValidForms();
+			// not static
+			currentWeather = RE::Sky::GetSingleton()->currentWeather;
+
+		    weathers.InitForms();
+			idles.InitForms();
+			effectShaders.InitForms();
+			effectVFX.InitForms();
+			imods.InitForms();
 		}
 
 		// TESDataHandler idle array is not populated
@@ -23,7 +26,7 @@ namespace PhotoMode
 			static bool thunk(RE::TESIdleForm* a_this, const char* a_str)
 			{
 				if (!string::is_empty(a_str)) {
-					idles.edidFormMap.emplace(a_str, a_this);
+					idles.AddForm(a_str, a_this);
 				}
 				return func(a_this, a_str);
 			}
