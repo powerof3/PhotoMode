@@ -53,7 +53,9 @@ namespace PhotoMode
 			T* GetComboWithFilterResult()
 			{
 				if (ImGui::ComboWithFilter("##forms", &index, edids)) {
-					return edidForms.find(edids[index])->second;
+					// avoid losing focus
+				    ImGui::SetKeyboardFocusHere(-1);
+				    return edidForms.find(edids[index])->second;
 				}
 				return nullptr;
 			}
@@ -151,13 +153,10 @@ namespace PhotoMode
 					currentImod = a_form;
 				}
 			}
-			void Revert(bool a_resetIndex = true)
+			void Revert()
 			{
-				if (a_resetIndex) {
-					ResetIndex();
-				}
-
 				const auto player = RE::PlayerCharacter::GetSingleton();
+
 				if constexpr (std::is_same_v<T, RE::TESEffectShader> || std::is_same_v<T, RE::BGSReferenceEffect>) {
 					if (const auto processLists = RE::ProcessLists::GetSingleton()) {
 						const auto handle = player->CreateRefHandle();
@@ -193,15 +192,17 @@ namespace PhotoMode
 			T* GetFormResultFromCombo()
 			{
 				ImGuiContext* g = ImGui::GetCurrentContext();
+
+				ImGui::BeginGroup();
 				ImGui::TextEx(name.c_str(), ImGui::FindRenderedTextEnd(name.c_str()));
 
 				ImGui::PushID(name.c_str());
-				ImGui::BeginGroup();
 				ImGui::PushMultiItemsWidths(2, ImGui::GetContentRegionAvail().x);
 
 				if (ImGui::ComboWithFilter("##mods", &index, modNames)) {
 					curMod = modNames[index];
 					modNameForms[curMod].UpdateValidForms();
+					ImGui::SetKeyboardFocusHere();
 				}
 
 				ImGui::PopItemWidth();
@@ -210,9 +211,9 @@ namespace PhotoMode
 				T* result = modNameForms[curMod].GetComboWithFilterResult();
 
 				ImGui::PopItemWidth();
+				ImGui::PopID();
 
 				ImGui::EndGroup();
-				ImGui::PopID();
 
 				return result;
 			}

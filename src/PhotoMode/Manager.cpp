@@ -110,7 +110,10 @@ namespace PhotoMode
 			tabIndex = 0;
 			doResetWindow = true;
 		} else {
-			RevertTab(resetAll ? -1 : tabIndex);
+			if (ImGui::GetIO().WantTextInput) {
+				return;
+			}
+		    RevertTab(resetAll ? -1 : tabIndex);
 			RE::DebugNotification(fmt::format("Photomode : {} settings reset", resetAll ? "All" : tabEnumLC[tabIndex]).c_str());
 			if (resetAll) {
 				DoResetAll(false);
@@ -139,6 +142,7 @@ namespace PhotoMode
 			originalState.time.set();
 			timescaleMult = 1.0f;
 			// revert weather
+			Override::weathers.ResetIndex();
 			if (weatherForced) {
 				Override::weathers.Revert();
 				weatherForced = false;
@@ -157,12 +161,20 @@ namespace PhotoMode
 			}
 			// reset expressions
 			MFG::RevertAllModifiers();
+			// revert idles
+			Override::idles.ResetIndex();
+		    if (idlePlayed) {
+				Override::idles.Revert();
+				idlePlayed = false;
+			}
 			// revert effects
-			if (effectsPlayed) {
+			Override::effectShaders.ResetIndex();
+		    if (effectsPlayed) {
 				Override::effectShaders.Revert();
 				effectsPlayed = false;
 			}
-			if (vfxPlayed) {
+			Override::effectVFX.ResetIndex();
+		    if (vfxPlayed) {
 				Override::effectVFX.Revert();
 				vfxPlayed = false;
 			}
@@ -182,7 +194,8 @@ namespace PhotoMode
 				IMGS->overrideBaseData = &imageSpaceData;
 			}
 			// reset imod
-			if (imodPlayed) {
+			Override::imods.ResetIndex();
+		    if (imodPlayed) {
 				Override::imods.Revert();
 				imodPlayed = false;
 			}
@@ -269,7 +282,7 @@ namespace PhotoMode
 	void Manager::OnFrameUpdate() const
 	{
 		RE::ControlMap::GetSingleton()->ignoreKeyboardMouse = ImGui::GetIO().WantTextInput;
-		if (weatherForced) {
+	    if (weatherForced) {
 			RE::Sky::GetSingleton()->lastWeatherUpdate = RE::Calendar::GetSingleton()->gameHour->value;
 		}
 	}
@@ -289,9 +302,11 @@ namespace PhotoMode
 		ImGui::Begin("PhotoMode", nullptr, ImGuiWindowFlags_NoMouseInputs);
 
 		if (ImGui::BeginTabBar("PhotoMode#TopBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
-			if (ImGui::OpenTabOnHover("Camera", doResetWindow ? ImGuiTabItemFlags_SetSelected : 0)) {
+			if (doResetWindow) {
+				ImGui::SetKeyboardFocusHere();
+			}
+		    if (ImGui::OpenTabOnHover("Camera", doResetWindow ? ImGuiTabItemFlags_SetSelected : 0)) {
 				tabIndex = 0;
-
 				if (doResetWindow) {
 					doResetWindow = false;
 				}
@@ -344,8 +359,8 @@ namespace PhotoMode
 				ImGui::Dummy({ 0, 15 });
 
 				if (const auto weather = Override::weathers.GetFormResultFromCombo()) {
-					weatherForced = true;
 					Override::weathers.Apply(weather);
+					weatherForced = true;
 				}
 
 				ImGui::EndTabItem();
@@ -397,9 +412,9 @@ namespace PhotoMode
 					if (ImGui::OpenTabOnHover("Poses")) {
 						if (const auto idle = Override::idles.GetFormResultFromCombo()) {
 							if (idlePlayed) {
-								Override::idles.Revert(false);
+								Override::idles.Revert();
 							}
-							Override::idles.Apply(idle);
+						    Override::idles.Apply(idle);
 							idlePlayed = true;
 						}
 						ImGui::EndTabItem();
@@ -407,12 +422,12 @@ namespace PhotoMode
 
 					if (ImGui::OpenTabOnHover("Effects")) {
 						if (const auto effectShader = Override::effectShaders.GetFormResultFromCombo()) {
-							effectsPlayed = true;
 							Override::effectShaders.Apply(effectShader);
+							effectsPlayed = true;
 						}
 						if (const auto vfx = Override::effectVFX.GetFormResultFromCombo()) {
-							vfxPlayed = true;
 							Override::effectVFX.Apply(vfx);
+							vfxPlayed = true;
 						}
 						ImGui::EndTabItem();
 					}
@@ -443,8 +458,8 @@ namespace PhotoMode
 				tabIndex = 3;
 
 				if (const auto imageSpace = Override::imods.GetFormResultFromCombo()) {
-					imodPlayed = true;
 					Override::imods.Apply(imageSpace);
+					imodPlayed = true;
 				}
 
 				ImGui::Dummy({ 0, 15 });

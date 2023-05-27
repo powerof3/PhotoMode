@@ -71,11 +71,11 @@ namespace ImGui
 
 		std::vector<std::pair<int, double>> itemScoreVector;
 		if (is_filtering) {
-			// Filter before opening to ensure we show the correct size window.
+		    // Filter before opening to ensure we show the correct size window.
 			// We won't get in here unless the popup is open.
 			for (int i = 0; i < items_count; i++) {
-				auto score = rapidfuzz::fuzz::partial_token_ratio(pattern_buffer, items[i].c_str());
-				if (score >= 60.0) {
+				auto score = rapidfuzz::fuzz::partial_token_set_ratio(pattern_buffer, items[i].c_str());
+				if (score >= 50.0) {
 					itemScoreVector.push_back(std::make_pair(i, score));
 				}
 			}
@@ -112,6 +112,7 @@ namespace ImGui
 
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, static_cast<ImVec4>(ImColor(240, 240, 240, 255)));
 		ImGui::PushStyleColor(ImGuiCol_Text, static_cast<ImVec4>(ImColor(0, 0, 0, 255)));
+		ImGui::PushStyleColor(ImGuiCol_NavHighlight, static_cast<ImVec4>(ImColor(0, 0, 0, 0)));
 		ImGui::PushItemWidth(-FLT_MIN);
 		// Filter input
 		if (!is_already_open) {
@@ -119,7 +120,7 @@ namespace ImGui
 		}
 		InputText("##ComboWithFilter_inputText", pattern_buffer, MAX_PATH, ImGuiInputTextFlags_AutoSelectAll);
 
-		ImGui::PopStyleColor(2);
+		ImGui::PopStyleColor(3);
 
 		int move_delta = 0;
 		if (IsKeyPressed(ImGuiKey_UpArrow, true)) {
@@ -154,6 +155,7 @@ namespace ImGui
 		size.x = 0.0f;
 		size.y = GetTextLineHeightWithSpacing() * height_in_items_f + g.Style.FramePadding.y * 2.0f;
 
+		ImGui::PushStyleColor(ImGuiCol_NavHighlight, static_cast<ImVec4>(ImColor(0, 0, 0, 0)));
 		if (ImGui::BeginListBox("##ComboWithFilter_itemList", size)) {
 			for (int i = 0; i < show_count; i++) {
 				int idx = is_filtering ? itemScoreVector[i].first : i;
@@ -187,6 +189,7 @@ namespace ImGui
 			}
 		}
 		ImGui::PopItemWidth();
+		ImGui::PopStyleColor();
 		ImGui::EndCombo();
 
 		if (value_changed) {
