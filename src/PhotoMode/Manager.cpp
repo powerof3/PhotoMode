@@ -39,35 +39,61 @@ namespace PhotoMode
 		return true;
 	}
 
-	void Manager::LoadSettings(CSimpleIniA& a_ini)
-	{
-		ini::get_value(a_ini, hotKey, "PhotoMode", "Hotkey", ";Toggle photomode. Default is N\n;DXScanCodes : https://www.creationkit.com/index.php?title=Input_Script");
-		ini::get_value(a_ini, resetAllHoldDuration, "PhotoMode", "ResetAllHoldDuration", "How long should Reset key be held down (in seconds).");
-	}
-
-	std::uint32_t Manager::GetHotKey() const
-	{
-		return hotKey;
-	}
-
-	float Manager::GetResetHoldDuration() const
-	{
-		return resetAllHoldDuration;
-	}
-
-	bool Manager::GetResetAll() const
-	{
-		return resetAll;
-	}
-
-	void Manager::DoResetAll(bool a_enable)
-	{
-		resetAll = a_enable;
-	}
-
 	bool Manager::IsActive() const
 	{
 		return activated;
+	}
+
+	void Manager::Activate()
+	{
+		GetOriginalState();
+
+		RE::PlayerCamera::GetSingleton()->ToggleFreeCameraMode(false);
+		RE::ControlMap::GetSingleton()->ToggleControls(controlFlags, false);
+
+		activated = true;
+	}
+
+	void Manager::Deactivate()
+	{
+		Revert(true);
+
+		Settings::GetSingleton()->SaveSettings();
+
+		if (const auto camera = RE::PlayerCamera::GetSingleton()) {
+			switch (originalCameraState) {
+			case RE::CameraState::kFirstPerson:
+				camera->ForceFirstPerson();
+				break;
+			default:
+				camera->ForceThirdPerson();
+				break;
+			}
+		}
+
+		// reset controls
+		const auto controlMap = RE::ControlMap::GetSingleton();
+		controlMap->ToggleControls(controlFlags, true);
+		controlMap->ignoreKeyboardMouse = false;
+
+		// allow saving
+		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.reset(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
+
+		activated = false;
+	}
+
+	// called by Input
+	void Manager::ToggleActive()
+	{
+		if (!activated) {
+			if (GetValid()) {
+				Activate();
+			}
+		} else {
+			if (!ImGui::GetIO().WantTextInput) {
+				Deactivate();
+			}
+		}
 	}
 
 	void Manager::GetOriginalState()
@@ -110,10 +136,7 @@ namespace PhotoMode
 			tabIndex = 0;
 			doResetWindow = true;
 		} else {
-			if (ImGui::GetIO().WantTextInput) {
-				return;
-			}
-		    RevertTab(resetAll ? -1 : tabIndex);
+			RevertTab(resetAll ? -1 : tabIndex);
 			RE::DebugNotification(fmt::format("Photomode : {} settings reset", resetAll ? "All" : tabEnumLC[tabIndex]).c_str());
 			if (resetAll) {
 				DoResetAll(false);
@@ -163,18 +186,18 @@ namespace PhotoMode
 			MFG::RevertAllModifiers();
 			// revert idles
 			Override::idles.ResetIndex();
-		    if (idlePlayed) {
+			if (idlePlayed) {
 				Override::idles.Revert();
 				idlePlayed = false;
 			}
 			// revert effects
 			Override::effectShaders.ResetIndex();
-		    if (effectsPlayed) {
+			if (effectsPlayed) {
 				Override::effectShaders.Revert();
 				effectsPlayed = false;
 			}
 			Override::effectVFX.ResetIndex();
-		    if (vfxPlayed) {
+			if (vfxPlayed) {
 				Override::effectVFX.Revert();
 				vfxPlayed = false;
 			}
@@ -195,7 +218,7 @@ namespace PhotoMode
 			}
 			// reset imod
 			Override::imods.ResetIndex();
-		    if (imodPlayed) {
+			if (imodPlayed) {
 				Override::imods.Revert();
 				imodPlayed = false;
 			}
@@ -206,57 +229,19 @@ namespace PhotoMode
 		}
 	}
 
-	void Manager::Activate()
+	float Manager::GetResetHoldDuration() const
 	{
-		GetOriginalState();
-
-		RE::PlayerCamera::GetSingleton()->ToggleFreeCameraMode(false);
-		RE::ControlMap::GetSingleton()->ToggleControls(controlFlags, false);
-
-		activated = true;
+		return resetAllHoldDuration;
 	}
 
-	void Manager::Deactivate()
+	bool Manager::GetResetAll() const
 	{
-		Revert(true);
-
-		Settings::GetSingleton()->SaveSettings();
-
-		if (const auto camera = RE::PlayerCamera::GetSingleton()) {
-			switch (originalCameraState) {
-			case RE::CameraState::kFirstPerson:
-				camera->ForceFirstPerson();
-				break;
-			default:
-				camera->ForceThirdPerson();
-				break;
-			}
-		}
-
-		// reset controls
-		const auto controlMap = RE::ControlMap::GetSingleton();
-		controlMap->ToggleControls(controlFlags, true);
-		controlMap->ignoreKeyboardMouse = false;
-
-		// allow saving
-		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.reset(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
-
-		activated = false;
+		return resetAll;
 	}
 
-	// called by Input
-	void Manager::ToggleActive()
+	void Manager::DoResetAll(bool a_enable)
 	{
-		if (!activated) {
-			if (GetValid()) {
-				Activate();
-			}
-		} else {
-			if (ImGui::GetIO().WantTextInput) {
-				return;
-			}
-			Deactivate();
-		}
+		resetAll = a_enable;
 	}
 
 	float Manager::GetViewRoll(const float a_fallback) const
@@ -270,7 +255,7 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(viewport->Pos);
 		ImGui::SetNextWindowSize(viewport->Size);
 
-		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
+		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus);
 
 		DrawControls();
 		DrawBar();
@@ -282,7 +267,7 @@ namespace PhotoMode
 	void Manager::OnFrameUpdate() const
 	{
 		RE::ControlMap::GetSingleton()->ignoreKeyboardMouse = ImGui::GetIO().WantTextInput;
-	    if (weatherForced) {
+		if (weatherForced) {
 			RE::Sky::GetSingleton()->lastWeatherUpdate = RE::Calendar::GetSingleton()->gameHour->value;
 		}
 	}
@@ -299,13 +284,13 @@ namespace PhotoMode
 		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x / 3.5f, viewport->Size.y / 3.5f), ImGuiCond_Always);
 		ImGui::SetNextWindowBgAlpha(0.66f);
 
-		ImGui::Begin("PhotoMode", nullptr, ImGuiWindowFlags_NoMouseInputs);
+		ImGui::Begin("PhotoMode", nullptr, ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNavFocus);
 
-		if (ImGui::BeginTabBar("PhotoMode#TopBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
+		if (ImGui::BeginTabBar("PhotoMode##TopBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
 			if (doResetWindow) {
 				ImGui::SetKeyboardFocusHere();
 			}
-		    if (ImGui::OpenTabOnHover("Camera", doResetWindow ? ImGuiTabItemFlags_SetSelected : 0)) {
+			if (ImGui::OpenTabOnHover("Camera", doResetWindow ? ImGuiTabItemFlags_SetSelected : 0)) {
 				tabIndex = 0;
 				if (doResetWindow) {
 					doResetWindow = false;
@@ -414,7 +399,7 @@ namespace PhotoMode
 							if (idlePlayed) {
 								Override::idles.Revert();
 							}
-						    Override::idles.Apply(idle);
+							Override::idles.Apply(idle);
 							idlePlayed = true;
 						}
 						ImGui::EndTabItem();
@@ -512,7 +497,7 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(ImVec2(center.x, (center.y + viewport->Size.y / 2) - offset), ImGuiCond_Always, ImVec2(0.5, 0.25));
 		ImGui::SetNextWindowBgAlpha(0.66f);
 
-		ImGui::BeginChild("##Tab", ImVec2(viewport->Size.x / 3.25f, offset * 0.8f), false, ImGuiWindowFlags_AlwaysAutoResize);
+		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.25f, offset * 0.8f), false, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus);
 		{
 			const auto str = fmt::format("PRNTSCRN) TAKE SNAPSHOT T) TOGGLE MENU R) RESET {} N) EXIT", GetResetAll() ? "ALL" : tabEnum[tabIndex]);
 			ImGui::CenterLabel(str.c_str());

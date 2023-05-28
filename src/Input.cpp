@@ -5,8 +5,16 @@ namespace Input
 {
 	void Manager::LoadSettings(CSimpleIniA& a_ini)
 	{
-		ini::get_value(a_ini, allowMultiScreenshots, "MultiScreenshots", "Enable", ";Allow multi-screenshots by holding down the PrintScn key");
-		ini::get_value(a_ini, keyHeldDuration, "MultiScreenshots", "PrintScnHoldDuration", ";How long should PrintScn be held down (in seconds).");
+		std::string kPattern{ photomodeIO.keyboard.GetPattern() };
+		ini::get_value(a_ini, kPattern, "PhotoMode", "HotKey", ";Toggle photomode\n\n;Default is N\n;DXScanCodes : https://www.creationkit.com/index.php?title=Input_Script");
+		photomodeIO.keyboard.SetPattern(kPattern);
+
+		std::string gPattern{ photomodeIO.gamePad.GetPattern() };
+		ini::get_value(a_ini, gPattern, "PhotoMode", "GamepadKey", ";Default is LShoulder+RShoulder");
+		photomodeIO.gamePad.SetPattern(gPattern);
+
+		ini::get_value(a_ini, screenshots.allowMultiScreenshots, "MultiScreenshots", "Enable", ";Allow multi-screenshots by holding down the PrintScrn key");
+		ini::get_value(a_ini, screenshots.keyHeldDuration, "MultiScreenshots", "PrintScrnHoldDuration", ";How long should PrintScrn be held down (in seconds).");
 	}
 
 	void Manager::Register()
@@ -21,13 +29,12 @@ namespace Input
 
 	bool Manager::IsScreenshotQueued() const
 	{
-		return screenshotQueued;
+		return screenshots.queued;
 	}
 
 	void Manager::QueueScreenshot(bool a_forceQueue)
 	{
-		screenshotQueued = true;
-		//HideMenu(true);
+		screenshots.queued = true;
 
 		if (a_forceQueue) {
 			(void)RE::MenuControls::GetSingleton()->QueueScreenshot();
@@ -36,11 +43,33 @@ namespace Input
 
 	void Manager::OnScreenshotFinish()
 	{
-		screenshotQueued = false;
-		//HideMenu(false);
+		screenshots.queued = false;
 	}
 
-	ImGuiKey Manager::BSWinKeyToImGuiKey(KEY a_key)
+	void Manager::ToggleActivate(const KeyCombination*)
+	{
+		PhotoMode::Manager::GetSingleton()->ToggleActive();
+	}
+
+	void Manager::SendKeyEvent(RE::INPUT_DEVICE a_device, std::uint32_t a_key, bool a_keyPressed)
+	{
+		ImGuiKey key;
+
+		switch (a_device) {
+		case RE::INPUT_DEVICE::kKeyboard:
+			key = ToImGuiKey(static_cast<RE::BSWin32KeyboardDevice::Key>(a_key));
+			break;
+		case RE::INPUT_DEVICE::kGamepad:
+			key = ToImGuiKey(static_cast<RE::BSWin32GamepadDevice::Key>(a_key));
+			break;
+		default:
+			return;
+		}
+
+		ImGui::GetIO().AddKeyEvent(key, a_keyPressed);
+	}
+
+	ImGuiKey Manager::ToImGuiKey(RE::BSWin32KeyboardDevice::Key a_key)
 	{
 		switch (a_key) {
 		case KEY::kTab:
@@ -256,6 +285,66 @@ namespace Input
 		}
 	}
 
+	ImGuiKey Manager::ToImGuiKey(RE::BSWin32GamepadDevice::Key a_key)
+	{
+		switch (a_key) {
+		case GAMEPAD_KEY::kUp:
+			return ImGuiKey_GamepadDpadUp;
+		case GAMEPAD_KEY::kDown:
+			return ImGuiKey_GamepadDpadDown;
+		case GAMEPAD_KEY::kLeft:
+			return ImGuiKey_GamepadDpadLeft;
+		case GAMEPAD_KEY::kRight:
+			return ImGuiKey_GamepadDpadRight;
+		case GAMEPAD_KEY::kStart:
+			return ImGuiKey_GamepadStart;
+		case GAMEPAD_KEY::kBack:
+			return ImGuiKey_GamepadBack;
+		case GAMEPAD_KEY::kLeftThumb:
+			return ImGuiKey_GamepadL3;
+		case GAMEPAD_KEY::kRightThumb:
+			return ImGuiKey_GamepadR3;
+		case GAMEPAD_KEY::kLeftShoulder:
+			return ImGuiKey_GamepadL1;
+		case GAMEPAD_KEY::kRightShoulder:
+			return ImGuiKey_GamepadR1;
+		case GAMEPAD_KEY::kA:
+			return ImGuiKey_GamepadFaceDown;
+		case GAMEPAD_KEY::kB:
+			return ImGuiKey_GamepadFaceRight;
+		case GAMEPAD_KEY::kX:
+			return ImGuiKey_GamepadFaceLeft;
+		case GAMEPAD_KEY::kY:
+			return ImGuiKey_GamepadFaceUp;
+		default:
+			return ImGuiKey_None;
+		}
+	}
+
+	std::uint32_t Manager::ResetKey(RE::INPUT_DEVICE a_device)
+	{
+		switch (a_device) {
+		case RE::INPUT_DEVICE::kKeyboard:
+			return RE::BSWin32KeyboardDevice::Key::kR;
+		case RE::INPUT_DEVICE::kGamepad:
+			return RE::BSWin32GamepadDevice::Key::kY;
+		default:
+			return 0;
+		}
+	}
+
+	std::uint32_t Manager::ToggleMenuKey(RE::INPUT_DEVICE a_device)
+	{
+		switch (a_device) {
+		case RE::INPUT_DEVICE::kKeyboard:
+			return RE::BSWin32KeyboardDevice::Key::kT;
+		case RE::INPUT_DEVICE::kGamepad:
+			return RE::BSWin32GamepadDevice::Key::kX;
+		default:
+			return 0;
+		}
+	}
+
 	void Manager::HideMenu(bool a_hide)
 	{
 		if (a_hide && RE::UI::GetSingleton()->IsShowingMenus()) {
@@ -276,65 +365,50 @@ namespace Input
 
 		auto&      io = ImGui::GetIO();
 		const auto photoMode = get<PhotoMode::Manager>();
+		const auto deviceMgr = get<RE::BSInputDeviceManager>();
+
+		photomodeIO.keyboard.Process(a_evn);
+		if (deviceMgr->IsGamepadEnabled()) {
+			photomodeIO.gamePad.Process(a_evn);
+		}
 
 		for (auto event = *a_evn; event; event = event->next) {
-			if (event->eventType == RE::INPUT_EVENT_TYPE::kChar) {
+			if (const auto charEvent = event->AsCharEvent()) {
 				if (photoMode->IsActive()) {
-					io.AddInputCharacter(static_cast<RE::CharEvent*>(event)->keycode);
+					io.AddInputCharacter(charEvent->keycode);
 				}
-			} else if (const auto button = event->AsButtonEvent()) {
-				const auto key = button->GetIDCode();
-
-				// toggle key
-				if (key == photoMode->GetHotKey() && button->IsDown()) {
-					photoMode->ToggleActive();
-				}
+			} else if (const auto buttonEvent = event->AsButtonEvent()) {
+				const auto key = buttonEvent->GetIDCode();
+				const auto device = event->GetDevice();
 
 				if (!photoMode->IsActive()) {
-					if (button->QUserEvent() == RE::UserEvents::GetSingleton()->screenshot) {
-						if (allowMultiScreenshots && button->HeldDuration() > keyHeldDuration) {
+					if (buttonEvent->QUserEvent() == RE::UserEvents::GetSingleton()->screenshot) {
+						if (screenshots.allowMultiScreenshots && buttonEvent->HeldDuration() > screenshots.keyHeldDuration) {
 							RE::MenuControls::GetSingleton()->QueueScreenshot();
 						}
 					}
 				} else {
-					switch (event->GetDevice()) {
-					case RE::INPUT_DEVICE::kKeyboard:
-						{
-							io.AddKeyEvent(BSWinKeyToImGuiKey(static_cast<KEY>(key)), button->IsPressed());
-							if (button->QUserEvent() == RE::UserEvents::GetSingleton()->screenshot) {
-								if (button->IsDown()) {
-									QueueScreenshot(false);
-								} else if (allowMultiScreenshots && button->HeldDuration() > keyHeldDuration) {
-									QueueScreenshot(true);
-								}
-							} else if (key == KEY::kR) {
-								if (button->IsUp()) {
-									photoMode->Revert(false);
-								} else if (button->HeldDuration() > photoMode->GetResetHoldDuration()) {
-									photoMode->DoResetAll(true);
-								}
-							} else if (key == KEY::kT && button->IsDown()) {
+					if (buttonEvent->QUserEvent() == RE::UserEvents::GetSingleton()->screenshot) {
+						if (buttonEvent->IsDown()) {
+							QueueScreenshot(false);
+						} else if (screenshots.allowMultiScreenshots && buttonEvent->HeldDuration() > screenshots.keyHeldDuration) {
+							QueueScreenshot(true);
+						}
+					} else if (!io.WantTextInput) {
+						if (key == ResetKey(device)) {
+							if (buttonEvent->IsUp()) {
+								photoMode->Revert(false);
+							} else if (buttonEvent->HeldDuration() > photoMode->GetResetHoldDuration()) {
+								photoMode->DoResetAll(true);
+							}
+						} else if (key == ToggleMenuKey(device)) {
+							if (buttonEvent->IsDown()) {
 								const auto UI = RE::UI::GetSingleton();
 								UI->ShowMenus(!UI->IsShowingMenus());
 							}
 						}
-						break;
-						/*case RE::INPUT_DEVICE::kMouse:
-						{
-							if (key < ImGuiMouseButton_COUNT) {
-								io.AddMouseButtonEvent(key, button->IsPressed());
-							} else if (key == RE::BSWin32MouseDevice::Keys::kWheelUp) {
-								io.AddMouseWheelEvent(0, button->Value());
-							} else if (key == RE::BSWin32MouseDevice::Keys::kWheelDown) {
-								io.AddMouseWheelEvent(0, -button->Value());
-							}
-						}
-						break;*/
-					case RE::INPUT_DEVICE::kGamepad:
-						break;
-					default:
-						break;
 					}
+					SendKeyEvent(device, key, buttonEvent->IsPressed());
 				}
 			}
 		}

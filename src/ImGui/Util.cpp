@@ -71,7 +71,7 @@ namespace ImGui
 
 		std::vector<std::pair<int, double>> itemScoreVector;
 		if (is_filtering) {
-		    // Filter before opening to ensure we show the correct size window.
+			// Filter before opening to ensure we show the correct size window.
 			// We won't get in here unless the popup is open.
 			for (int i = 0; i < items_count; i++) {
 				auto score = rapidfuzz::fuzz::partial_token_set_ratio(pattern_buffer, items[i].c_str());
@@ -123,13 +123,13 @@ namespace ImGui
 		ImGui::PopStyleColor(3);
 
 		int move_delta = 0;
-		if (IsKeyPressed(ImGuiKey_UpArrow, true)) {
+		if (IsKeyPressed(ImGuiKey_UpArrow) || IsKeyPressed(ImGuiKey_GamepadDpadUp)) {
 			--move_delta;
-		} else if (IsKeyPressed(ImGuiKey_DownArrow, true)) {
+		} else if (IsKeyPressed(ImGuiKey_DownArrow) || IsKeyPressed(ImGuiKey_GamepadDpadDown)) {
 			++move_delta;
-		} else if (IsKeyPressed(ImGuiKey_PageUp, true)) {
+		} else if (IsKeyPressed(ImGuiKey_PageUp)) {
 			move_delta -= popup_max_height_in_items;
-		} else if (IsKeyPressed(ImGuiKey_PageDown, true)) {
+		} else if (IsKeyPressed(ImGuiKey_PageDown)) {
 			move_delta += popup_max_height_in_items;
 		}
 
@@ -179,11 +179,11 @@ namespace ImGui
 			}
 			ImGui::EndListBox();
 
-			if (IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_Space)) {
+			if (IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_NavGamepadActivate)) {
 				value_changed = true;
 				*current_item = focus_idx;
 				CloseCurrentPopup();
-			} else if (IsKeyPressed(ImGuiKey_Escape)) {
+			} else if (IsKeyPressed(ImGuiKey_Escape) || IsKeyPressed(ImGuiKey_NavGamepadCancel)) {
 				value_changed = false;
 				CloseCurrentPopup();
 			}
@@ -457,7 +457,7 @@ namespace ImGui
 
 	bool OpenTabOnHover(const char* a_label, const ImGuiTabItemFlags flags)
 	{
-        const bool selected = BeginTabItem(a_label, nullptr, flags);
+		const bool selected = BeginTabItem(a_label, nullptr, flags);
 		if (!selected) {
 			ActivateOnHover();
 		}

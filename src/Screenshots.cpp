@@ -1,9 +1,9 @@
 #include "Screenshots.h"
+#include "ImGui/Util.h"
 #include "Input.h"
 #include "LoadScreen.h"
 #include "Settings.h"
 #include "TextureUtil.h"
-#include "ImGui/Util.h"
 
 namespace Screenshot
 {
@@ -40,8 +40,8 @@ namespace Screenshot
 		get_textures(paintingFolder, paintings);
 	}
 
-    void Manager::SaveSettings(CSimpleIniA& a_ini) const
-    {
+	void Manager::SaveSettings(CSimpleIniA& a_ini) const
+	{
 		a_ini.SetBoolValue("Screenshots", "VanillaScreenshots", takeVanillaSS);
 		a_ini.SetBoolValue("Screenshots", "LoadscreenScreenshots", takeScreenshotAsTexture);
 		a_ini.SetBoolValue("Screenshots", "ApplyPaintingFilter", applyPaintFilter);
@@ -49,7 +49,7 @@ namespace Screenshot
 		a_ini.SetLongValue("Screenshots", "PaintRadius", paintFilter.radius);
 	}
 
-    void Manager::Revert()
+	void Manager::Revert()
 	{
 		takeScreenshotAsTexture = true;
 		takeVanillaSS = true;
@@ -61,13 +61,13 @@ namespace Screenshot
 		LoadScreen::Manager::GetSingleton()->Revert();
 	}
 
-    void Manager::Draw()
+	void Manager::Draw()
 	{
 		ImGui::OnOffToggle("Vanilla screenshots", &takeVanillaSS);
 		ImGui::OnOffToggle("Loadscreen Screenshots", &takeScreenshotAsTexture);
 
 		ImGui::BeginDisabled(!takeScreenshotAsTexture);
-	    ImGui::Dummy({0,5});
+		ImGui::Dummy({ 0, 5 });
 		ImGui::OnOffToggle("Painting filter", &applyPaintFilter, "ENABLED", "DISABLED");
 
 		ImGui::Slider("Paint intensity", &paintFilter.intensity, 1.0f, 100.0f);
@@ -80,10 +80,10 @@ namespace Screenshot
 			}
 			ImGui::EndTabBar();
 		}
-	    ImGui::EndDisabled();
+		ImGui::EndDisabled();
 	}
 
-    void Manager::AddScreenshotPaths(Paths& a_paths)
+	void Manager::AddScreenshotPaths(Paths& a_paths)
 	{
 		screenshots.push_back(Texture::Sanitize(a_paths.screenshot));
 		paintings.push_back(Texture::Sanitize(a_paths.painting));
@@ -113,13 +113,13 @@ namespace Screenshot
 		return takeScreenshotAsTexture && (!screenshots.empty() || !paintings.empty());
 	}
 
-    bool Manager::TakeScreenshotAsTexture(const RE::BSGraphics::Renderer* a_renderer)
+	bool Manager::TakeScreenshotAsTexture(const RE::BSGraphics::Renderer* a_renderer)
 	{
 		if (!takeScreenshotAsTexture) {
 			return false;
 		}
 
-	    Paths ssPaths(GetIndex());
+		Paths ssPaths(GetIndex());
 
 		DirectX::ScratchImage inputImage;
 		Texture::CaptureTexture(a_renderer, inputImage);
@@ -129,10 +129,10 @@ namespace Screenshot
 		if (applyPaintFilter) {
 			DirectX::ScratchImage outputImage;
 
-		    Texture::OilPaintingFilter(inputImage.GetImages(), paintFilter.radius, paintFilter.intensity, outputImage);
+			Texture::OilPaintingFilter(inputImage.GetImages(), paintFilter.radius, paintFilter.intensity, outputImage);
 			Texture::SaveToDDS(a_renderer, outputImage, ssPaths.painting);
 
-            outputImage.Release();
+			outputImage.Release();
 		}
 
 		inputImage.Release();
@@ -141,7 +141,7 @@ namespace Screenshot
 		AddScreenshotPaths(ssPaths);
 
 		// render target should have no UI, safe to enable
-	    Input::Manager::GetSingleton()->OnScreenshotFinish();
+		Input::Manager::GetSingleton()->OnScreenshotFinish();
 
 		// return false so it can capture vanilla screenshot as well
 		return !takeVanillaSS;

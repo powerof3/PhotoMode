@@ -18,18 +18,36 @@ namespace Input
 		void OnScreenshotFinish();
 
 	private:
-		using KEY = RE::BSKeyboardDevice::Key;
+		using KEY = RE::BSWin32KeyboardDevice::Key;
+		using GAMEPAD_KEY = RE::BSWin32GamepadDevice::Key;
 
-		static ImGuiKey BSWinKeyToImGuiKey(KEY a_key);
-		void            HideMenu(bool a_hide);
+		static void ToggleActivate(const KeyCombination*);
+
+		static void     SendKeyEvent(RE::INPUT_DEVICE a_device, std::uint32_t a_key, bool a_keyPressed);
+		static ImGuiKey ToImGuiKey(KEY a_key);
+		static ImGuiKey ToImGuiKey(GAMEPAD_KEY a_key);
+
+		static std::uint32_t ResetKey(RE::INPUT_DEVICE a_device);
+		static std::uint32_t ToggleMenuKey(RE::INPUT_DEVICE a_device);
+
+		void HideMenu(bool a_hide);
 
 		EventResult ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*) override;
 
 		// members
-		bool  allowMultiScreenshots{ true };
-		float keyHeldDuration{ 0.5 };
+		struct
+		{
+			KeyCombination keyboard{ "N", ToggleActivate };
+			KeyCombination gamePad{ "LShoulder+RShoulder", ToggleActivate };
+		} photomodeIO;
 
-		bool screenshotQueued{ false };
+		struct
+		{
+			bool  allowMultiScreenshots{ true };
+			float keyHeldDuration{ 0.5 };
+			bool  queued{ false };
+		} screenshots;
+
 		bool menuHidden{ false };
 	};
 }

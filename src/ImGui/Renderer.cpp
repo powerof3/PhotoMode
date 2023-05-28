@@ -45,7 +45,7 @@ namespace PhotoMode::Renderer
 				ImGui::CreateContext();
 
 				auto& io = ImGui::GetIO();
-				io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard;
+				io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
 				io.IniFilename = nullptr;
 
 				auto& style = ImGui::GetStyle();
@@ -115,6 +115,9 @@ namespace PhotoMode::Renderer
 			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
+
+			// disable windowing
+			GImGui->NavWindowingTarget = nullptr;
 
 			photoMode->Draw();
 

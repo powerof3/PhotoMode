@@ -7,6 +7,7 @@
 #include "SKSE/SKSE.h"
 
 #include <ClibUtil/RNG.hpp>
+#include <ClibUtil/hotkeys.hpp>
 #include <ClibUtil/simpleINI.hpp>
 #include <ClibUtil/singleton.hpp>
 #include <ClibUtil/string.hpp>
@@ -34,6 +35,7 @@ namespace string = clib_util::string;
 
 using namespace std::literals;
 using namespace clib_util::singleton;
+using namespace clib_util::hotkeys;
 
 using RNG = clib_util::RNG;
 

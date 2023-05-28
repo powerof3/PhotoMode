@@ -22,7 +22,7 @@ namespace ImGui
 	{
 		bool value_changed = false;
 
-	    std::int32_t uIndex;
+		std::int32_t uIndex;
 		if constexpr (std::is_enum_v<E>) {
 			uIndex = stl::to_underlying(*index);
 		} else {
@@ -30,8 +30,14 @@ namespace ImGui
 		}
 		CenteredTextWithArrows(LabelPrefix(label).c_str(), a_enum[uIndex]);
 		if (IsItemHovered()) {
-			const bool pressedLeft = IsKeyPressed(ImGuiKey_LeftArrow);
-			const bool pressedRight = IsKeyPressed(ImGuiKey_RightArrow) || IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter);
+			const bool pressedLeft = IsKeyPressed(ImGuiKey_LeftArrow) || IsKeyPressed(ImGuiKey_GamepadDpadLeft);
+
+			const bool pressedRight = IsKeyPressed(ImGuiKey_RightArrow) ||
+			                          IsKeyPressed(ImGuiKey_GamepadDpadRight) ||
+			                          IsKeyPressed(ImGuiKey_Space) ||
+			                          IsKeyPressed(ImGuiKey_Enter) ||
+			                          IsKeyPressed(ImGuiKey_NavGamepadActivate);
+
 			if (pressedLeft) {
 				uIndex = (uIndex - 1 + N) % N;
 			}
@@ -40,7 +46,7 @@ namespace ImGui
 			}
 			if (pressedLeft || pressedRight) {
 				value_changed = true;
-			    *index = static_cast<E>(uIndex);
+				*index = static_cast<E>(uIndex);
 			}
 		}
 		return value_changed;
@@ -52,9 +58,9 @@ namespace ImGui
 	void ActivateOnHover();
 	bool OpenTabOnHover(const char* a_label, ImGuiTabItemFlags flags = 0);
 
-    template <class T>
-    bool DragOnHover(const char* a_label, T* v, float v_speed = 1.0f, T v_min = 0, T v_max = 100, const char* format = nullptr, ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp)
-    {
+	template <class T>
+	bool DragOnHover(const char* a_label, T* v, float v_speed = 1.0f, T v_min = 0, T v_max = 100, const char* format = nullptr, ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp)
+	{
 		const auto newLabel = LabelPrefix(a_label);
 
 		bool result;
@@ -67,15 +73,15 @@ namespace ImGui
 			ActivateOnHover();
 		}
 
-        return result;
-    }
+		return result;
+	}
 
-    template <class T>
+	template <class T>
 	bool Slider(const char* label, T* v, T v_min, T v_max, const char* format = nullptr, ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp)
 	{
-        const auto newLabel = LabelPrefix(label);
+		const auto newLabel = LabelPrefix(label);
 
-	    bool result;
+		bool result;
 		if constexpr (std::is_floating_point_v<T>) {
 			result = ImGui::ThinSliderFloat(newLabel.c_str(), v, v_min, v_max, format ? format : "%.2f", flags);
 		} else {
@@ -85,6 +91,6 @@ namespace ImGui
 			ActivateOnHover();
 		}
 
-        return result;
+		return result;
 	}
 }

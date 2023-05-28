@@ -13,7 +13,7 @@ namespace PhotoMode
 			// not static
 			currentWeather = RE::Sky::GetSingleton()->currentWeather;
 
-		    weathers.InitForms();
+			weathers.InitForms();
 			idles.InitForms();
 			effectShaders.InitForms();
 			effectVFX.InitForms();
@@ -44,12 +44,12 @@ namespace PhotoMode
 	{
 		void Expression::ApplyExpression(RE::Actor* a_actor) const
 		{
-		    if (const auto faceData = a_actor->GetFaceGenAnimationData()) {
+			if (const auto faceData = a_actor->GetFaceGenAnimationData()) {
 				if (modifier == 0) {
 					faceData->ClearExpressionOverride();
 					faceData->Reset(0.0f, true, false, false, false);
 					RE::BSFaceGenManager::GetSingleton()->isReset = true;
-                } else {
+				} else {
 					faceData->exprOverride = false;
 					faceData->SetExpressionOverride(modifier - 1, strength);
 					faceData->exprOverride = true;
@@ -138,7 +138,7 @@ namespace PhotoMode
 		case kTriangle:
 			{
 				static bool mirrored = false;
-				if (ImGui::IsKeyPressed(ImGuiKey_LeftShift)) {
+				if (ImGui::IsKeyPressed(ImGuiKey_LeftShift) /*|| ImGui::IsKeyPressed(ImGuiKey_GamepadFaceLeft)*/) {
 					mirrored = !mirrored;
 				}
 
