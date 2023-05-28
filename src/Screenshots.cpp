@@ -12,7 +12,7 @@ namespace Screenshot
 		painting(fmt::format("{}/Screenshot_{}.dds", paintingFolder, index))
 	{}
 
-	void Manager::get_textures(const std::string& a_folder, std::vector<std::string>& a_textures)
+	void Manager::get_textures(std::string_view a_folder, std::vector<std::string>& a_textures)
 	{
 		const std::filesystem::directory_entry folder{ a_folder };
 		if (!folder.exists()) {
@@ -34,7 +34,13 @@ namespace Screenshot
 
 	void Manager::LoadSettings(CSimpleIniA& a_ini)
 	{
-		ini::get_value(a_ini, index, "PhotoMode", "ScreenShotIndex", nullptr);
+		ini::get_value(a_ini, index, "Screenshots", "ScreenShotIndex", nullptr);
+		ini::get_value(a_ini, takeScreenshotAsPNG, "Screenshots", "SaveAsPNG", ";Take regular screenshots in PhotoMode");
+		ini::get_value(a_ini, takeScreenshotAsDDS, "Screenshots", "SaveAsDDS", ";Save screenshots as DDS (show in loading screens)");
+		ini::get_value(a_ini, applyPaintFilter, "Screenshots", "ApplyPaintingFilter", ";Apply an oil painting filter (to loadscreen screenshots)");
+		ini::get_value(a_ini, paintFilter.intensity, "Screenshots", "PaintIntensity", nullptr);
+		ini::get_value(a_ini, paintFilter.radius, "Screenshots", "PaintRadius", nullptr);
+	    ini::get_value(a_ini, compressTextures, "Screenshots", "CompressTextures", ";Save screenshot textures with BC7 compression");
 
 		get_textures(screenshotFolder, screenshots);
 		get_textures(paintingFolder, paintings);
@@ -42,8 +48,8 @@ namespace Screenshot
 
 	void Manager::SaveSettings(CSimpleIniA& a_ini) const
 	{
-		a_ini.SetBoolValue("Screenshots", "VanillaScreenshots", takeVanillaSS);
-		a_ini.SetBoolValue("Screenshots", "LoadscreenScreenshots", takeScreenshotAsTexture);
+		a_ini.SetBoolValue("Screenshots", "SaveAsPNG", takeScreenshotAsPNG);
+		a_ini.SetBoolValue("Screenshots", "SaveAsDDS", takeScreenshotAsDDS);
 		a_ini.SetBoolValue("Screenshots", "ApplyPaintingFilter", applyPaintFilter);
 		a_ini.SetDoubleValue("Screenshots", "PaintIntensity", paintFilter.intensity);
 		a_ini.SetLongValue("Screenshots", "PaintRadius", paintFilter.radius);
@@ -51,8 +57,8 @@ namespace Screenshot
 
 	void Manager::Revert()
 	{
-		takeScreenshotAsTexture = true;
-		takeVanillaSS = true;
+		takeScreenshotAsPNG = true;
+		takeScreenshotAsDDS = true;
 		applyPaintFilter = true;
 
 		paintFilter.radius = 3;
@@ -63,10 +69,10 @@ namespace Screenshot
 
 	void Manager::Draw()
 	{
-		ImGui::OnOffToggle("Vanilla screenshots", &takeVanillaSS);
-		ImGui::OnOffToggle("Loadscreen Screenshots", &takeScreenshotAsTexture);
+		ImGui::OnOffToggle("Regular screenshots", &takeScreenshotAsPNG);
+		ImGui::OnOffToggle("Loadscreen screenshots", &takeScreenshotAsDDS);
 
-		ImGui::BeginDisabled(!takeScreenshotAsTexture);
+		ImGui::BeginDisabled(!takeScreenshotAsDDS);
 		ImGui::Dummy({ 0, 5 });
 		ImGui::OnOffToggle("Painting filter", &applyPaintFilter, "ENABLED", "DISABLED");
 
@@ -103,35 +109,55 @@ namespace Screenshot
 		CSimpleIniA ini;
 		ini.SetUnicode();
 		ini.LoadFile(path);
-		ini.SetLongValue("PhotoMode", "ScreenShotIndex", index);
+		ini.SetLongValue("Screenshots", "ScreenShotIndex", index);
 
 		(void)ini.SaveFile(path);
 	}
 
 	bool Manager::CanDisplayScreenshot() const
 	{
-		return takeScreenshotAsTexture && (!screenshots.empty() || !paintings.empty());
+		return takeScreenshotAsDDS && (!screenshots.empty() || !paintings.empty());
 	}
 
-	bool Manager::TakeScreenshotAsTexture(const RE::BSGraphics::Renderer* a_renderer)
+	bool Manager::TakeScreenshotAsTexture()
 	{
-		if (!takeScreenshotAsTexture) {
+		if (!takeScreenshotAsDDS) {
+			return false;
+		}
+
+        const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
+		if (!renderer) {
 			return false;
 		}
 
 		Paths ssPaths(GetIndex());
 
-		DirectX::ScratchImage inputImage;
-		Texture::CaptureTexture(a_renderer, inputImage);
+	    // capture screenshot to be used for regular dds/painted dds
+	    DirectX::ScratchImage inputImage;
+        Texture::CaptureTexture(renderer, inputImage);
 
-		Texture::SaveToDDS(a_renderer, inputImage, ssPaths.screenshot);
+		// regular
+		if (compressTextures) {
+            DirectX::ScratchImage outputImage;
+            Texture::CompressTexture(renderer, inputImage, outputImage);
+			Texture::SaveToDDS(outputImage, ssPaths.screenshot);
+			outputImage.Release();
+		} else {
+			Texture::SaveToDDS(inputImage, ssPaths.screenshot);
+		}
 
+		// painting
 		if (applyPaintFilter) {
 			DirectX::ScratchImage outputImage;
-
 			Texture::OilPaintingFilter(inputImage.GetImages(), paintFilter.radius, paintFilter.intensity, outputImage);
-			Texture::SaveToDDS(a_renderer, outputImage, ssPaths.painting);
-
+			if (compressTextures) {
+				DirectX::ScratchImage compressedImage;
+				Texture::CompressTexture(renderer, outputImage, compressedImage);  // NOLINT(readability-suspicious-call-argument)
+				Texture::SaveToDDS(compressedImage, ssPaths.painting);
+				compressedImage.Release();
+			} else {
+				Texture::SaveToDDS(outputImage, ssPaths.painting);
+			}
 			outputImage.Release();
 		}
 
@@ -144,7 +170,7 @@ namespace Screenshot
 		Input::Manager::GetSingleton()->OnScreenshotFinish();
 
 		// return false so it can capture vanilla screenshot as well
-		return !takeVanillaSS;
+		return !takeScreenshotAsPNG;
 	}
 
 	std::string Manager::GetRandomScreenshot()
@@ -170,18 +196,9 @@ namespace Screenshot
 	{
 		static void thunk(const char* a_screenshotPath, RE::BSGraphics::TextureFileFormat a_format)
 		{
-			const auto startTime = std::chrono::steady_clock::now();
-
-			if (!get<Input::Manager>()->IsScreenshotQueued() || !get<Manager>()->TakeScreenshotAsTexture(RE::BSGraphics::Renderer::GetSingleton())) {
+			if (!Input::Manager::GetSingleton()->IsScreenshotQueued() || !Screenshot::Manager::GetSingleton()->TakeScreenshotAsTexture()) {
 				func(a_screenshotPath, a_format);
 			}
-
-			const auto endTime = std::chrono::steady_clock::now();
-
-			auto durUS = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
-			auto durMS = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
-
-			logger::info("took {}us/{} ms", durUS, durMS);
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
 	};

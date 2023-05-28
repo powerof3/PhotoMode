@@ -138,28 +138,28 @@ namespace Texture
 		return true;
 	}
 
-	void SaveToDDS(const RE::BSGraphics::Renderer* a_this, const DirectX::ScratchImage& a_inputImage, const std::string& a_path)
+	void CompressTexture(const RE::BSGraphics::Renderer* a_this, const DirectX::ScratchImage& a_inputImage, DirectX::ScratchImage& a_outputImage)
 	{
 		// Compress texture
 		const ComPtr<ID3D11Device> device{ a_this->data.forwarder };
 
-		DirectX::ScratchImage compressedImage;
-		auto                  hr = DirectX::Compress(device.Get(), a_inputImage.GetImages(), 1, a_inputImage.GetMetadata(),
-            DXGI_FORMAT_BC7_UNORM,
-            DirectX::TEX_COMPRESS_BC7_QUICK,
-            0.0f,
-            compressedImage);
+		auto hr = DirectX::Compress(device.Get(), a_inputImage.GetImages(), 1, a_inputImage.GetMetadata(),
+			DXGI_FORMAT_BC7_UNORM,
+			DirectX::TEX_COMPRESS_BC7_QUICK,
+			0.0f,
+			a_outputImage);
 		if (FAILED(hr)) {
 			logger::info("Failed to compress dds");
 		}
+	}
 
+	void SaveToDDS(const DirectX::ScratchImage& a_inputImage, const std::string& a_path)
+	{
 		// Save texture
 		const auto wPath = detail::to_wstring(a_path);
-		hr = DirectX::SaveToDDSFile(compressedImage.GetImages(), 1, compressedImage.GetMetadata(), DirectX::DDS_FLAGS_NONE, wPath.c_str());
+		auto       hr = DirectX::SaveToDDSFile(a_inputImage.GetImages(), 1, a_inputImage.GetMetadata(), DirectX::DDS_FLAGS_NONE, wPath.c_str());
 		if (FAILED(hr)) {
 			logger::info("Failed to save dds");
 		}
-
-		compressedImage.Release();
 	}
 }

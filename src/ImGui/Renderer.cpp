@@ -97,7 +97,7 @@ namespace PhotoMode::Renderer
 				return;
 			}
 
-			const auto photoMode = get<Manager>();
+			const auto photoMode = PhotoMode::Manager::GetSingleton();
 
 			if (!photoMode->IsActive()) {
 				return;

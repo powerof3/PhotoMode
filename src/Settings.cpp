@@ -11,9 +11,9 @@ void Settings::LoadSettings() const
 
 	ini.LoadFile(path);
 
-	Load<Screenshot::Manager>(ini);
-	Load<Input::Manager>(ini);
-	Load<LoadScreen::Manager>(ini);
+	Load<Input::Manager>(ini);       // photomode IO
+	Load<Screenshot::Manager>(ini);  // screenshot
+	Load<LoadScreen::Manager>(ini);  // loadscreen
 
 	(void)ini.SaveFile(path);
 }

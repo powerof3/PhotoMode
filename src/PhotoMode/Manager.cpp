@@ -509,7 +509,7 @@ namespace PhotoMode
 	{
 		static void thunk(RE::NiMatrix3* a_matrix, float a_z, float a_x, float a_y)
 		{
-			return func(a_matrix, a_z, a_x, get<Manager>()->GetViewRoll(a_y));
+			return func(a_matrix, a_z, a_x, Manager::GetSingleton()->GetViewRoll(a_y));
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
 	};

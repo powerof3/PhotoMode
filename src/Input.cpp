@@ -364,8 +364,8 @@ namespace Input
 		}
 
 		auto&      io = ImGui::GetIO();
-		const auto photoMode = get<PhotoMode::Manager>();
-		const auto deviceMgr = get<RE::BSInputDeviceManager>();
+		const auto photoMode = PhotoMode::Manager::GetSingleton();
+		const auto deviceMgr = RE::BSInputDeviceManager::GetSingleton();
 
 		photomodeIO.keyboard.Process(a_evn);
 		if (deviceMgr->IsGamepadEnabled()) {

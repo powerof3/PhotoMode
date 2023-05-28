@@ -80,13 +80,6 @@ namespace stl
 	}
 }
 
-// short hand to avoid calling GetSingleton everytime
-template <class T>
-T* get()
-{
-	return T::GetSingleton();
-}
-
 #ifdef SKYRIM_AE
 #	define OFFSET(se, ae) ae
 #else

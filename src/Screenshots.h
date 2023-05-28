@@ -2,8 +2,8 @@
 
 namespace Screenshot
 {
-	inline std::string screenshotFolder{ "Data/Textures/Screenshots" };
-	inline std::string paintingFolder{ "Data/Textures/Screenshots/Paintings" };
+	inline std::string_view screenshotFolder{ "Data/Textures/Screenshots"sv };
+	inline std::string_view paintingFolder{ "Data/Textures/Screenshots/Paintings"sv };
 
 	enum class Type
 	{
@@ -29,7 +29,7 @@ namespace Screenshot
 
 		void Draw();
 
-		bool TakeScreenshotAsTexture(const RE::BSGraphics::Renderer* a_renderer);
+		bool TakeScreenshotAsTexture();
 
 		std::uint32_t GetIndex() const;
 		void          IncrementIndex();
@@ -39,7 +39,7 @@ namespace Screenshot
 		std::string GetRandomPaintingShot();
 
 	private:
-		static void get_textures(const std::string& a_folder, std::vector<std::string>& a_textures);
+		static void get_textures(std::string_view a_folder, std::vector<std::string>& a_textures);
 		void        AddScreenshotPaths(Paths& a_paths);
 
 		// members
@@ -47,8 +47,10 @@ namespace Screenshot
 		std::vector<std::string> paintings{};
 		std::uint32_t            index{ 0 };
 
-		bool takeScreenshotAsTexture{ true };
-		bool takeVanillaSS{ true };
+		bool takeScreenshotAsPNG{ true };
+		bool takeScreenshotAsDDS{ true };
+
+		bool compressTextures{ true };
 
 		bool applyPaintFilter{ true };
 		struct
