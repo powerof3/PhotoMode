@@ -54,8 +54,8 @@ namespace PhotoMode
 			{
 				if (ImGui::ComboWithFilter("##forms", &index, edids)) {
 					// avoid losing focus
-				    ImGui::SetKeyboardFocusHere(-1);
-				    return edidForms.find(edids[index])->second;
+					ImGui::SetKeyboardFocusHere(-1);
+					return edidForms.find(edids[index])->second;
 				}
 				return nullptr;
 			}

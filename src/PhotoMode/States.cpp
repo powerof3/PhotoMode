@@ -27,13 +27,13 @@ namespace PhotoMode
 		viewRoll = 0.0f;
 	}
 
-    void State::Time::get()
+	void State::Time::get()
 	{
 		freezeTime = RE::Main::GetSingleton()->freezeTime;
 		globalTimeMult = RE::BSTimer::GetCurrentGlobalTimeMult();
 
-        const auto calendar = RE::Calendar::GetSingleton();
-	    timescale = calendar->GetTimescale();
+		const auto calendar = RE::Calendar::GetSingleton();
+		timescale = calendar->GetTimescale();
 		gameHour = calendar->gameHour->value;
 	}
 	void State::Time::set() const
@@ -42,9 +42,9 @@ namespace PhotoMode
 		RE::BSTimer::GetCurrentGlobalTimeMult() = globalTimeMult;
 
 		const auto calendar = RE::Calendar::GetSingleton();
-	    calendar->timeScale->value = timescale;
+		calendar->timeScale->value = timescale;
 		// shouldn't revert time?
-	    // calendar->gameHour->value = gameHour;
+		// calendar->gameHour->value = gameHour;
 	}
 
 	void State::Player::get()

@@ -6,7 +6,7 @@ namespace LoadScreen
 {
 	struct Transform
 	{
-		float        scale{1.0f};
+		float        scale{ 1.0f };
 		RE::NiPoint3 rotationalOffset{};
 		RE::NiPoint3 translateOffset{};
 	};
@@ -17,7 +17,7 @@ namespace LoadScreen
 		kFullScreen,
 		kPainting
 	};
-	
+
 	class Manager final : public ISingleton<Manager>
 	{
 	public:
@@ -41,7 +41,7 @@ namespace LoadScreen
 	private:
 		static constexpr std::array<const char*, 3> ssType{ "DISABLED", "SCREENSHOT TEXTURE", "PAINTING TEXTURE" };
 
-	    // members
+		// members
 		Screenshot::Type fullscreenSSType{ Screenshot::Type::kScreenshot };
 		std::int32_t     fullscreenChance{ 50 };
 

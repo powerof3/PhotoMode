@@ -3,7 +3,7 @@
 class Settings : public ISingleton<Settings>
 {
 public:
-	void LoadSettings()const;
+	void LoadSettings() const;
 	void SaveSettings() const;
 
 	template <class T>

@@ -1,8 +1,8 @@
 #include "Settings.h"
-#include "Screenshots.h"
 #include "Input.h"
 #include "LoadScreen.h"
 #include "PhotoMode/Manager.h"
+#include "Screenshots.h"
 
 void Settings::LoadSettings() const
 {

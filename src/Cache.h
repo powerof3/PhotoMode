@@ -81,7 +81,7 @@ namespace Cache
 		inline static bool& centerWeightToggle{
 			*REL::Relocation<bool*>{ RELOCATION_ID(528124, 415069) }
 		};
-	    inline static float& centerWeight{
+		inline static float& centerWeight{
 			*REL::Relocation<float*>{ RELOCATION_ID(528120, 415065) }
 		};
 		inline static float& maxDepth{

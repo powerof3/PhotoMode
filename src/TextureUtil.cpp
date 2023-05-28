@@ -145,10 +145,10 @@ namespace Texture
 
 		DirectX::ScratchImage compressedImage;
 		auto                  hr = DirectX::Compress(device.Get(), a_inputImage.GetImages(), 1, a_inputImage.GetMetadata(),
-							 DXGI_FORMAT_BC7_UNORM,
-							 DirectX::TEX_COMPRESS_BC7_QUICK,
-							 0.0f,
-							 compressedImage);
+            DXGI_FORMAT_BC7_UNORM,
+            DirectX::TEX_COMPRESS_BC7_QUICK,
+            0.0f,
+            compressedImage);
 		if (FAILED(hr)) {
 			logger::info("Failed to compress dds");
 		}

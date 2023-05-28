@@ -27,10 +27,10 @@ namespace PhotoMode
 			void set() const;
 
 			// members
-		    bool  freezeTime{ false };
+			bool  freezeTime{ false };
 			float globalTimeMult{ 1.0f };
 			float gameHour{};
-		    float timescale{};
+			float timescale{};
 		};
 		struct Player
 		{
@@ -38,7 +38,7 @@ namespace PhotoMode
 			void set() const;
 
 			// members
-		    bool         visible{ true };
+			bool         visible{ true };
 			float        rotZ{};
 			RE::NiPoint3 pos{};
 		};

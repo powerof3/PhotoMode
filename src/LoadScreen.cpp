@@ -21,7 +21,7 @@ namespace LoadScreen
 		a_ini.SetLongValue("LoadScreen", "PaintingChance", paintingChance, nullptr);
 	}
 
-    void Manager::Revert()
+	void Manager::Revert()
 	{
 		fullscreenSSType = Screenshot::Type::kScreenshot;
 		fullscreenChance = 50;
@@ -30,7 +30,7 @@ namespace LoadScreen
 		paintingChance = 50;
 	}
 
-    void Manager::Draw()
+	void Manager::Draw()
 	{
 		ImGui::EnumSlider("FullScreenArt", &fullscreenSSType, ssType);
 		ImGui::Slider("FullScreen Art Chance", &fullscreenChance, 0, 100);
