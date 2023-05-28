@@ -40,7 +40,7 @@ namespace Screenshot
 		ini::get_value(a_ini, applyPaintFilter, "Screenshots", "ApplyPaintingFilter", ";Apply an oil painting filter (to loadscreen screenshots)");
 		ini::get_value(a_ini, paintFilter.intensity, "Screenshots", "PaintIntensity", nullptr);
 		ini::get_value(a_ini, paintFilter.radius, "Screenshots", "PaintRadius", nullptr);
-	    ini::get_value(a_ini, compressTextures, "Screenshots", "CompressTextures", ";Save screenshot textures with BC7 compression");
+		ini::get_value(a_ini, compressTextures, "Screenshots", "CompressTextures", ";Save screenshot textures with BC7 compression");
 
 		get_textures(screenshotFolder, screenshots);
 		get_textures(paintingFolder, paintings);
@@ -125,21 +125,21 @@ namespace Screenshot
 			return false;
 		}
 
-        const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
+		const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
 		if (!renderer) {
 			return false;
 		}
 
 		Paths ssPaths(GetIndex());
 
-	    // capture screenshot to be used for regular dds/painted dds
-	    DirectX::ScratchImage inputImage;
-        Texture::CaptureTexture(renderer, inputImage);
+		// capture screenshot to be used for regular dds/painted dds
+		DirectX::ScratchImage inputImage;
+		Texture::CaptureTexture(renderer, inputImage);
 
 		// regular
 		if (compressTextures) {
-            DirectX::ScratchImage outputImage;
-            Texture::CompressTexture(renderer, inputImage, outputImage);
+			DirectX::ScratchImage outputImage;
+			Texture::CompressTexture(renderer, inputImage, outputImage);
 			Texture::SaveToDDS(outputImage, ssPaths.screenshot);
 			outputImage.Release();
 		} else {
