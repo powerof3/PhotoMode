@@ -33,8 +33,8 @@ namespace PhotoMode
 		// kMenu | kActivate | kFighting | kJumping | kConsole | kSneaking
 		static constexpr auto controlFlags = static_cast<RE::ControlMap::UEFlag>(1244);
 
-		static constexpr std::array tabEnum = { "CAMERA"sv, "TIME"sv, "PLAYER"sv, "FILTERS"sv, "SCREENSHOTS"sv };
-		static constexpr std::array tabEnumLC = { "camera"sv, "time"sv, "player"sv, "filters"sv, "screenshots"sv };
+		static constexpr std::array tabEnum = { "$PM_CAMERA", "$PM_TIME", "$PM_PLAYER", "$PM_FILTERS", "$PM_SCREENSHOTS" };
+		static constexpr std::array tabEnumNotif = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifScreenshots" };
 
 		bool         activated{ false };
 		std::int32_t tabIndex{ 0 };
@@ -58,5 +58,5 @@ namespace PhotoMode
 		RE::ImageSpaceBaseData imageSpaceData{};
 	};
 
-	void InstallHooks();
+	void InstallHook();
 }

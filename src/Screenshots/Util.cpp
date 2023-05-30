@@ -1,34 +1,10 @@
-#include "TextureUtil.h"
+#include "Screenshots/Util.h"
 
-namespace Texture
+namespace Screenshot::Texture
 {
-	namespace detail
-	{
-		// https://github.com/Ryan-rsm-McKenzie/ScaleformTranslationPP/blob/660b623e1f4171d42daa39ca97a881689983ccb1/src/LocaleManager.cpp
-		std::wstring to_wstring(const std::string& a_str)
-		{
-			if (a_str.empty()) {
-				return {};
-			}
-
-			const auto size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, a_str.c_str(), static_cast<int>(a_str.length()), nullptr, 0);
-			if (bool err = size == 0; !err) {
-				std::wstring strTo;
-				strTo.resize(size);
-				err = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, a_str.c_str(), static_cast<int>(a_str.length()), strTo.data(), size) == 0;
-				if (!err) {
-					return strTo;
-				}
-			}
-
-			return {};
-		}
-	}
-
 	std::string Sanitize(std::string& a_path)
 	{
-		std::ranges::transform(a_path, a_path.begin(),
-			[](char c) { return static_cast<char>(std::tolower(c)); });
+		a_path = clib_util::string::tolower(a_path);
 
 		a_path = srell::regex_replace(a_path, srell::regex("/+|\\\\+"), "\\");
 		a_path = srell::regex_replace(a_path, srell::regex("^\\\\+"), "");
@@ -156,8 +132,8 @@ namespace Texture
 	void SaveToDDS(const DirectX::ScratchImage& a_inputImage, const std::string& a_path)
 	{
 		// Save texture
-		const auto wPath = detail::to_wstring(a_path);
-		auto       hr = DirectX::SaveToDDSFile(a_inputImage.GetImages(), 1, a_inputImage.GetMetadata(), DirectX::DDS_FLAGS_NONE, wPath.c_str());
+		const auto wPath = stl::utf8_to_utf16(a_path);
+		auto       hr = DirectX::SaveToDDSFile(a_inputImage.GetImages(), 1, a_inputImage.GetMetadata(), DirectX::DDS_FLAGS_NONE, wPath->c_str());
 		if (FAILED(hr)) {
 			logger::info("Failed to save dds");
 		}

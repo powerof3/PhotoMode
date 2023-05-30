@@ -1,9 +1,10 @@
-#include "Screenshots.h"
+#include "Screenshots/Manager.h"
+
 #include "ImGui/Util.h"
 #include "Input.h"
 #include "LoadScreen.h"
+#include "Screenshots/Util.h"
 #include "Settings.h"
-#include "TextureUtil.h"
 
 namespace Screenshot
 {
@@ -40,7 +41,7 @@ namespace Screenshot
 		ini::get_value(a_ini, applyPaintFilter, "Screenshots", "ApplyPaintingFilter", ";Apply an oil painting filter (to loadscreen screenshots)");
 		ini::get_value(a_ini, paintFilter.intensity, "Screenshots", "PaintIntensity", nullptr);
 		ini::get_value(a_ini, paintFilter.radius, "Screenshots", "PaintRadius", nullptr);
-	    ini::get_value(a_ini, compressTextures, "Screenshots", "CompressTextures", ";Save screenshot textures with BC7 compression");
+		ini::get_value(a_ini, compressTextures, "Screenshots", "CompressTextures", ";Save screenshot textures with BC7 compression");
 
 		get_textures(screenshotFolder, screenshots);
 		get_textures(paintingFolder, paintings);
@@ -69,18 +70,18 @@ namespace Screenshot
 
 	void Manager::Draw()
 	{
-		ImGui::OnOffToggle("Regular screenshots", &takeScreenshotAsPNG);
-		ImGui::OnOffToggle("Loadscreen screenshots", &takeScreenshotAsDDS);
+		ImGui::OnOffToggle("$PM_RegularScreenshots"_T, &takeScreenshotAsPNG, "$PM_YES"_T, "$PM_NO"_T);
+		ImGui::OnOffToggle("$PM_LoadScreenScreenshots"_T, &takeScreenshotAsDDS, "$PM_YES"_T, "$PM_NO"_T);
 
 		ImGui::BeginDisabled(!takeScreenshotAsDDS);
 		ImGui::Dummy({ 0, 5 });
-		ImGui::OnOffToggle("Painting filter", &applyPaintFilter, "ENABLED", "DISABLED");
+		ImGui::OnOffToggle("$PM_PaintingFilter"_T, &applyPaintFilter, "$PM_ENABLED"_T, "$PM_DISABLED"_T);
 
-		ImGui::Slider("Paint intensity", &paintFilter.intensity, 1.0f, 100.0f);
-		ImGui::Slider("Paint radius", &paintFilter.radius, 1, 10);
+		ImGui::Slider("$PM_PaintIntensity"_T, &paintFilter.intensity, 1.0f, 100.0f);
+		ImGui::Slider("$PM_PaintRadius"_T, &paintFilter.radius, 1, 10);
 
 		if (ImGui::BeginTabBar("LoadScreen##Bar")) {
-			if (ImGui::BeginTabItem("LoadScreen")) {
+			if (ImGui::BeginTabItem("$PM_LoadScreen"_T)) {
 				LoadScreen::Manager::GetSingleton()->Draw();
 				ImGui::EndTabItem();
 			}
@@ -125,21 +126,21 @@ namespace Screenshot
 			return false;
 		}
 
-        const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
+		const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
 		if (!renderer) {
 			return false;
 		}
 
 		Paths ssPaths(GetIndex());
 
-	    // capture screenshot to be used for regular dds/painted dds
-	    DirectX::ScratchImage inputImage;
-        Texture::CaptureTexture(renderer, inputImage);
+		// capture screenshot to be used for regular dds/painted dds
+		DirectX::ScratchImage inputImage;
+		Texture::CaptureTexture(renderer, inputImage);
 
 		// regular
 		if (compressTextures) {
-            DirectX::ScratchImage outputImage;
-            Texture::CompressTexture(renderer, inputImage, outputImage);
+			DirectX::ScratchImage outputImage;
+			Texture::CompressTexture(renderer, inputImage, outputImage);
 			Texture::SaveToDDS(outputImage, ssPaths.screenshot);
 			outputImage.Release();
 		} else {

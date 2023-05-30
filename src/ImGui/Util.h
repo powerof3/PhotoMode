@@ -15,7 +15,7 @@ namespace ImGui
 	void CenterLabel(const char* label);
 	void CenteredTextWithArrows(const char* label, const char* centerText);
 
-	bool OnOffToggle(const char* label, bool* a_toggle, const char* on = "YES", const char* off = "NO");
+	bool OnOffToggle(const char* label, bool* a_toggle, const char* on, const char* off);
 
 	template <class E, std::size_t N>
 	bool EnumSlider(const char* label, E* index, std::array<const char*, N> a_enum)
@@ -28,7 +28,7 @@ namespace ImGui
 		} else {
 			uIndex = *index;
 		}
-		CenteredTextWithArrows(LabelPrefix(label).c_str(), a_enum[uIndex]);
+		CenteredTextWithArrows(LabelPrefix(label).c_str(), TRANSLATE(a_enum[uIndex]));
 		if (IsItemHovered()) {
 			const bool pressedLeft = IsKeyPressed(ImGuiKey_LeftArrow) || IsKeyPressed(ImGuiKey_GamepadDpadLeft);
 

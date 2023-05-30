@@ -1,14 +1,15 @@
 set(sources ${sources}
-	src/PCH.cpp
-	src/main.cpp
-	src/Settings.cpp
-	src/Screenshots.cpp
-	src/LoadScreen.cpp
-	src/TextureUtil.cpp
 	src/Input.cpp
+	src/main.cpp
+	src/PCH.cpp
+	src/Settings.cpp
+	src/Translation.cpp
+	src/ImGui/Renderer.cpp
+	src/ImGui/Util.cpp
+	src/PhotoMode/Manager.cpp
 	src/PhotoMode/Overrides.cpp
 	src/PhotoMode/States.cpp
-	src/PhotoMode/Manager.cpp
-	src/ImGui/Util.cpp
-	src/ImGui/Renderer.cpp
+	src/Screenshots/LoadScreen.cpp
+	src/Screenshots/Manager.cpp
+	src/Screenshots/Util.cpp
 )

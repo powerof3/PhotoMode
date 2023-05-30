@@ -2,7 +2,7 @@
 
 #include "ImGui/Util.h"
 #include "Overrides.h"
-#include "Screenshots.h"
+#include "Screenshots/Manager.h"
 #include "Settings.h"
 
 namespace PhotoMode
@@ -137,7 +137,10 @@ namespace PhotoMode
 			doResetWindow = true;
 		} else {
 			RevertTab(resetAll ? -1 : tabIndex);
-			RE::DebugNotification(fmt::format("Photomode : {} settings reset", resetAll ? "All" : tabEnumLC[tabIndex]).c_str());
+
+			const auto notification = fmt::format("{}", resetAll ? "$PM_ResetNotifAll"_T : TRANSLATE(tabEnumNotif[tabIndex]));
+		    RE::DebugNotification(notification.c_str());
+
 			if (resetAll) {
 				DoResetAll(false);
 			}
@@ -255,7 +258,7 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(viewport->Pos);
 		ImGui::SetNextWindowSize(viewport->Size);
 
-		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus);
+		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
 
 		DrawControls();
 		DrawBar();
@@ -284,38 +287,38 @@ namespace PhotoMode
 		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x / 3.5f, viewport->Size.y / 3.5f), ImGuiCond_Always);
 		ImGui::SetNextWindowBgAlpha(0.66f);
 
-		ImGui::Begin("PhotoMode", nullptr, ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNavFocus);
+		ImGui::Begin("$PM_Title"_T, nullptr, ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNavFocus);
 
 		if (ImGui::BeginTabBar("PhotoMode##TopBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
 			if (doResetWindow) {
 				ImGui::SetKeyboardFocusHere();
 			}
-			if (ImGui::OpenTabOnHover("Camera", doResetWindow ? ImGuiTabItemFlags_SetSelected : 0)) {
+			if (ImGui::OpenTabOnHover("$PM_Camera"_T, doResetWindow ? ImGuiTabItemFlags_SetSelected : 0)) {
 				tabIndex = 0;
 				if (doResetWindow) {
 					doResetWindow = false;
 				}
 
-				ImGui::EnumSlider("Grid", &Grid::gridType, Grid::gridEnum);
+				ImGui::EnumSlider("$PM_Grid"_T, &Grid::gridType, Grid::gridTypes);
 
-				ImGui::Slider("Field of View", &RE::PlayerCamera::GetSingleton()->worldFOV, 20.0f, 120.0f);
-				ImGui::Slider("View Roll", &currentState.camera.viewRoll, -2.0f, 2.0f);
-				ImGui::Slider("Translate Speed",
+				ImGui::Slider("$PM_FieldOfView"_T, &RE::PlayerCamera::GetSingleton()->worldFOV, 20.0f, 120.0f);
+				ImGui::Slider("$PM_ViewRoll"_T, &currentState.camera.viewRoll, -2.0f, 2.0f);
+				ImGui::Slider("$PM_TranslateSpeed"_T,
 					&Cache::translateSpeedValue,  // fFreeCameraTranslationSpeed:Camera
 					0.1f, 50.0f);
 
 				if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
-					if (ImGui::TreeNode("Depth of Field")) {
+					if (ImGui::TreeNode("$PM_DepthOfField"_T)) {
 						const auto dofEffect = static_cast<RE::ImageSpaceEffectDepthOfField*>(effect);
 
-						ImGui::OnOffToggle("Enabled", &dofEffect->enabled);
+						ImGui::OnOffToggle("$PM_DOF_Enabled"_T, &dofEffect->enabled, "$PM_YES"_T, "$PM_NO"_T);
 
 						ImGui::BeginDisabled(!dofEffect->enabled);
-						ImGui::Slider("Strength", &Cache::DOF::blurMultiplier, 0.0f, 1.0f);
-						ImGui::Slider("Near Distance", &Cache::DOF::nearDist, 0.0f, 1000.0f);
-						ImGui::Slider("Near Range", &Cache::DOF::nearRange, 0.0f, 1000.0f);
-						ImGui::Slider("Far Distance", &Cache::DOF::farDist, 0.0f, 100000.0f);
-						ImGui::Slider("Far Range", &Cache::DOF::farRange, 0.0f, 100000.0f);
+						ImGui::Slider("$PM_DOF_Strength"_T, &Cache::DOF::blurMultiplier, 0.0f, 1.0f);
+						ImGui::Slider("$PM_DOF_NearDistance"_T, &Cache::DOF::nearDist, 0.0f, 1000.0f);
+						ImGui::Slider("$PM_DOF_NearRange"_T, &Cache::DOF::nearRange, 0.0f, 1000.0f);
+						ImGui::Slider("$PM_DOF_FarDistance"_T, &Cache::DOF::farDist, 0.0f, 100000.0f);
+						ImGui::Slider("$PM_DOF_FarRange"_T, &Cache::DOF::farRange, 0.0f, 100000.0f);
 						ImGui::EndDisabled();
 
 						ImGui::TreePop();
@@ -325,20 +328,19 @@ namespace PhotoMode
 				ImGui::EndTabItem();
 			}
 
-			if (ImGui::OpenTabOnHover("Time/Weather")) {
+			if (ImGui::OpenTabOnHover("$PM_TimeWeather"_T)) {
 				tabIndex = 1;
 
-				ImGui::OnOffToggle("Freeze Time", &RE::Main::GetSingleton()->freezeTime);
-				ImGui::Slider("Global Time Mult", &RE::BSTimer::GetCurrentGlobalTimeMult(), 0.0f, 2.0f);
+				ImGui::OnOffToggle("$PM_FreezeTime"_T, &RE::Main::GetSingleton()->freezeTime, "$PM_YES"_T, "$PM_NO"_T);
+				ImGui::Slider("$PM_GlobalTimeMult"_T, &RE::BSTimer::GetCurrentGlobalTimeMult(), 0.0f, 2.0f);
 
 				ImGui::Dummy({ 0, 5 });
 
 				auto& gameHour = RE::Calendar::GetSingleton()->gameHour->value;
-				ImGui::Slider("Game Hour", &gameHour, 0.0f, 23.99f, std::format("{:%I:%M %p}", std::chrono::duration<float, std::ratio<3600>>(gameHour)).c_str());
+				ImGui::Slider("$PM_GameHour"_T, &gameHour, 0.0f, 23.99f, std::format("{:%I:%M %p}", std::chrono::duration<float, std::ratio<3600>>(gameHour)).c_str());
 
-				if (ImGui::DragOnHover("Timescale Mult", &timescaleMult, 10, 1.0f, 1000.0f, "%.fX")) {
-					static auto timescale = RE::Calendar::GetSingleton()->timeScale;
-					timescale->value = originalState.time.timescale * timescaleMult;
+				if (ImGui::DragOnHover("$PM_TimeScaleMult"_T, &timescaleMult, 10, 1.0f, 1000.0f, "%.fX")) {
+					RE::Calendar::GetSingleton()->timeScale->value = originalState.time.timescale * timescaleMult;
 				}
 
 				ImGui::Dummy({ 0, 15 });
@@ -351,30 +353,30 @@ namespace PhotoMode
 				ImGui::EndTabItem();
 			}
 
-			if (ImGui::OpenTabOnHover("Player")) {
+			if (ImGui::OpenTabOnHover("$PM_Player"_T)) {
 				tabIndex = 2;
 
 				static auto player = RE::PlayerCharacter::GetSingleton();
 				auto&       playerState = currentState.player;
 
-				if (ImGui::OnOffToggle("Show player", &playerState.visible)) {
+				if (ImGui::OnOffToggle("$PM_ShowPlayer"_T, &playerState.visible, "$PM_YES"_T, "$PM_NO"_T)) {
 					player->Get3D()->CullGeometry(!playerState.visible);
 				}
 
 				ImGui::BeginDisabled(!playerState.visible);
 				if (ImGui::BeginTabBar("Player#TopBar", ImGuiTabBarFlags_FittingPolicyResizeDown)) {
 					// ugly af, improve later
-					if (ImGui::OpenTabOnHover("Expressions")) {
+					if (ImGui::OpenTabOnHover("$PM_Expressions"_T)) {
 						using namespace MFG;
 
-						if (ImGui::TreeNode("Expressions##node")) {
-							if (ImGui::EnumSlider("Expression", &expressionData.modifier, expressions)) {
+						if (ImGui::TreeNode("$PM_ExpressionsNode"_T)) {
+							if (ImGui::EnumSlider("$PM_Expression"_T, &expressionData.modifier, expressions)) {
 								expressionData.ApplyExpression(player);
 							}
 							ImGui::TreePop();
 						}
 
-						if (ImGui::TreeNode("Phoneme")) {
+						if (ImGui::TreeNode("$PM_Phoneme"_T)) {
 							for (std::uint32_t i = 0; i < phonemes.size(); i++) {
 								if (ImGui::DragOnHover(phonemes[i], &phonemeData[i].strength)) {
 									phonemeData[i].ApplyPhenome(i, player);
@@ -383,7 +385,7 @@ namespace PhotoMode
 							ImGui::TreePop();
 						}
 
-						if (ImGui::TreeNode("Modifier")) {
+						if (ImGui::TreeNode("$PM_Modifier"_T)) {
 							for (std::uint32_t i = 0; i < modifiers.size(); i++) {
 								if (ImGui::DragOnHover(modifiers[i], &modifierData[i].strength)) {
 									modifierData[i].ApplyModifier(i, player);
@@ -394,7 +396,7 @@ namespace PhotoMode
 						ImGui::EndTabItem();
 					}
 
-					if (ImGui::OpenTabOnHover("Poses")) {
+					if (ImGui::OpenTabOnHover("$PM_Poses"_T)) {
 						if (const auto idle = Override::idles.GetFormResultFromCombo()) {
 							if (idlePlayed) {
 								Override::idles.Revert();
@@ -405,7 +407,7 @@ namespace PhotoMode
 						ImGui::EndTabItem();
 					}
 
-					if (ImGui::OpenTabOnHover("Effects")) {
+					if (ImGui::OpenTabOnHover("$PM_Effects"_T)) {
 						if (const auto effectShader = Override::effectShaders.GetFormResultFromCombo()) {
 							Override::effectShaders.Apply(effectShader);
 							effectsPlayed = true;
@@ -417,14 +419,14 @@ namespace PhotoMode
 						ImGui::EndTabItem();
 					}
 
-					if (ImGui::OpenTabOnHover("Transforms")) {
+					if (ImGui::OpenTabOnHover("$PM_Transforms"_T)) {
 						playerState.rotZ = RE::rad_to_deg(player->GetAngleZ());
-						if (ImGui::Slider("Rotation", &playerState.rotZ, 0.0f, 360.0f)) {
+						if (ImGui::Slider("$PM_Rotation"_T, &playerState.rotZ, 0.0f, 360.0f)) {
 							player->SetRotationZ(RE::deg_to_rad(playerState.rotZ));
 						}
 
-						bool update = ImGui::Slider("Position Left/Right", &playerState.pos.x, -100.0f, 100.0f);
-						update |= ImGui::Slider("Position Near/Far", &playerState.pos.y, -100.0f, 100.0f);
+						bool update = ImGui::Slider("$PM_PositionLeftRight"_T, &playerState.pos.x, -100.0f, 100.0f);
+						update |= ImGui::Slider("$PM_PositionNearFar"_T, &playerState.pos.y, -100.0f, 100.0f);
 						// update |= ImGui::Slider("Elevation", &playerState.pos.z, -100.0f, 100.0f);
 
 						if (update) {
@@ -439,7 +441,7 @@ namespace PhotoMode
 				ImGui::EndTabItem();
 			}
 
-			if (ImGui::OpenTabOnHover("Filters")) {
+			if (ImGui::OpenTabOnHover("$PM_Filters"_T)) {
 				tabIndex = 3;
 
 				if (const auto imageSpace = Override::imods.GetFormResultFromCombo()) {
@@ -450,15 +452,15 @@ namespace PhotoMode
 				ImGui::Dummy({ 0, 15 });
 
 				if (const auto& overrideData = RE::ImageSpaceManager::GetSingleton()->overrideBaseData) {
-					ImGui::Slider("Brightness", &overrideData->cinematic.brightness, 0.0f, 3.0f);
-					ImGui::Slider("Saturation", &overrideData->cinematic.saturation, 0.0f, 3.0f);
-					ImGui::Slider("Contrast", &overrideData->cinematic.contrast, 0.0f, 3.0f);
+					ImGui::Slider("$PM_Brightness"_T, &overrideData->cinematic.brightness, 0.0f, 3.0f);
+					ImGui::Slider("$PM_Saturation"_T, &overrideData->cinematic.saturation, 0.0f, 3.0f);
+					ImGui::Slider("$PM_Contrast"_T, &overrideData->cinematic.contrast, 0.0f, 3.0f);
 
-					if (ImGui::TreeNode("Tint")) {
-						ImGui::Slider("Tint Alpha", &overrideData->tint.amount, 0.0f, 1.0f);
-						ImGui::Slider("Red", &overrideData->tint.color.red, 0.0f, 1.0f);
-						ImGui::Slider("Blue", &overrideData->tint.color.blue, 0.0f, 1.0f);
-						ImGui::Slider("Green", &overrideData->tint.color.green, 0.0f, 1.0f);
+					if (ImGui::TreeNode("$PM_Tint"_T)) {
+						ImGui::Slider("$PM_TintAlpha"_T, &overrideData->tint.amount, 0.0f, 1.0f);
+						ImGui::Slider("$PM_TintRed"_T, &overrideData->tint.color.red, 0.0f, 1.0f);
+						ImGui::Slider("$PM_TintBlue"_T, &overrideData->tint.color.blue, 0.0f, 1.0f);
+						ImGui::Slider("$PM_TintGreen"_T, &overrideData->tint.color.green, 0.0f, 1.0f);
 
 						ImGui::TreePop();
 					}
@@ -469,7 +471,7 @@ namespace PhotoMode
 				ImGui::EndTabItem();
 			}
 
-			if (ImGui::OpenTabOnHover("Screenshots")) {
+			if (ImGui::OpenTabOnHover("$PM_Screenshots"_T)) {
 				tabIndex = 4;
 
 				Screenshot::Manager::GetSingleton()->Draw();
@@ -497,9 +499,14 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(ImVec2(center.x, (center.y + viewport->Size.y / 2) - offset), ImGuiCond_Always, ImVec2(0.5, 0.25));
 		ImGui::SetNextWindowBgAlpha(0.66f);
 
-		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.25f, offset * 0.8f), false, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus);
+		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.25f, offset * 0.8f), false, ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
-			const auto str = fmt::format("PRNTSCRN) TAKE SNAPSHOT T) TOGGLE MENU R) RESET {} N) EXIT", GetResetAll() ? "ALL" : tabEnum[tabIndex]);
+			const auto str = fmt::format("PRNTSCRN) {} T) {} R) {} {} N) {}",
+				"$PM_TAKEPHOTO"_T,
+				"$PM_TOGGLEUI"_T,
+				"$PM_RESET"_T,
+				GetResetAll() ? "$PM_ALL"_T : TRANSLATE(tabEnum[tabIndex]),
+				"$PM_EXIT"_T);
 			ImGui::CenterLabel(str.c_str());
 		}
 		ImGui::EndChild();
@@ -514,7 +521,7 @@ namespace PhotoMode
 		static inline REL::Relocation<decltype(thunk)> func;
 	};
 
-	void InstallHooks()
+	void InstallHook()
 	{
 		REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(49814, 50744), 0x1B };  // FreeCamera::GetRotation
 		stl::write_thunk_call<FromEulerAnglesZXY>(target.address());

@@ -2,9 +2,13 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 
 #include "RE/Skyrim.h"
 #include "SKSE/SKSE.h"
+
+#include <codecvt>
+#include <wrl/client.h>
 
 #include <ClibUtil/RNG.hpp>
 #include <ClibUtil/hotkeys.hpp>
@@ -24,14 +28,12 @@
 #include <rapidfuzz/rapidfuzz_all.hpp>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <srell.hpp>
-#include <wrl/client.h>
 #include <xbyak/xbyak.h>
 
 #define DLLEXPORT __declspec(dllexport)
 
 namespace logger = SKSE::log;
 namespace ini = clib_util::ini;
-namespace string = clib_util::string;
 
 using namespace std::literals;
 using namespace clib_util::singleton;
@@ -87,4 +89,5 @@ namespace stl
 #endif
 
 #include "Cache.h"
+#include "Translation.h"
 #include "Version.h"

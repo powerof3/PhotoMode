@@ -25,7 +25,7 @@ namespace PhotoMode
 		{
 			static bool thunk(RE::TESIdleForm* a_this, const char* a_str)
 			{
-				if (!string::is_empty(a_str)) {
+				if (!clib_util::string::is_empty(a_str)) {
 					idles.AddForm(a_str, a_this);
 				}
 				return func(a_this, a_str);
@@ -138,7 +138,7 @@ namespace PhotoMode
 		case kTriangle:
 			{
 				static bool mirrored = false;
-				if (ImGui::IsKeyPressed(ImGuiKey_LeftShift) /*|| ImGui::IsKeyPressed(ImGuiKey_GamepadFaceLeft)*/) {
+				if (ImGui::IsKeyPressed(ImGuiKey_LeftShift) || ImGui::IsKeyPressed(ImGuiKey_GamepadFaceLeft)) {
 					mirrored = !mirrored;
 				}
 

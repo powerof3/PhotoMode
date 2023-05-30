@@ -1,9 +1,10 @@
 #include "ImGui/Renderer.h"
 #include "Input.h"
-#include "LoadScreen.h"
 #include "PhotoMode/Manager.h"
-#include "Screenshots.h"
+#include "Screenshots/LoadScreen.h"
+#include "Screenshots/Manager.h"
 #include "Settings.h"
+#include "Translation.h"
 
 void OnInit(SKSE::MessagingInterface::Message* a_msg)
 {
@@ -11,16 +12,20 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 	case SKSE::MessagingInterface::kPostLoad:
 		{
 			Settings::GetSingleton()->LoadSettings();
+
 			Screenshot::InstallHook();
 			LoadScreen::InstallHook();
-			PhotoMode::InstallHooks();
+			PhotoMode::InstallHook();
 		}
 		break;
 	case SKSE::MessagingInterface::kInputLoaded:
 		Input::Manager::Register();
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
-		LoadScreen::Manager::GetSingleton()->PopulateLoadScreenObjects();
+		{
+			Translation::Manager::GetSingleton()->BuildTranslationMap();
+			LoadScreen::Manager::GetSingleton()->InitLoadScreenObjects();
+		}
 		break;
 	default:
 		break;

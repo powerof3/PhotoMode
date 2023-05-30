@@ -6,8 +6,8 @@ namespace PhotoMode
 {
 	namespace Override
 	{
-		constexpr auto allMods = "ALL"sv;
-		constexpr auto ffForms = "FF FORMS"sv;
+		constexpr auto allMods = "$PM_ALL"sv;
+		constexpr auto ffForms = "$PM_FF_Forms"sv;
 
 		inline RE::TESIdleForm*           resetRootIdle;
 		inline RE::TESImageSpaceModifier* currentImod;
@@ -104,14 +104,16 @@ namespace PhotoMode
 
 				if (modNames.empty()) {
 					modNames.reserve(modNameForms.size());
-					modNames.emplace_back(allMods);
+					modNames.emplace_back(TRANSLATE_S(allMods));
+
 					for (const auto& file : RE::TESDataHandler::GetSingleton()->files) {
 						if (modNameForms.contains(file->fileName)) {
 							modNames.emplace_back(file->fileName);
 						}
 					}
 					if (modNameForms.contains(ffForms)) {
-						modNames.emplace_back(ffForms);
+						containsFF = true;
+					    modNames.emplace_back(TRANSLATE_S(ffForms));
 					}
 				}
 
@@ -194,13 +196,25 @@ namespace PhotoMode
 				ImGuiContext* g = ImGui::GetCurrentContext();
 
 				ImGui::BeginGroup();
+
+				if (!translated) {
+					name = TRANSLATE_S(name);
+					translated = true;
+				}
+
 				ImGui::TextEx(name.c_str(), ImGui::FindRenderedTextEnd(name.c_str()));
 
 				ImGui::PushID(name.c_str());
 				ImGui::PushMultiItemsWidths(2, ImGui::GetContentRegionAvail().x);
 
 				if (ImGui::ComboWithFilter("##mods", &index, modNames)) {
-					curMod = modNames[index];
+					if (index == 0) {
+						curMod = allMods;
+					} else if (containsFF && index == modNames.size() - 1) {
+						curMod = ffForms;
+					} else {
+						curMod = modNames[index];
+					}
 					modNameForms[curMod].UpdateValidForms();
 					ImGui::SetKeyboardFocusHere();
 				}
@@ -220,19 +234,22 @@ namespace PhotoMode
 
 		private:
 			// members
-			std::string              name;
+			std::string name;
+			bool        translated{ false };
+
 			StringMap<Forms<T>>      modNameForms{};
 			std::vector<std::string> modNames{};
 			std::int32_t             index{};
+			bool                     containsFF{ false };
 
 			std::string curMod{ allMods };
 		};
 
-		inline FilteredForms<RE::TESEffectShader>       effectShaders{ "Effect Shaders" };
-		inline FilteredForms<RE::BGSReferenceEffect>    effectVFX{ "Visual Effects" };
-		inline FilteredForms<RE::TESWeather>            weathers{ "Weathers" };
-		inline FilteredForms<RE::TESIdleForm>           idles{ "Idles" };
-		inline FilteredForms<RE::TESImageSpaceModifier> imods{ "ImageSpace Modifiers" };
+		inline FilteredForms<RE::TESEffectShader>       effectShaders{ "$PM_EffectShaders" };
+		inline FilteredForms<RE::BGSReferenceEffect>    effectVFX{ "$PM_VisualEffects" };
+		inline FilteredForms<RE::TESWeather>            weathers{ "$PM_Weathers" };
+		inline FilteredForms<RE::TESIdleForm>           idles{ "$PM_Idles" };
+		inline FilteredForms<RE::TESImageSpaceModifier> imods{ "$PM_ImageSpaceModifiers" };
 
 		void InitOverrides();
 
@@ -242,25 +259,26 @@ namespace PhotoMode
 	namespace MFG
 	{
 		inline constexpr std::array expressions{
-			"NONE",
-			"DIALOGUE ANGER",
-			"DIALOGUE FEAR",
-			"DIALOGUE HAPPY",
-			"DIALOGUE SAD",
-			"DIALOGUE SURPRISE",
-			"DIALOGUE PUZZLED",
-			"DIALOGUE DISGUSTED",
-			"MOOD NEUTRAL",
-			"MOOD ANGER",
-			"MOOD FEAR",
-			"MOOD HAPPY",
-			"MOOD SAD",
-			"MOOD SURPRISE",
-			"MOOD PUZZLED",
-			"MOOD DISGUSTED",
-			"COMBAT ANGER",
-			"COMBAT SHOUT"
+			"$PM_NONE",
+			"$PM_DialogueAnger",
+			"$PM_DialogueFear",
+			"$PM_DialogueHappy",
+			"$PM_DialogueSad",
+			"$PM_DialogueSurprise",
+			"$PM_DialoguePuzzled",
+			"$PM_DialogueDisgusted",
+			"$PM_MoodNeutral",
+			"$PM_MoodAnger",
+			"$PM_MoodFear",
+			"$PM_MoodHappy",
+			"$PM_MoodSad",
+			"$PM_MoodSurprise",
+			"$PM_MoodPuzzled",
+			"$PM_MoodDisgusted",
+			"$PM_CombatAnger",
+			"$PM_CombatShout"
 		};
+
 		inline constexpr std::array phonemes{
 			"Aah",
 			"BigAah",
@@ -335,14 +353,14 @@ namespace PhotoMode
 			kGrid
 		};
 
-		inline constexpr std::array gridEnum{
-			"NONE",
-			"THIRDS",
-			"DIAGONAL",
-			"TRIANGLE",
-			"GOLDEN RATIO",
-			//"GOLDEN SPIRAL",
-			"GRID"
+		inline constexpr std::array gridTypes{
+			"$PM_NONE",
+			"$PM_Grid_Thirds",
+			"$PM_Grid_Diagonal",
+			"$PM_Grid_Triangle",
+			"$PM_Grid_GoldenRatio",
+			//"$PM_Grid_GoldenSpiral",
+			"$PM_Grid_Grid"
 		};
 
 		inline Type gridType{ kDisabled };

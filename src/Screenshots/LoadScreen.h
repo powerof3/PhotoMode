@@ -1,16 +1,9 @@
 #pragma once
 
-#include "Screenshots.h"
+#include "Screenshots/Manager.h"
 
 namespace LoadScreen
 {
-	struct Transform
-	{
-		float        scale{ 1.0f };
-		RE::NiPoint3 rotationalOffset{};
-		RE::NiPoint3 translateOffset{};
-	};
-
 	enum class Type : std::uint32_t
 	{
 		kNone,
@@ -18,16 +11,24 @@ namespace LoadScreen
 		kPainting
 	};
 
+	struct Transform
+	{
+		float        scale{ 1.0f };
+		RE::NiPoint3 rotationalOffset{};
+		RE::NiPoint3 translateOffset{};
+	};
+
 	class Manager final : public ISingleton<Manager>
 	{
 	public:
+	
 		void LoadSettings(CSimpleIniA& a_ini);
 		void SaveSettings(CSimpleIniA& a_ini) const;
 		void Revert();
 
 		void Draw();
 
-		void PopulateLoadScreenObjects();
+		void InitLoadScreenObjects();
 
 		Type               GetScreenshotModelType() const;
 		RE::TESObjectSTAT* LoadScreenshotModel();
@@ -39,9 +40,12 @@ namespace LoadScreen
 		void ApplyScreenshotTexture(RE::BSGeometry* a_canvas) const;
 
 	private:
-		static constexpr std::array<const char*, 3> ssType{ "DISABLED", "SCREENSHOT TEXTURE", "PAINTING TEXTURE" };
+		static constexpr std::array screenshotTypes{ "$PM_DISABLED",
+			"$PM_ScreenshotTexture",
+			"$PM_PaintingTexture"
+		};
 
-		// members
+	    // members
 		Screenshot::Type fullscreenSSType{ Screenshot::Type::kScreenshot };
 		std::int32_t     fullscreenChance{ 50 };
 

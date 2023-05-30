@@ -1,7 +1,6 @@
 #include "LoadScreen.h"
 
 #include "ImGui/Util.h"
-#include "Screenshots.h"
 
 namespace LoadScreen
 {
@@ -32,14 +31,14 @@ namespace LoadScreen
 
 	void Manager::Draw()
 	{
-		ImGui::EnumSlider("FullScreenArt", &fullscreenSSType, ssType);
-		ImGui::Slider("FullScreen Art Chance", &fullscreenChance, 0, 100);
+		ImGui::EnumSlider("$PM_TypeFullScreen"_T, &fullscreenSSType, screenshotTypes);
+		ImGui::Slider("$PM_FullScreenChance"_T, &fullscreenChance, 0, 100);
 
-		ImGui::EnumSlider("Painting", &paintingSSType, ssType);
-		ImGui::Slider("Painting Chance", &paintingChance, 0, 100);
+		ImGui::EnumSlider("$PM_TypePainting"_T, &paintingSSType, screenshotTypes);
+		ImGui::Slider("$PM_PaintingChance"_T, &paintingChance, 0, 100);
 	}
 
-	void Manager::PopulateLoadScreenObjects()
+	void Manager::InitLoadScreenObjects()
 	{
 		constexpr std::array painting_paths{
 			"Meshes\\PhotoMode\\PaintingLandscape01.nif"sv,
