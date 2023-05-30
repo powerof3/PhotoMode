@@ -139,7 +139,7 @@ namespace PhotoMode
 			RevertTab(resetAll ? -1 : tabIndex);
 
 			const auto notification = fmt::format("{}", resetAll ? "$PM_ResetNotifAll"_T : TRANSLATE(tabEnumNotif[tabIndex]));
-		    RE::DebugNotification(notification.c_str());
+			RE::DebugNotification(notification.c_str());
 
 			if (resetAll) {
 				DoResetAll(false);

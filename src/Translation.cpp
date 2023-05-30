@@ -24,7 +24,7 @@ namespace Translation
 		if (!std::filesystem::exists(a_path)) {
 			return false;
 		}
-		
+
 		std::wfstream filestream(a_path);
 		if (!filestream.good()) {
 			return false;
