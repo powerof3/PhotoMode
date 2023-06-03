@@ -30,75 +30,8 @@ target_sources(
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
 
-if(IMGUI_BUILD_ALLEGRO5_BINDING)
-    find_path(ALLEGRO5_INCLUDE_DIRS allegro5/allegro.h)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${ALLEGRO5_INCLUDE_DIRS})
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_allegro5.cpp)
-endif()
-
-if(IMGUI_BUILD_DX9_BINDING)
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_dx9.cpp)
-endif()
-
-if(IMGUI_BUILD_DX10_BINDING)
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_dx10.cpp)
-endif()
-
 if(IMGUI_BUILD_DX11_BINDING)
     target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_dx11.cpp)
-endif()
-
-if(IMGUI_BUILD_DX12_BINDING)
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_dx12.cpp)
-endif()
-
-if(IMGUI_BUILD_GLFW_BINDING)
-    if(NOT EMSCRIPTEN)
-        find_package(glfw3 CONFIG REQUIRED)
-        target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
-    endif()
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_glfw.cpp)
-endif()
-
-if(IMGUI_BUILD_GLUT_BINDING)
-    find_package(GLUT REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PUBLIC GLUT::GLUT)
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_glut.cpp)
-endif()
-
-if(IMGUI_BUILD_METAL_BINDING)
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_metal.mm)
-    set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_metal.mm PROPERTIES COMPILE_FLAGS -fobjc-weak)
-endif()
-
-if(IMGUI_BUILD_OPENGL2_BINDING)
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_opengl2.cpp)
-endif()
-
-if(IMGUI_BUILD_OPENGL3_BINDING)
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp)
-endif()
-
-if(IMGUI_BUILD_OSX_BINDING)
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_osx.mm)
-endif()
-
-if(IMGUI_BUILD_SDL2_BINDING)
-    find_package(SDL2 CONFIG REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2)
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp)
-endif()
-
-if(IMGUI_BUILD_SDL2_RENDERER_BINDING)
-    find_package(SDL2 CONFIG REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2)
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_sdlrenderer.cpp)
-endif()
-
-if(IMGUI_BUILD_VULKAN_BINDING)
-    find_package(Vulkan REQUIRED)
-    target_link_libraries(${PROJECT_NAME} PUBLIC Vulkan::Vulkan)
-    target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp)
 endif()
 
 if(IMGUI_BUILD_WIN32_BINDING)
@@ -110,10 +43,6 @@ if(IMGUI_FREETYPE)
     target_link_libraries(${PROJECT_NAME} PUBLIC freetype)
     target_sources(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp)
     target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_ENABLE_FREETYPE)
-endif()
-
-if(IMGUI_USE_WCHAR32)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_USE_WCHAR32)
 endif()
 
 list(REMOVE_DUPLICATES BINDINGS_SOURCES)
@@ -148,69 +77,11 @@ if(NOT IMGUI_SKIP_HEADERS)
         DESTINATION include
     )
 
-    if(IMGUI_BUILD_ALLEGRO5_BINDING)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_allegro5.h DESTINATION include)
-    endif()
-
-    if(IMGUI_BUILD_DX9_BINDING)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_dx9.h DESTINATION include)
-    endif()
-
-    if(IMGUI_BUILD_DX10_BINDING)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_dx10.h DESTINATION include)
-    endif()
-
     if(IMGUI_BUILD_DX11_BINDING)
         install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_dx11.h DESTINATION include)
     endif()
 
-    if(IMGUI_BUILD_DX12_BINDING)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_dx12.h DESTINATION include)
-    endif()
-
-    if(IMGUI_BUILD_GLFW_BINDING)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_glfw.h DESTINATION include)
-    endif()
-
-    if(IMGUI_BUILD_GLUT_BINDING)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_glut.h DESTINATION include)
-    endif()
-
-    if(IMGUI_BUILD_METAL_BINDING)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_metal.h DESTINATION include)
-    endif()
-
-    if(IMGUI_BUILD_OPENGL2_BINDING)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_opengl2.h DESTINATION include)
-    endif()
-
-    if(IMGUI_BUILD_OPENGL3_BINDING)
-        install(
-            FILES
-                ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_opengl3.h
-                ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_opengl3_loader.h
-            DESTINATION
-                include
-        )
-    endif()
-
-    if(IMGUI_BUILD_OSX_BINDING)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_osx.h DESTINATION include)
-    endif()
-
-    if(IMGUI_BUILD_SDL2_BINDING)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_sdl2.h DESTINATION include)
-    endif()
-
-    if(IMGUI_BUILD_SDL2_RENDERER_BINDING)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_sdlrenderer.h DESTINATION include)
-    endif()
-
-    if(IMGUI_BUILD_VULKAN_BINDING)
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_vulkan.h DESTINATION include)
-    endif()
-
-    if(IMGUI_BUILD_WIN32_BINDING)
+     if(IMGUI_BUILD_WIN32_BINDING)
         install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_win32.h DESTINATION include)
     endif()
 
