@@ -1,17 +1,24 @@
 #pragma once
 
+#include "Input.h"
 #include "States.h"
+
+namespace Input
+{
+	enum class TYPE;
+}
 
 namespace PhotoMode
 {
 	class Manager : public ISingleton<Manager>
 	{
 	public:
+		void LoadSettings(CSimpleIniA& a_ini);
+
 		static bool GetValid();
 		bool        IsActive() const;
 		void        Activate();
 		void        Deactivate();
-		void        ToggleActive();
 
 		void GetOriginalState();
 		void Revert(bool a_deactivate = false);
@@ -21,32 +28,54 @@ namespace PhotoMode
 		bool                GetResetAll() const;
 		void                DoResetAll(bool a_enable);
 
+		void SetInputType(Input::TYPE a_inputType);
+
+		std::uint32_t ResetKey() const;
+		std::uint32_t TakePhotoKey() const;
+		std::uint32_t ToggleUIKey() const;
+
+		void CheckActive(RE::InputEvent* const* a_event);
+
 		[[nodiscard]] float GetViewRoll(float a_fallback) const;
 
 		void Draw();
 		void OnFrameUpdate() const;
 
 	private:
+		static void ToggleActive(const KeyCombination*);
+
 		void DrawControls();
 		void DrawBar() const;
 
 		// kMenu | kActivate | kFighting | kJumping | kConsole | kSneaking
-		static constexpr auto controlFlags = static_cast<RE::ControlMap::UEFlag>(1244);
-
-		static constexpr std::array tabEnum = { "$PM_CAMERA", "$PM_TIME", "$PM_PLAYER", "$PM_FILTERS", "$PM_SCREENSHOTS" };
+		static constexpr auto       controlFlags = static_cast<RE::ControlMap::UEFlag>(1244);
 		static constexpr std::array tabEnumNotif = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifScreenshots" };
 
+		// members
 		bool         activated{ false };
 		std::int32_t tabIndex{ 0 };
 
-		float resetAllHoldDuration{ 0.5 };
-		bool  resetAll{ false };
+		Input::TYPE inputType{};
+
+		struct
+		{
+			const std::set<std::uint32_t>& GetKeys() const
+			{
+				if (GetSingleton()->inputType == Input::TYPE::kKeyboard) {
+					return keyboard.GetKeys();
+				}
+				return gamePad.GetKeys();
+			}
+
+			KeyCombination keyboard{ "N", ToggleActive };
+			KeyCombination gamePad{ "LShoulder+RShoulder", ToggleActive };
+		} IO;
 
 		State           originalState{};
 		RE::CameraState originalCameraState{ RE::CameraState::kThirdPerson };
 		State           currentState{};
 		bool            menusAlreadyHidden{ false };
-		bool            doResetWindow{ false };
+		bool            doResetWindow{ true };
 
 		float timescaleMult{ 1.0f };
 		bool  idlePlayed{ false };
@@ -54,6 +83,9 @@ namespace PhotoMode
 		bool  effectsPlayed{ false };
 		bool  vfxPlayed{ false };
 		bool  imodPlayed{ false };
+
+		float resetAllHoldDuration{ 0.5 };
+		bool  resetAll{ false };
 
 		RE::ImageSpaceBaseData imageSpaceData{};
 	};

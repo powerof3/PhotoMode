@@ -134,6 +134,7 @@ namespace PhotoMode
 
 				if constexpr (std::is_same_v<T, RE::TESEffectShader>) {
 					player->ApplyEffectShader(a_form);
+
 				} else if constexpr (std::is_same_v<T, RE::BGSReferenceEffect>) {
 					if (const auto effectShader = a_form->data.effectShader) {
 						player->ApplyEffectShader(effectShader, -1, nullptr, a_form->data.flags.any(RE::BGSReferenceEffect::Flag::kFaceTarget), a_form->data.flags.any(RE::BGSReferenceEffect::Flag::kAttachToCamera));

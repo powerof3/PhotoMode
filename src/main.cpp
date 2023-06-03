@@ -19,8 +19,10 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 		}
 		break;
 	case SKSE::MessagingInterface::kInputLoaded:
-		Input::Manager::Register();
-		break;
+		{
+			Input::Manager::Register();
+		}
+	    break;
 	case SKSE::MessagingInterface::kDataLoaded:
 		{
 			Translation::Manager::GetSingleton()->BuildTranslationMap();

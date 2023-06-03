@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "Icons.h"
 #include "PhotoMode/Manager.h"
 
 namespace PhotoMode::Renderer
@@ -46,6 +47,7 @@ namespace PhotoMode::Renderer
 
 				auto& io = ImGui::GetIO();
 				io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
+
 				io.IniFilename = nullptr;
 
 				auto& style = ImGui::GetStyle();
@@ -65,8 +67,10 @@ namespace PhotoMode::Renderer
 					return;
 				}
 
-				io.FontDefault = io.Fonts->AddFontFromFileTTF(R"(Data\Fonts\Jost-Medium.ttf)", 22);
-				selectedFont = io.Fonts->AddFontFromFileTTF(R"(Data\Fonts\Jost-Medium.ttf)", 26);
+				io.FontDefault = io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\Jost-Medium.ttf)", 22);
+				selectedFont = io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\Jost-Medium.ttf)", 26);
+
+				Icon::Manager::GetSingleton()->LoadIcons();
 
 				logger::info("ImGui initialized.");
 

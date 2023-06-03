@@ -1,12 +1,25 @@
 #include "Manager.h"
 
+#include "ImGui/Icons.h"
 #include "ImGui/Util.h"
+#include "Input.h"
 #include "Overrides.h"
 #include "Screenshots/Manager.h"
 #include "Settings.h"
 
 namespace PhotoMode
 {
+	void Manager::LoadSettings(CSimpleIniA& a_ini)
+	{
+		std::string kPattern{ IO.keyboard.GetPattern() };
+		ini::get_value(a_ini, kPattern, "PhotoMode", "HotKey", ";Toggle photomode\n\n;Default is N\n;DXScanCodes : https://www.creationkit.com/index.php?title=Input_Script");
+		IO.keyboard.SetPattern(kPattern);
+
+		std::string gPattern{ IO.gamePad.GetPattern() };
+		ini::get_value(a_ini, gPattern, "PhotoMode", "GamepadKey", ";Default is LShoulder+RShoulder");
+		IO.gamePad.SetPattern(gPattern);
+	}
+
 	bool Manager::GetValid()
 	{
 		static constexpr std::array badMenus{
@@ -28,11 +41,11 @@ namespace PhotoMode
 			"CustomMenu"sv
 		};
 
-		if (const auto UI = RE::UI::GetSingleton(); !UI || std::ranges::any_of(badMenus, [&](const auto& menuName) { return UI->IsMenuOpen(menuName); })) {
+		if (const auto player = RE::PlayerCharacter::GetSingleton(); !player || !player->Get3D() && !player->Get3D(true)) {
 			return false;
 		}
 
-		if (const auto player = RE::PlayerCharacter::GetSingleton(); !player || !player->Get3D() && !player->Get3D(true)) {
+		if (const auto UI = RE::UI::GetSingleton(); !UI || std::ranges::any_of(badMenus, [&](const auto& menuName) { return UI->IsMenuOpen(menuName); })) {
 			return false;
 		}
 
@@ -82,16 +95,15 @@ namespace PhotoMode
 		activated = false;
 	}
 
-	// called by Input
-	void Manager::ToggleActive()
+	void Manager::ToggleActive(const KeyCombination*)
 	{
-		if (!activated) {
-			if (GetValid()) {
-				Activate();
+		if (const auto mgr = GetSingleton(); !mgr->IsActive()) {
+			if (GetValid() && !RE::UI::GetSingleton()->IsMenuOpen(RE::Console::MENU_NAME)) {
+				mgr->Activate();
 			}
 		} else {
 			if (!ImGui::GetIO().WantTextInput) {
-				Deactivate();
+				mgr->Deactivate();
 			}
 		}
 	}
@@ -139,7 +151,7 @@ namespace PhotoMode
 			RevertTab(resetAll ? -1 : tabIndex);
 
 			const auto notification = fmt::format("{}", resetAll ? "$PM_ResetNotifAll"_T : TRANSLATE(tabEnumNotif[tabIndex]));
-		    RE::DebugNotification(notification.c_str());
+			RE::DebugNotification(notification.c_str());
 
 			if (resetAll) {
 				DoResetAll(false);
@@ -247,6 +259,61 @@ namespace PhotoMode
 		resetAll = a_enable;
 	}
 
+	void Manager::SetInputType(Input::TYPE a_inputType)
+	{
+		inputType = a_inputType;
+	}
+
+	std::uint32_t Manager::ResetKey() const
+	{
+		switch (inputType) {
+		case Input::TYPE::kKeyboard:
+			return KEY::kR;
+		case Input::TYPE::kGamepadDirectX:
+			return GAMEPAD_DIRECTX::kY;
+		case Input::TYPE::kGamepadOrbis:
+			return GAMEPAD_ORBIS::kPS3_Y;
+		default:
+			return 0;
+		}
+	}
+
+	std::uint32_t Manager::TakePhotoKey() const
+	{
+		switch (inputType) {
+		case Input::TYPE::kKeyboard:
+			return KEY::kPrintScreen;
+		case Input::TYPE::kGamepadDirectX:
+			return GAMEPAD_DIRECTX::kBack;
+		case Input::TYPE::kGamepadOrbis:
+			return GAMEPAD_ORBIS::kPS3_Back;
+		default:
+			return 0;
+		}
+	}
+
+	std::uint32_t Manager::ToggleUIKey() const
+	{
+		switch (inputType) {
+		case Input::TYPE::kKeyboard:
+			return KEY::kT;
+		case Input::TYPE::kGamepadDirectX:
+			return GAMEPAD_DIRECTX::kX;
+		case Input::TYPE::kGamepadOrbis:
+			return GAMEPAD_ORBIS::kPS3_X;
+		default:
+			return 0;
+		}
+	}
+
+	void Manager::CheckActive(RE::InputEvent* const* a_event)
+	{
+		IO.keyboard.Process(a_event);
+		if (RE::BSInputDeviceManager::GetSingleton()->IsGamepadEnabled()) {
+			IO.gamePad.Process(a_event);
+		}
+	}
+
 	float Manager::GetViewRoll(const float a_fallback) const
 	{
 		return IsActive() ? currentState.camera.viewRoll : a_fallback;
@@ -287,17 +354,16 @@ namespace PhotoMode
 		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x / 3.5f, viewport->Size.y / 3.5f), ImGuiCond_Always);
 		ImGui::SetNextWindowBgAlpha(0.66f);
 
-		ImGui::Begin("$PM_Title"_T, nullptr, ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNavFocus);
+		ImGui::Begin("$PM_Title"_T, nullptr, ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoCollapse);
 
 		if (ImGui::BeginTabBar("PhotoMode##TopBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
 			if (doResetWindow) {
 				ImGui::SetKeyboardFocusHere();
+				doResetWindow = false;
 			}
-			if (ImGui::OpenTabOnHover("$PM_Camera"_T, doResetWindow ? ImGuiTabItemFlags_SetSelected : 0)) {
+
+			if (ImGui::OpenTabOnHover("$PM_Camera"_T)) {
 				tabIndex = 0;
-				if (doResetWindow) {
-					doResetWindow = false;
-				}
 
 				ImGui::EnumSlider("$PM_Grid"_T, &Grid::gridType, Grid::gridTypes);
 
@@ -499,15 +565,57 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(ImVec2(center.x, (center.y + viewport->Size.y / 2) - offset), ImGuiCond_Always, ImVec2(0.5, 0.25));
 		ImGui::SetNextWindowBgAlpha(0.66f);
 
-		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.25f, offset * 0.8f), false, ImGuiWindowFlags_NoBringToFrontOnFocus);
+		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 4.0f, offset * 0.75f), false, ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
-			const auto str = fmt::format("PRNTSCRN) {} T) {} R) {} {} N) {}",
-				"$PM_TAKEPHOTO"_T,
-				"$PM_TOGGLEUI"_T,
-				"$PM_RESET"_T,
-				GetResetAll() ? "$PM_ALL"_T : TRANSLATE(tabEnum[tabIndex]),
-				"$PM_EXIT"_T);
-			ImGui::CenterLabel(str.c_str());
+			const static auto takePhotoLabel = "$PM_TAKEPHOTO"_T;
+			const static auto toggleUILabel = "$PM_TOGGLEUI"_T;
+			const auto        resetLabel = GetResetAll() ? "$PM_RESET_ALL"_T : "$PM_RESET"_T;
+			const static auto exitLabel = "$PM_EXIT"_T;
+
+			const auto& takePhotoIcon = Icon::Manager::GetSingleton()->GetIcon(inputType, TakePhotoKey());
+			const auto& toggleUIIcon = Icon::Manager::GetSingleton()->GetIcon(inputType, ToggleUIKey());
+			const auto& resetIcon = Icon::Manager::GetSingleton()->GetIcon(inputType, ResetKey());
+			const auto& exitIcons = Icon::Manager::GetSingleton()->GetIcons(inputType, IO.GetKeys());
+
+			// calc total elements width
+			const ImGuiStyle& style = ImGui::GetStyle();
+			float             width = 0.0f;
+
+			width += takePhotoIcon->width;
+			width += style.ItemSpacing.x;
+			width += ImGui::CalcTextSize(takePhotoLabel).x;
+			width += style.ItemSpacing.x;
+
+			width += toggleUIIcon->width;
+			width += style.ItemSpacing.x;
+			width += ImGui::CalcTextSize(toggleUILabel).x;
+			width += style.ItemSpacing.x;
+
+			width += resetIcon->width;
+			width += style.ItemSpacing.x;
+			width += ImGui::CalcTextSize(resetLabel).x;
+			width += style.ItemSpacing.x;
+
+			for (const auto& icon : exitIcons) {
+				width += icon->width;
+			}
+			width += style.ItemSpacing.x;
+			width += ImGui::CalcTextSize(exitLabel).x;
+
+			// align at center
+			ImGui::AlignForWidth(width);
+
+			// draw
+			ImGui::ButtonIconWithLabel(takePhotoLabel, takePhotoIcon);
+			ImGui::SameLine();
+
+			ImGui::ButtonIconWithLabel(toggleUILabel, toggleUIIcon);
+			ImGui::SameLine();
+
+			ImGui::ButtonIconWithLabel(resetLabel, resetIcon);
+			ImGui::SameLine();
+
+			ImGui::ButtonIconWithLabel(exitLabel, exitIcons);
 		}
 		ImGui::EndChild();
 	}

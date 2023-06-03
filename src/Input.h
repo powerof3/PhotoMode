@@ -2,7 +2,12 @@
 
 namespace Input
 {
-	using EventResult = RE::BSEventNotifyControl;
+	enum class TYPE
+	{
+		kKeyboard,
+		kGamepadDirectX,  // xbox
+		kGamepadOrbis     // ps4
+	};
 
 	class Manager final :
 		public ISingleton<Manager>,
@@ -13,33 +18,24 @@ namespace Input
 
 		static void Register();
 
+		TYPE GetInputType() const;
+
 		bool IsScreenshotQueued() const;
 		void QueueScreenshot(bool a_forceQueue);
 		void OnScreenshotFinish();
 
 	private:
-		using KEY = RE::BSWin32KeyboardDevice::Key;
-		using GAMEPAD_KEY = RE::BSWin32GamepadDevice::Key;
-
-		static void ToggleActivate(const KeyCombination*);
-
-		static void     SendKeyEvent(RE::INPUT_DEVICE a_device, std::uint32_t a_key, bool a_keyPressed);
 		static ImGuiKey ToImGuiKey(KEY a_key);
-		static ImGuiKey ToImGuiKey(GAMEPAD_KEY a_key);
-
-		static std::uint32_t ResetKey(RE::INPUT_DEVICE a_device);
-		static std::uint32_t ToggleMenuKey(RE::INPUT_DEVICE a_device);
+		static ImGuiKey ToImGuiKey(GAMEPAD_DIRECTX a_key);
+		static ImGuiKey ToImGuiKey(GAMEPAD_ORBIS a_key);
+		void            SendKeyEvent(std::uint32_t a_key, bool a_keyPressed) const;
 
 		void HideMenu(bool a_hide);
 
 		EventResult ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*) override;
 
 		// members
-		struct
-		{
-			KeyCombination keyboard{ "N", ToggleActivate };
-			KeyCombination gamePad{ "LShoulder+RShoulder", ToggleActivate };
-		} photomodeIO;
+		TYPE inputType{};
 
 		struct
 		{

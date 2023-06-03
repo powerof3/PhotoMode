@@ -9,10 +9,12 @@ namespace ImGui
 	bool DragIntNEx(const char* const labels[], int* v, int components, float v_speed, const int v_min[], const int v_max[], const char* display_format[], ImGuiSliderFlags flags = 0);
 	bool DragInt2Ex(const char* const labels[], int* v, float v_speed, const int v_min[], const int v_max[], const char* display_format[], ImGuiSliderFlags flags = 0);
 
-	std::string LabelPrefix(const char* label);
+	void AlignForWidth(float width, float alignment = 0.5f);
+
+    std::string LabelPrefix(const char* label);
 	std::string LabelPrefix(const std::string& label);
 
-	void CenterLabel(const char* label);
+	void CenterLabel(const char* label, bool vertical = false);
 	void CenteredTextWithArrows(const char* label, const char* centerText);
 
 	bool OnOffToggle(const char* label, bool* a_toggle, const char* on, const char* off);

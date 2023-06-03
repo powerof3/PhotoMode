@@ -1,6 +1,6 @@
-#include "Screenshots/Util.h"
+#include "Textures.h"
 
-namespace Screenshot::Texture
+namespace Texture
 {
 	std::string Sanitize(std::string& a_path)
 	{

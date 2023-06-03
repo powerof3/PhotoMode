@@ -3,8 +3,8 @@
 #include "ImGui/Util.h"
 #include "Input.h"
 #include "LoadScreen.h"
-#include "Screenshots/Util.h"
 #include "Settings.h"
+#include "Textures.h"
 
 namespace Screenshot
 {
@@ -74,18 +74,20 @@ namespace Screenshot
 		ImGui::OnOffToggle("$PM_LoadScreenScreenshots"_T, &takeScreenshotAsDDS, "$PM_YES"_T, "$PM_NO"_T);
 
 		ImGui::BeginDisabled(!takeScreenshotAsDDS);
-		ImGui::Dummy({ 0, 5 });
-		ImGui::OnOffToggle("$PM_PaintingFilter"_T, &applyPaintFilter, "$PM_ENABLED"_T, "$PM_DISABLED"_T);
+		{
+			ImGui::Dummy({ 0, 5 });
+			ImGui::OnOffToggle("$PM_PaintingFilter"_T, &applyPaintFilter, "$PM_ENABLED"_T, "$PM_DISABLED"_T);
 
-		ImGui::Slider("$PM_PaintIntensity"_T, &paintFilter.intensity, 1.0f, 100.0f);
-		ImGui::Slider("$PM_PaintRadius"_T, &paintFilter.radius, 1, 10);
+			ImGui::Slider("$PM_PaintIntensity"_T, &paintFilter.intensity, 1.0f, 100.0f);
+			ImGui::Slider("$PM_PaintRadius"_T, &paintFilter.radius, 1, 10);
 
-		if (ImGui::BeginTabBar("LoadScreen##Bar")) {
-			if (ImGui::BeginTabItem("$PM_LoadScreen"_T)) {
-				LoadScreen::Manager::GetSingleton()->Draw();
-				ImGui::EndTabItem();
+			if (ImGui::BeginTabBar("LoadScreen##Bar")) {
+				if (ImGui::BeginTabItem("$PM_LoadScreen"_T)) {
+					LoadScreen::Manager::GetSingleton()->Draw();
+					ImGui::EndTabItem();
+				}
+				ImGui::EndTabBar();
 			}
-			ImGui::EndTabBar();
 		}
 		ImGui::EndDisabled();
 	}

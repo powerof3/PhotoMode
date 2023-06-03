@@ -74,8 +74,8 @@ namespace ImGui
 			// Filter before opening to ensure we show the correct size window.
 			// We won't get in here unless the popup is open.
 			for (int i = 0; i < items_count; i++) {
-				auto score = rapidfuzz::fuzz::partial_token_set_ratio(pattern_buffer, items[i].c_str());
-				if (score >= 50.0) {
+				auto score = rapidfuzz::fuzz::partial_ratio(pattern_buffer, items[i].c_str());
+				if (score >= 70.0) {
 					itemScoreVector.push_back(std::make_pair(i, score));
 				}
 			}
@@ -149,7 +149,7 @@ namespace ImGui
 		// Copied from ListBoxHeader
 		// If popup_max_height_in_items == -1, default height is maximum 7.
 		const float height_in_items_f = (popup_max_height_in_items < 0 ? ImMin(items_count, 7) :
-                                                                         popup_max_height_in_items) +
+																		 popup_max_height_in_items) +
 		                                0.25f;
 		ImVec2 size;
 		size.x = 0.0f;
@@ -247,7 +247,16 @@ namespace ImGui
 		return DragIntNEx(labels, v, 2, v_speed, v_min, v_max, display_format, flags);
 	}
 
-	// https://github.com/libigl/libigl/issues/1300#issuecomment-1310174619
+	// https://github.com/ocornut/imgui/discussions/3862
+    void AlignForWidth(float width, float alignment) {
+        ImGuiStyle& style = ImGui::GetStyle();
+        float       avail = ImGui::GetContentRegionAvail().x;
+        float       off = (avail - width) * alignment;
+        if (off > 0.0f)
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+    }
+
+    // https://github.com/libigl/libigl/issues/1300#issuecomment-1310174619
 	std::string LabelPrefix(const char* const label)
 	{
 		if (strlen(label) == 0) {
@@ -270,12 +279,17 @@ namespace ImGui
 		return LabelPrefix(label.c_str());
 	}
 
-	void CenterLabel(const char* label)
+	void CenterLabel(const char* label, bool vertical)
 	{
-		const auto windowWidth = ImGui::GetWindowSize().x;
-		const auto textWidth = ImGui::CalcTextSize(label).x;
+		const auto windowSize = ImGui::GetWindowSize();
+		const auto textSize = ImGui::CalcTextSize(label);
 
-		ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+		if (vertical) {
+			ImGui::SetCursorPosY((windowSize.y - textSize.y) * 0.5f);
+		} else {
+			ImGui::SetCursorPosX((windowSize.x - textSize.x) * 0.5f);
+		}
+
 		ImGui::Text(label);
 	}
 
@@ -398,9 +412,9 @@ namespace ImGui
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
-                                                                                                  ImGuiCol_FrameBg);
+																								  ImGuiCol_FrameBg);
 		const ImU32 frame_col_after = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered :
-                                                                                                                  ImGuiCol_FrameBg);
+																												  ImGuiCol_FrameBg);
 		RenderNavHighlight(frame_bb, id);
 
 		// Slider behavior
@@ -451,7 +465,7 @@ namespace ImGui
 	void ActivateOnHover()
 	{
 		if (IsItemFocused()) {
-			ActivateItem(GetItemID());
+			ActivateItemByID(GetItemID());
 		}
 	}
 

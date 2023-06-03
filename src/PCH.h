@@ -32,14 +32,19 @@
 
 #define DLLEXPORT __declspec(dllexport)
 
+using namespace std::literals;
+
 namespace logger = SKSE::log;
 namespace ini = clib_util::ini;
 
-using namespace std::literals;
 using namespace clib_util::singleton;
 using namespace clib_util::hotkeys;
 
 using RNG = clib_util::RNG;
+using EventResult = RE::BSEventNotifyControl;
+using KEY = RE::BSWin32KeyboardDevice::Key;
+using GAMEPAD_DIRECTX = RE::BSWin32GamepadDevice::Key;
+using GAMEPAD_ORBIS = RE::BSPCOrbisGamepadDevice::Key;
 
 template <class T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
