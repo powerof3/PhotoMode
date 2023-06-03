@@ -21,7 +21,6 @@ namespace LoadScreen
 	class Manager final : public ISingleton<Manager>
 	{
 	public:
-	
 		void LoadSettings(CSimpleIniA& a_ini);
 		void SaveSettings(CSimpleIniA& a_ini) const;
 		void Revert();
@@ -42,10 +41,9 @@ namespace LoadScreen
 	private:
 		static constexpr std::array screenshotTypes{ "$PM_DISABLED",
 			"$PM_ScreenshotTexture",
-			"$PM_PaintingTexture"
-		};
+			"$PM_PaintingTexture" };
 
-	    // members
+		// members
 		Screenshot::Type fullscreenSSType{ Screenshot::Type::kScreenshot };
 		std::int32_t     fullscreenChance{ 50 };
 

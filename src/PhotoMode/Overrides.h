@@ -113,7 +113,7 @@ namespace PhotoMode
 					}
 					if (modNameForms.contains(ffForms)) {
 						containsFF = true;
-					    modNames.emplace_back(TRANSLATE_S(ffForms));
+						modNames.emplace_back(TRANSLATE_S(ffForms));
 					}
 				}
 
