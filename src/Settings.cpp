@@ -1,8 +1,8 @@
 #include "Settings.h"
 #include "Input.h"
+#include "PhotoMode/Manager.h"
 #include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
-#include "PhotoMode/Manager.h"
 
 void Settings::LoadSettings() const
 {
@@ -12,7 +12,7 @@ void Settings::LoadSettings() const
 	ini.LoadFile(path);
 
 	Load<PhotoMode::Manager>(ini);   // photomode IO
-    Load<Input::Manager>(ini);       // multi screenshot
+	Load<Input::Manager>(ini);       // multi screenshot
 	Load<Screenshot::Manager>(ini);  // screenshot
 	Load<LoadScreen::Manager>(ini);  // loadscreen
 

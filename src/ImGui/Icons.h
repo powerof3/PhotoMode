@@ -24,8 +24,8 @@ namespace Icon
 	public:
 		void LoadIcons();
 
-        const ImageData*           GetIcon(Input::TYPE a_type, std::uint32_t key);
-        std::set<const ImageData*> GetIcons(Input::TYPE a_type, const std::set<std::uint32_t>& keys);
+		const ImageData*           GetIcon(Input::TYPE a_type, std::uint32_t key);
+		std::set<const ImageData*> GetIcons(Input::TYPE a_type, const std::set<std::uint32_t>& keys);
 
 	private:
 		// members

@@ -149,7 +149,7 @@ namespace ImGui
 		// Copied from ListBoxHeader
 		// If popup_max_height_in_items == -1, default height is maximum 7.
 		const float height_in_items_f = (popup_max_height_in_items < 0 ? ImMin(items_count, 7) :
-																		 popup_max_height_in_items) +
+                                                                         popup_max_height_in_items) +
 		                                0.25f;
 		ImVec2 size;
 		size.x = 0.0f;
@@ -248,15 +248,16 @@ namespace ImGui
 	}
 
 	// https://github.com/ocornut/imgui/discussions/3862
-    void AlignForWidth(float width, float alignment) {
-        ImGuiStyle& style = ImGui::GetStyle();
-        float       avail = ImGui::GetContentRegionAvail().x;
-        float       off = (avail - width) * alignment;
-        if (off > 0.0f)
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
-    }
+	void AlignForWidth(float width, float alignment)
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+		float       avail = ImGui::GetContentRegionAvail().x;
+		float       off = (avail - width) * alignment;
+		if (off > 0.0f)
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+	}
 
-    // https://github.com/libigl/libigl/issues/1300#issuecomment-1310174619
+	// https://github.com/libigl/libigl/issues/1300#issuecomment-1310174619
 	std::string LabelPrefix(const char* const label)
 	{
 		if (strlen(label) == 0) {
@@ -412,9 +413,9 @@ namespace ImGui
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
-																								  ImGuiCol_FrameBg);
+                                                                                                  ImGuiCol_FrameBg);
 		const ImU32 frame_col_after = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered :
-																												  ImGuiCol_FrameBg);
+                                                                                                                  ImGuiCol_FrameBg);
 		RenderNavHighlight(frame_bb, id);
 
 		// Slider behavior

@@ -11,7 +11,7 @@ namespace ImGui
 
 	void AlignForWidth(float width, float alignment = 0.5f);
 
-    std::string LabelPrefix(const char* label);
+	std::string LabelPrefix(const char* label);
 	std::string LabelPrefix(const std::string& label);
 
 	void CenterLabel(const char* label, bool vertical = false);

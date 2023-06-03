@@ -73,7 +73,7 @@ namespace Icon
 		});
 	}
 
-    const ImageData* Manager::GetIcon(Input::TYPE a_type, std::uint32_t key)
+	const ImageData* Manager::GetIcon(Input::TYPE a_type, std::uint32_t key)
 	{
 		switch (a_type) {
 		case Input::TYPE::kKeyboard:
@@ -104,9 +104,9 @@ namespace Icon
 		return &unknownKey;
 	}
 
-    std::set<const ImageData*> Manager::GetIcons(Input::TYPE a_type, const std::set<std::uint32_t>& keys)
+	std::set<const ImageData*> Manager::GetIcons(Input::TYPE a_type, const std::set<std::uint32_t>& keys)
 	{
-		std::uint32_t processedKey = 0;
+		std::uint32_t              processedKey = 0;
 		std::set<const ImageData*> icons{};
 
 		for (auto& key : keys) {
@@ -135,9 +135,9 @@ ImVec2 ImGui::ButtonIcon(const Icon::ImageData* a_imageData)
 	const auto  size = ImVec2(a_imageData->width, a_imageData->height);
 
 	ImGui::SetCursorPosY((height - size.y) / 2);
-    ImGui::Image(a_imageData->srView, ImVec2(a_imageData->width, a_imageData->height));
+	ImGui::Image(a_imageData->srView, ImVec2(a_imageData->width, a_imageData->height));
 
-    return size;
+	return size;
 }
 
 void ImGui::ButtonIcon(const std::set<const Icon::ImageData*>& a_imageData)
