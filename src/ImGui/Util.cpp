@@ -250,7 +250,6 @@ namespace ImGui
 	// https://github.com/ocornut/imgui/discussions/3862
 	void AlignForWidth(float width, float alignment)
 	{
-		ImGuiStyle& style = ImGui::GetStyle();
 		float       avail = ImGui::GetContentRegionAvail().x;
 		float       off = (avail - width) * alignment;
 		if (off > 0.0f)

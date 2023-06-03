@@ -345,7 +345,7 @@ namespace Input
 
 	void Manager::SendKeyEvent(std::uint32_t a_key, bool a_keyPressed) const
 	{
-		ImGuiKey key;
+		ImGuiKey key{ ImGuiKey_None };
 
 		switch (inputType) {
 		case TYPE::kKeyboard:
