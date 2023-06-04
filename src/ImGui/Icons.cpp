@@ -129,38 +129,52 @@ namespace Icon
 	}
 }
 
-ImVec2 ImGui::ButtonIcon(const Icon::ImageData* a_imageData)
+ImVec2 ImGui::ButtonIcon(Input::TYPE a_type, std::uint32_t a_key)
 {
-	const float height = ImGui::GetWindowSize().y;
-	const auto  size = ImVec2(a_imageData->width, a_imageData->height);
+    const auto imageData = Icon::Manager::GetSingleton()->GetIcon(a_type, a_key);
+	return ButtonIcon(imageData, false);
+}
 
-	ImGui::SetCursorPosY((height - size.y) / 2);
+void ImGui::ButtonIcon(Input::TYPE a_type, const std::set<std::uint32_t>& a_keys)
+{
+	const auto imageData = Icon::Manager::GetSingleton()->GetIcons(a_type, a_keys);
+	return ButtonIcon(imageData, false);
+}
+
+ImVec2 ImGui::ButtonIcon(const Icon::ImageData* a_imageData, bool a_centerIcon)
+{
+	const auto size = ImVec2(a_imageData->width, a_imageData->height);
+
+    if (a_centerIcon) {
+		const float height = ImGui::GetWindowSize().y;
+		ImGui::SetCursorPosY((height - size.y) / 2);
+	}
 	ImGui::Image(a_imageData->srView, ImVec2(a_imageData->width, a_imageData->height));
 
 	return size;
 }
 
-void ImGui::ButtonIcon(const std::set<const Icon::ImageData*>& a_imageData)
+void ImGui::ButtonIcon(const std::set<const Icon::ImageData*>& a_imageData, bool a_centerIcon)
 {
 	BeginGroup();
 	for (auto& imageData : a_imageData) {
 		auto       pos = ImGui::GetCursorPos();
-		const auto size = ImGui::ButtonIcon(imageData);
+		const auto size = ImGui::ButtonIcon(imageData, a_centerIcon);
 		ImGui::SetCursorPos({ pos.x + size.x, pos.y });
 	}
 	EndGroup();
 }
 
-void ImGui::ButtonIconWithLabel(const char* a_text, const Icon::ImageData* a_imageData)
+void ImGui::ButtonIconWithLabel(const char* a_text, const Icon::ImageData* a_imageData, bool a_centerIcon)
 {
-	ImGui::ButtonIcon(a_imageData);
+	ImGui::ButtonIcon(a_imageData, a_centerIcon);
 	ImGui::SameLine();
 	ImGui::CenterLabel(a_text, true);
 }
 
-void ImGui::ButtonIconWithLabel(const char* a_text, const std::set<const Icon::ImageData*>& a_imageData)
+void ImGui::ButtonIconWithLabel(const char* a_text, const std::set<const Icon::ImageData*>& a_imageData, bool a_centerIcon)
 {
-	ImGui::ButtonIcon(a_imageData);
+	ImGui::ButtonIcon(a_imageData, a_centerIcon);
 	ImGui::SameLine();
 	ImGui::CenterLabel(a_text, true);
 }

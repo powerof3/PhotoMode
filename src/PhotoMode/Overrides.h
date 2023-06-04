@@ -194,40 +194,44 @@ namespace PhotoMode
 
 			T* GetFormResultFromCombo()
 			{
-				ImGuiContext* g = ImGui::GetCurrentContext();
+				T* result = nullptr;
 
-				ImGui::BeginGroup();
+				ImGuiWindow* window = ImGui::GetCurrentWindow();
+				if (window->SkipItems)
+					return result;
 
 				if (!translated) {
 					name = TRANSLATE_S(name);
 					translated = true;
 				}
 
-				ImGui::TextEx(name.c_str(), ImGui::FindRenderedTextEnd(name.c_str()));
+				ImGui::BeginGroup();
+				{
+					ImGui::SeparatorText(name.c_str());
 
-				ImGui::PushID(name.c_str());
-				ImGui::PushMultiItemsWidths(2, ImGui::GetContentRegionAvail().x);
+				    ImGui::PushID(name.c_str());
+					ImGui::PushMultiItemsWidths(2, ImGui::GetContentRegionAvail().x);
 
-				if (ImGui::ComboWithFilter("##mods", &index, modNames)) {
-					if (index == 0) {
-						curMod = allMods;
-					} else if (containsFF && index == modNames.size() - 1) {
-						curMod = ffForms;
-					} else {
-						curMod = modNames[index];
+					if (ImGui::ComboWithFilter("##mods", &index, modNames)) {
+						if (index == 0) {
+							curMod = allMods;
+						} else if (containsFF && index == modNames.size() - 1) {
+							curMod = ffForms;
+						} else {
+							curMod = modNames[index];
+						}
+						modNameForms[curMod].UpdateValidForms();
+						ImGui::SetKeyboardFocusHere();
 					}
-					modNameForms[curMod].UpdateValidForms();
-					ImGui::SetKeyboardFocusHere();
+
+					ImGui::PopItemWidth();
+					ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+
+					result = modNameForms[curMod].GetComboWithFilterResult();
+
+					ImGui::PopItemWidth();
+					ImGui::PopID();
 				}
-
-				ImGui::PopItemWidth();
-				ImGui::SameLine(0, g->Style.ItemInnerSpacing.x);
-
-				T* result = modNameForms[curMod].GetComboWithFilterResult();
-
-				ImGui::PopItemWidth();
-				ImGui::PopID();
-
 				ImGui::EndGroup();
 
 				return result;

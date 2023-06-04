@@ -71,9 +71,7 @@ namespace ImGui
 		} else {
 			result = ImGui::DragInt(newLabel.c_str(), v, v_speed, v_min, v_max, format ? format : "%d", flags);
 		}
-		if (!IsItemActive()) {
-			ActivateOnHover();
-		}
+		ActivateOnHover();
 
 		return result;
 	}
@@ -89,9 +87,7 @@ namespace ImGui
 		} else {
 			result = ImGui::ThinSliderInt(newLabel.c_str(), v, v_min, v_max, format ? format : "%d", flags);
 		}
-		if (!IsItemActive()) {
-			ActivateOnHover();
-		}
+		ActivateOnHover();
 
 		return result;
 	}

@@ -177,9 +177,12 @@ namespace Icon
 
 namespace ImGui
 {
-	ImVec2 ButtonIcon(const Icon::ImageData* a_imageData);
-	void   ButtonIcon(const std::set<const Icon::ImageData*>& a_imageData);
+	ImVec2 ButtonIcon(Input::TYPE a_type, std::uint32_t a_key);
+	void   ButtonIcon(Input::TYPE a_type, const std::set<std::uint32_t>& a_keys);
 
-	void ButtonIconWithLabel(const char* a_text, const Icon::ImageData* a_imageData);
-	void ButtonIconWithLabel(const char* a_text, const std::set<const Icon::ImageData*>& a_imageData);
+    ImVec2 ButtonIcon(const Icon::ImageData* a_imageData, bool a_centerIcon);
+	void   ButtonIcon(const std::set<const Icon::ImageData*>& a_imageData, bool a_centerIcon);
+
+	void ButtonIconWithLabel(const char* a_text, const Icon::ImageData* a_imageData, bool a_centerIcon);
+	void ButtonIconWithLabel(const char* a_text, const std::set<const Icon::ImageData*>& a_imageData, bool a_centerIcon);
 }
