@@ -209,7 +209,7 @@ namespace PhotoMode
 				{
 					ImGui::SeparatorText(name.c_str());
 
-				    ImGui::PushID(name.c_str());
+					ImGui::PushID(name.c_str());
 					ImGui::PushMultiItemsWidths(2, ImGui::GetContentRegionAvail().x);
 
 					if (ImGui::ComboWithFilter("##mods", &index, modNames)) {

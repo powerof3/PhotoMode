@@ -48,16 +48,16 @@ namespace PhotoMode
 		void DrawBar() const;
 
 		// kMenu | kActivate | kFighting | kJumping | kConsole | kSneaking
-		static constexpr auto       controlFlags = static_cast<RE::ControlMap::UEFlag>(1244);
+		static constexpr auto controlFlags = static_cast<RE::ControlMap::UEFlag>(1244);
 
 		static constexpr std::array tabs = { "$PM_Camera", "$PM_TimeWeather", "$PM_Player", "$PM_Filters", "$PM_Screenshots" };
-	    static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifScreenshots" };
+		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifScreenshots" };
 
 		// members
-		bool         activated{ false };
+		bool activated{ false };
 
 		std::int32_t previousTab{ 0 };
-	    std::int32_t currentTab{ 0 };
+		std::int32_t currentTab{ 0 };
 
 		Input::TYPE inputType{};
 

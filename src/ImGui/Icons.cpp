@@ -131,7 +131,7 @@ namespace Icon
 
 ImVec2 ImGui::ButtonIcon(Input::TYPE a_type, std::uint32_t a_key)
 {
-    const auto imageData = Icon::Manager::GetSingleton()->GetIcon(a_type, a_key);
+	const auto imageData = Icon::Manager::GetSingleton()->GetIcon(a_type, a_key);
 	return ButtonIcon(imageData, false);
 }
 
@@ -145,7 +145,7 @@ ImVec2 ImGui::ButtonIcon(const Icon::ImageData* a_imageData, bool a_centerIcon)
 {
 	const auto size = ImVec2(a_imageData->width, a_imageData->height);
 
-    if (a_centerIcon) {
+	if (a_centerIcon) {
 		const float height = ImGui::GetWindowSize().y;
 		ImGui::SetCursorPosY((height - size.y) / 2);
 	}
