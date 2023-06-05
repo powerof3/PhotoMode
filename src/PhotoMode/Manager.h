@@ -34,6 +34,11 @@ namespace PhotoMode
 		std::uint32_t TakePhotoKey() const;
 		std::uint32_t ToggleUIKey() const;
 
+		std::uint32_t RightTabKey() const;
+		std::uint32_t LeftTabKey() const;
+
+		void NavigateTab(bool a_left);
+
 		void CheckActive(RE::InputEvent* const* a_event);
 
 		[[nodiscard]] float GetViewRoll(float a_fallback) const;
@@ -58,6 +63,7 @@ namespace PhotoMode
 
 		std::int32_t previousTab{ 0 };
 		std::int32_t currentTab{ 0 };
+		bool         updateKeyboardFocus{ false };
 
 		Input::TYPE inputType{};
 

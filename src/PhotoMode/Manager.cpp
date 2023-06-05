@@ -305,7 +305,45 @@ namespace PhotoMode
 		}
 	}
 
-	void Manager::CheckActive(RE::InputEvent* const* a_event)
+    std::uint32_t Manager::RightTabKey() const
+	{
+		switch (inputType) {
+		case Input::TYPE::kKeyboard:
+			return KEY::kE;
+		case Input::TYPE::kGamepadDirectX:
+			return GAMEPAD_DIRECTX::kRightTrigger;
+		case Input::TYPE::kGamepadOrbis:
+			return GAMEPAD_ORBIS::kPS3_RT;
+		default:
+			return 0;
+		}
+	}
+
+    std::uint32_t Manager::LeftTabKey() const
+	{
+		switch (inputType) {
+		case Input::TYPE::kKeyboard:
+			return KEY::kQ;
+		case Input::TYPE::kGamepadDirectX:
+			return GAMEPAD_DIRECTX::kLeftTrigger;
+		case Input::TYPE::kGamepadOrbis:
+			return GAMEPAD_ORBIS::kPS3_LT;
+		default:
+			return 0;
+		}
+	}
+
+    void Manager::NavigateTab(bool a_left)
+	{
+		if (a_left) {
+			currentTab = (currentTab - 1 + tabs.size()) % tabs.size();
+		} else {
+			currentTab = (currentTab + 1) % tabs.size();
+		}
+		updateKeyboardFocus = true;
+	}
+
+    void Manager::CheckActive(RE::InputEvent* const* a_event)
 	{
 		IO.keyboard.Process(a_event);
 		if (RE::BSInputDeviceManager::GetSingleton()->IsGamepadEnabled()) {
@@ -366,7 +404,7 @@ namespace PhotoMode
 			// Q [Tab Tab Tab Tab Tab] E
 			ImGui::BeginGroup();
 			{
-				const auto buttonSize = ImGui::ButtonIcon(Input::TYPE::kKeyboard, KEY::kQ);
+				const auto buttonSize = ImGui::ButtonIcon(inputType, LeftTabKey());
 				ImGui::SameLine();
 
 				const float tabWidth = (ImGui::GetContentRegionAvail().x - (buttonSize.x + ImGui::GetStyle().ItemSpacing.x * tabs.size())) / tabs.size();
@@ -389,7 +427,7 @@ namespace PhotoMode
 				ImGui::PopItemFlag();
 
 				ImGui::SameLine();
-				ImGui::ButtonIcon(Input::TYPE::kKeyboard, KEY::kE);
+				ImGui::ButtonIcon(inputType, RightTabKey());
 			}
 			ImGui::EndGroup();
 
@@ -400,17 +438,12 @@ namespace PhotoMode
 			// content
 			ImGui::BeginChild("##PhotoModeChild", ImVec2(0, 0), false, windowFlags | ImGuiWindowFlags_NoNavFocus);
 			{
-				if (!io.WantTextInput) {
-					if (ImGui::IsKeyPressed(ImGuiKey_Q)) {
-						currentTab = (currentTab - 1 + tabs.size()) % tabs.size();
-						ImGui::SetKeyboardFocusHere();
-					} else if (ImGui::IsKeyPressed(ImGuiKey_E)) {
-						currentTab = (currentTab + 1) % tabs.size();
-						ImGui::SetKeyboardFocusHere();
-					}
+				if (updateKeyboardFocus) {
+					ImGui::SetKeyboardFocusHere();
+					updateKeyboardFocus = false;
 				}
 
-				switch (currentTab) {
+			    switch (currentTab) {
 				case 0:
 					{
 						if (resetWindow) {
@@ -601,12 +634,12 @@ namespace PhotoMode
 		const auto viewport = ImGui::GetMainViewport();
 
 		const static auto center = viewport->GetCenter();
-		const static auto offset = viewport->Size.y / 20;
+		const static auto offset = viewport->Size.y / 20.25f;
 
-		ImGui::SetNextWindowPos(ImVec2(center.x, (center.y + viewport->Size.y / 2) - offset), ImGuiCond_Always, ImVec2(0.5, 0.5));
+		ImGui::SetNextWindowPos(ImVec2(center.x, viewport->Size.y - offset), ImGuiCond_Always, ImVec2(0.5, 0.5));
 		ImGui::SetNextWindowBgAlpha(0.66f);
 
-		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.5f, offset), false, ImGuiWindowFlags_NoBringToFrontOnFocus);
+		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.5f, offset), false, ImGuiWindowFlags_NoBringToFrontOnFocus);	// same offset as control window
 		{
 			const static auto takePhotoLabel = "$PM_TAKEPHOTO"_T;
 			const static auto toggleUILabel = "$PM_TOGGLEUI"_T;

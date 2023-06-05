@@ -431,7 +431,15 @@ namespace Input
 					const auto key = buttonEvent->GetIDCode();
 
 					if (!io.WantTextInput) {
-						if (key == photoMode->TakePhotoKey()) {
+						if (key == photoMode->RightTabKey()) {
+							if (buttonEvent->IsDown()) {
+								photoMode->NavigateTab(false);
+							}
+						} else if (key == photoMode->LeftTabKey()) {
+							if (buttonEvent->IsDown()) {
+								photoMode->NavigateTab(true);
+							}
+						} else if (key == photoMode->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
 								QueueScreenshot(false);
 							} else if (screenshots.allowMultiScreenshots && buttonEvent->HeldDuration() > screenshots.keyHeldDuration) {
