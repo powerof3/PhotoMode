@@ -305,7 +305,7 @@ namespace PhotoMode
 		}
 	}
 
-    std::uint32_t Manager::RightTabKey() const
+	std::uint32_t Manager::RightTabKey() const
 	{
 		switch (inputType) {
 		case Input::TYPE::kKeyboard:
@@ -319,7 +319,7 @@ namespace PhotoMode
 		}
 	}
 
-    std::uint32_t Manager::LeftTabKey() const
+	std::uint32_t Manager::LeftTabKey() const
 	{
 		switch (inputType) {
 		case Input::TYPE::kKeyboard:
@@ -333,7 +333,7 @@ namespace PhotoMode
 		}
 	}
 
-    void Manager::NavigateTab(bool a_left)
+	void Manager::NavigateTab(bool a_left)
 	{
 		if (a_left) {
 			currentTab = (currentTab - 1 + tabs.size()) % tabs.size();
@@ -343,7 +343,7 @@ namespace PhotoMode
 		updateKeyboardFocus = true;
 	}
 
-    void Manager::CheckActive(RE::InputEvent* const* a_event)
+	void Manager::CheckActive(RE::InputEvent* const* a_event)
 	{
 		IO.keyboard.Process(a_event);
 		if (RE::BSInputDeviceManager::GetSingleton()->IsGamepadEnabled()) {
@@ -443,7 +443,7 @@ namespace PhotoMode
 					updateKeyboardFocus = false;
 				}
 
-			    switch (currentTab) {
+				switch (currentTab) {
 				case 0:
 					{
 						if (resetWindow) {
@@ -639,7 +639,7 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(ImVec2(center.x, viewport->Size.y - offset), ImGuiCond_Always, ImVec2(0.5, 0.5));
 		ImGui::SetNextWindowBgAlpha(0.66f);
 
-		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.5f, offset), false, ImGuiWindowFlags_NoBringToFrontOnFocus);	// same offset as control window
+		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.5f, offset), false, ImGuiWindowFlags_NoBringToFrontOnFocus);  // same offset as control window
 		{
 			const static auto takePhotoLabel = "$PM_TAKEPHOTO"_T;
 			const static auto toggleUILabel = "$PM_TOGGLEUI"_T;
