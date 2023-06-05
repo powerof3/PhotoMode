@@ -11,11 +11,13 @@ namespace ImGui
 
 	void AlignForWidth(float width, float alignment = 0.5f);
 
+    void AlignedImage(ImTextureID texID, const ImVec2& texture_size, const ImVec2& min, const ImVec2& max, const ImVec2& align);
+
 	std::string LabelPrefix(const char* label);
 	std::string LabelPrefix(const std::string& label);
 
-	void CenterLabel(const char* label, bool vertical = false);
-	void CenteredTextWithArrows(const char* label, const char* centerText);
+	void CenteredText(const char* label, bool vertical = false);
+	bool CenteredTextWithArrows(const char* label, const char* centerText);
 
 	bool OnOffToggle(const char* label, bool* a_toggle, const char* on, const char* off);
 
@@ -30,8 +32,7 @@ namespace ImGui
 		} else {
 			uIndex = *index;
 		}
-		CenteredTextWithArrows(LabelPrefix(label).c_str(), TRANSLATE(a_enum[uIndex]));
-		if (IsItemHovered()) {
+		if (CenteredTextWithArrows(LabelPrefix(label).c_str(), TRANSLATE(a_enum[uIndex]))) {
 			const bool pressedLeft = IsKeyPressed(ImGuiKey_LeftArrow) || IsKeyPressed(ImGuiKey_GamepadDpadLeft);
 
 			const bool pressedRight = IsKeyPressed(ImGuiKey_RightArrow) ||

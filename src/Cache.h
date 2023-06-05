@@ -56,7 +56,11 @@ namespace Cache
 
 	namespace DOF
 	{
-		inline static float& nearDist{
+		inline static bool& dynamicToggle{
+			*REL::Relocation<bool*>{ RELOCATION_ID(517709, 404236) }
+		};
+
+	    inline static float& nearDist{
 			*REL::Relocation<float*>{ RELOCATION_ID(528191, 415136) }
 		};
 		inline static float& farDist{
@@ -88,6 +92,6 @@ namespace Cache
 			*REL::Relocation<float*>{ RELOCATION_ID(528121, 415066) }
 		};
 	}
-
 }
 namespace EditorID = Cache::EditorID;
+namespace DOF = Cache::DOF;

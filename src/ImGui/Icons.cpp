@@ -46,8 +46,8 @@ namespace Icon
 
 				const auto windowHeight = renderer->data.renderWindows[0].windowHeight;
 
-				width = static_cast<uint32_t>(image.GetMetadata().width * (0.0004630f * windowHeight));
-				height = static_cast<uint32_t>(image.GetMetadata().height * (0.0004630f * windowHeight));
+				size.x = image.GetMetadata().width * (0.0004630f * windowHeight);
+				size.y = image.GetMetadata().height * (0.0004630f * windowHeight);
 
 				pTexture->Release();
 			}
@@ -61,6 +61,8 @@ namespace Icon
 	void Manager::LoadIcons()
 	{
 		unknownKey.Init();
+		stepperLeft.Init();
+		stepperRight.Init();
 
 		std::for_each(keyboard.begin(), keyboard.end(), [](auto& imageData) {
 			imageData.second.Init();
@@ -73,7 +75,16 @@ namespace Icon
 		});
 	}
 
-	const ImageData* Manager::GetIcon(Input::TYPE a_type, std::uint32_t key)
+    const ImageData* Manager::GetStepperLeft() const
+	{
+		return &stepperLeft;
+	}
+    const ImageData* Manager::GetStepperRight() const
+	{
+		return &stepperRight;
+	}
+
+    const ImageData* Manager::GetIcon(Input::TYPE a_type, std::uint32_t key)
 	{
 		switch (a_type) {
 		case Input::TYPE::kKeyboard:
@@ -143,15 +154,13 @@ void ImGui::ButtonIcon(Input::TYPE a_type, const std::set<std::uint32_t>& a_keys
 
 ImVec2 ImGui::ButtonIcon(const Icon::ImageData* a_imageData, bool a_centerIcon)
 {
-	const auto size = ImVec2(a_imageData->width, a_imageData->height);
-
 	if (a_centerIcon) {
 		const float height = ImGui::GetWindowSize().y;
-		ImGui::SetCursorPosY((height - size.y) / 2);
+		ImGui::SetCursorPosY((height - a_imageData->size.y) / 2);
 	}
-	ImGui::Image(a_imageData->srView, ImVec2(a_imageData->width, a_imageData->height));
+	ImGui::Image(a_imageData->srView, a_imageData->size);
 
-	return size;
+	return a_imageData->size;
 }
 
 void ImGui::ButtonIcon(const std::set<const Icon::ImageData*>& a_imageData, bool a_centerIcon)
@@ -169,12 +178,12 @@ void ImGui::ButtonIconWithLabel(const char* a_text, const Icon::ImageData* a_ima
 {
 	ImGui::ButtonIcon(a_imageData, a_centerIcon);
 	ImGui::SameLine();
-	ImGui::CenterLabel(a_text, true);
+	ImGui::CenteredText(a_text, true);
 }
 
 void ImGui::ButtonIconWithLabel(const char* a_text, const std::set<const Icon::ImageData*>& a_imageData, bool a_centerIcon)
 {
 	ImGui::ButtonIcon(a_imageData, a_centerIcon);
 	ImGui::SameLine();
-	ImGui::CenterLabel(a_text, true);
+	ImGui::CenteredText(a_text, true);
 }

@@ -305,7 +305,7 @@ namespace PhotoMode
 		}
 	}
 
-    std::uint32_t Manager::RightTabKey() const
+	std::uint32_t Manager::RightTabKey() const
 	{
 		switch (inputType) {
 		case Input::TYPE::kKeyboard:
@@ -319,7 +319,7 @@ namespace PhotoMode
 		}
 	}
 
-    std::uint32_t Manager::LeftTabKey() const
+	std::uint32_t Manager::LeftTabKey() const
 	{
 		switch (inputType) {
 		case Input::TYPE::kKeyboard:
@@ -333,7 +333,7 @@ namespace PhotoMode
 		}
 	}
 
-    void Manager::NavigateTab(bool a_left)
+	void Manager::NavigateTab(bool a_left)
 	{
 		if (a_left) {
 			currentTab = (currentTab - 1 + tabs.size()) % tabs.size();
@@ -343,7 +343,7 @@ namespace PhotoMode
 		updateKeyboardFocus = true;
 	}
 
-    void Manager::CheckActive(RE::InputEvent* const* a_event)
+	void Manager::CheckActive(RE::InputEvent* const* a_event)
 	{
 		IO.keyboard.Process(a_event);
 		if (RE::BSInputDeviceManager::GetSingleton()->IsGamepadEnabled()) {
@@ -443,8 +443,8 @@ namespace PhotoMode
 					updateKeyboardFocus = false;
 				}
 
-			    switch (currentTab) {
-				case 0:
+				switch (currentTab) {
+				case TAB_TYPE::kCamera:
 					{
 						if (resetWindow) {
 							ImGui::SetKeyboardFocusHere();
@@ -468,19 +468,16 @@ namespace PhotoMode
 							{
 								ImGui::Indent();
 								{
-									ImGui::Slider("$PM_DOF_Strength"_T, &Cache::DOF::blurMultiplier, 0.0f, 1.0f);
-									ImGui::Slider("$PM_DOF_NearDistance"_T, &Cache::DOF::nearDist, 0.0f, 1000.0f);
-									ImGui::Slider("$PM_DOF_NearRange"_T, &Cache::DOF::nearRange, 0.0f, 1000.0f);
-									ImGui::Slider("$PM_DOF_FarDistance"_T, &Cache::DOF::farDist, 0.0f, 100000.0f);
-									ImGui::Slider("$PM_DOF_FarRange"_T, &Cache::DOF::farRange, 0.0f, 100000.0f);
+									ImGui::Slider("$PM_DOF_Strength"_T, &DOF::blurMultiplier, 0.0f, 1.0f);
+									ImGui::Slider("$PM_DOF_Distance"_T, &DOF::nearDist, 0.0f, 1000.0f);
+									ImGui::Slider("$PM_DOF_Range"_T, &DOF::nearRange, 0.0f, 1000.0f);
 								}
-								ImGui::Unindent();
 							}
 							ImGui::EndDisabled();
 						}
 					}
 					break;
-				case 1:
+				case TAB_TYPE::kTime:
 					{
 						ImGui::OnOffToggle("$PM_FreezeTime"_T, &RE::Main::GetSingleton()->freezeTime, "$PM_YES"_T, "$PM_NO"_T);
 						ImGui::Slider("$PM_GlobalTimeMult"_T, &RE::BSTimer::GetCurrentGlobalTimeMult(), 0.0f, 2.0f);
@@ -500,7 +497,7 @@ namespace PhotoMode
 						}
 					}
 					break;
-				case 2:
+				case TAB_TYPE::kPlayer:
 					{
 						static auto player = RE::PlayerCharacter::GetSingleton();
 						auto&       playerState = currentState.player;
@@ -588,7 +585,7 @@ namespace PhotoMode
 						ImGui::EndDisabled();
 					}
 					break;
-				case 3:
+				case TAB_TYPE::kFilters:
 					{
 						if (const auto imageSpace = Override::imods.GetFormResultFromCombo()) {
 							Override::imods.Apply(imageSpace);
@@ -615,7 +612,7 @@ namespace PhotoMode
 						}
 					}
 					break;
-				case 4:
+				case TAB_TYPE::kScreenshot:
 					{
 						Screenshot::Manager::GetSingleton()->Draw();
 					}
@@ -639,7 +636,7 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(ImVec2(center.x, viewport->Size.y - offset), ImGuiCond_Always, ImVec2(0.5, 0.5));
 		ImGui::SetNextWindowBgAlpha(0.66f);
 
-		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.5f, offset), false, ImGuiWindowFlags_NoBringToFrontOnFocus);	// same offset as control window
+		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.5f, offset), false, ImGuiWindowFlags_NoBringToFrontOnFocus);  // same offset as control window
 		{
 			const static auto takePhotoLabel = "$PM_TAKEPHOTO"_T;
 			const static auto toggleUILabel = "$PM_TOGGLEUI"_T;
@@ -656,23 +653,23 @@ namespace PhotoMode
 
 			float width = 0.0f;
 
-			width += takePhotoIcon->width;
+			width += takePhotoIcon->size.x;
 			width += style.ItemSpacing.x;
 			width += ImGui::CalcTextSize(takePhotoLabel).x;
 			width += style.ItemSpacing.x;
 
-			width += toggleUIIcon->width;
+			width += toggleUIIcon->size.x;
 			width += style.ItemSpacing.x;
 			width += ImGui::CalcTextSize(toggleUILabel).x;
 			width += style.ItemSpacing.x;
 
-			width += resetIcon->width;
+			width += resetIcon->size.x;
 			width += style.ItemSpacing.x;
 			width += ImGui::CalcTextSize(resetLabel).x;
 			width += style.ItemSpacing.x;
 
 			for (const auto& icon : exitIcons) {
-				width += icon->width;
+				width += icon->size.x;
 			}
 			width += style.ItemSpacing.x;
 			width += ImGui::CalcTextSize(exitLabel).x;

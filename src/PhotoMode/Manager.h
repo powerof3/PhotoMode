@@ -47,6 +47,15 @@ namespace PhotoMode
 		void OnFrameUpdate() const;
 
 	private:
+		enum TAB_TYPE : std::int32_t
+		{
+			kCamera,
+			kTime,
+			kPlayer,
+			kFilters,
+			kScreenshot
+		};
+
 		static void ToggleActive(const KeyCombination*);
 
 		void DrawControls();
@@ -61,8 +70,8 @@ namespace PhotoMode
 		// members
 		bool activated{ false };
 
-		std::int32_t previousTab{ 0 };
-		std::int32_t currentTab{ 0 };
+		std::int32_t previousTab{ kCamera };
+		std::int32_t currentTab{ kCamera };
 		bool         updateKeyboardFocus{ false };
 
 		Input::TYPE inputType{};

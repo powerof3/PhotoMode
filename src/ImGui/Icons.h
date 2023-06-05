@@ -15,8 +15,7 @@ namespace Icon
 		// members
 		std::wstring              path{ LR"(Data\Interface\Icons\)" };
 		ID3D11ShaderResourceView* srView{ nullptr };
-		std::uint32_t             width{};
-		std::uint32_t             height{};
+		ImVec2                    size{};
 	};
 
 	class Manager final : public ISingleton<Manager>
@@ -24,11 +23,17 @@ namespace Icon
 	public:
 		void LoadIcons();
 
+		const ImageData* GetStepperLeft() const;
+		const ImageData* GetStepperRight() const;
+
 		const ImageData*           GetIcon(Input::TYPE a_type, std::uint32_t key);
 		std::set<const ImageData*> GetIcons(Input::TYPE a_type, const std::set<std::uint32_t>& keys);
 
 	private:
 		// members
+		ImageData stepperLeft{ ImageData(L"StepperLeft"sv) };
+		ImageData stepperRight{ ImageData(L"StepperRight"sv) };
+
 		ImageData unknownKey{ ImageData(L"UnknownKey"sv) };
 
 		Map<KEY, ImageData> keyboard{

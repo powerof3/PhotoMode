@@ -1,5 +1,6 @@
 #include "Util.h"
 
+#include "Icons.h"
 #include "Renderer.h"
 
 namespace ImGui
@@ -149,7 +150,7 @@ namespace ImGui
 		// Copied from ListBoxHeader
 		// If popup_max_height_in_items == -1, default height is maximum 7.
 		const float height_in_items_f = (popup_max_height_in_items < 0 ? ImMin(items_count, 7) :
-                                                                         popup_max_height_in_items) +
+																		 popup_max_height_in_items) +
 		                                0.25f;
 		ImVec2 size;
 		size.x = 0.0f;
@@ -256,6 +257,19 @@ namespace ImGui
 			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
 	}
 
+	void AlignedImage(ImTextureID texID, const ImVec2& texture_size, const ImVec2& min, const ImVec2& max, const ImVec2& align)
+	{
+		const ImGuiWindow* window = GetCurrentWindow();
+		ImVec2             pos = min;
+
+		if (align.x > 0.0f)
+			pos.x = ImMax(pos.x, pos.x + (max.x - pos.x - texture_size.x) * align.x);
+		if (align.y > 0.0f)
+			pos.y = ImMax(pos.y, pos.y + (max.y - pos.y - texture_size.y) * align.y);
+
+		window->DrawList->AddImage(texID, pos, pos + texture_size);
+	}
+
 	// https://github.com/libigl/libigl/issues/1300#issuecomment-1310174619
 	std::string LabelPrefix(const char* const label)
 	{
@@ -279,7 +293,7 @@ namespace ImGui
 		return LabelPrefix(label.c_str());
 	}
 
-	void CenterLabel(const char* label, bool vertical)
+	void CenteredText(const char* label, bool vertical)
 	{
 		const auto windowSize = ImGui::GetWindowSize();
 		const auto textSize = ImGui::CalcTextSize(label);
@@ -293,11 +307,11 @@ namespace ImGui
 		ImGui::Text(label);
 	}
 
-	void ImGui::CenteredTextWithArrows(const char* label, const char* centerText)
+	bool ImGui::CenteredTextWithArrows(const char* label, const char* centerText)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
-			return;
+			return false;
 
 		ImGuiContext&     g = *GImGui;
 		const ImGuiStyle& style = g.Style;
@@ -310,7 +324,7 @@ namespace ImGui
 
 		ItemSize(total_bb, style.FramePadding.y);
 		if (!ItemAdd(total_bb, id, &frame_bb, false))
-			return;
+			return false;
 
 		RenderNavHighlight(frame_bb, id);
 
@@ -319,31 +333,31 @@ namespace ImGui
 			PushStyleColor(ImGuiCol_Text, ImVec4{ 0.60f, 0.60f, 0.60f, 1.0f });
 		}
 
-		if (isHovered) {
-			PushFont(PhotoMode::Renderer::selectedFont);
-			RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText, nullptr, nullptr, ImVec2(0.5f, 0.5f));
-		} else {
-			RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText, nullptr, nullptr, ImVec2(0.5f, 0.5f));
-			PushFont(PhotoMode::Renderer::selectedFont);
-		}
-
-		RenderTextClipped(frame_bb.Min, frame_bb.Max, "<", nullptr, nullptr, ImVec2(0.01f, 0.5f));
-		RenderTextClipped(frame_bb.Min, frame_bb.Max, ">", nullptr, nullptr, ImVec2(0.99f, 0.5f));
-
+		PushFont(PhotoMode::Renderer::selectedFont);
+		RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText, nullptr, nullptr, ImVec2(0.5f, 0.5f));
 		PopFont();
+
 		if (!isHovered) {
 			PopStyleColor();
 		}
 
+		// Draw arrows
+		static auto leftArrow = Icon::Manager::GetSingleton()->GetStepperLeft();
+		static auto rightArrow = Icon::Manager::GetSingleton()->GetStepperRight();
+
+		AlignedImage(leftArrow->srView, leftArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(0, 0.5f));
+		AlignedImage(rightArrow->srView, rightArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(1.0, 0.5f));
+
 		if (label_size.x > 0.0f) {
 			RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
 		}
+
+		return isHovered;
 	}
 
 	bool OnOffToggle(const char* label, bool* a_toggle, const char* on, const char* off)
 	{
-		CenteredTextWithArrows(LabelPrefix(label).c_str(), *a_toggle ? on : off);
-		if (IsItemHovered()) {
+		if (CenteredTextWithArrows(LabelPrefix(label).c_str(), *a_toggle ? on : off)) {
 			SetItemDefaultFocus();
 			if (IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter)) {
 				*a_toggle = !*a_toggle;
@@ -412,9 +426,9 @@ namespace ImGui
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
-                                                                                                  ImGuiCol_FrameBg);
+																								  ImGuiCol_FrameBg);
 		const ImU32 frame_col_after = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered :
-                                                                                                                  ImGuiCol_FrameBg);
+																												  ImGuiCol_FrameBg);
 		RenderNavHighlight(frame_bb, id);
 
 		// Slider behavior
