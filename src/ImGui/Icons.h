@@ -41,7 +41,7 @@ namespace Icon
 		ImFont* bigFont{ nullptr };
 		ImFont* bigIconFont{ nullptr };
 
-	    ImageData stepperLeft{ ImageData(L"StepperLeft"sv) };
+		ImageData stepperLeft{ ImageData(L"StepperLeft"sv) };
 		ImageData stepperRight{ ImageData(L"StepperRight"sv) };
 
 		ImageData unknownKey{ ImageData(L"UnknownKey"sv) };

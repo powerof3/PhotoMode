@@ -25,7 +25,7 @@ namespace PhotoMode
 			kGrid
 		};
 
-	    struct OriginalState
+		struct OriginalState
 		{
 			void Get();
 			void Revert() const;

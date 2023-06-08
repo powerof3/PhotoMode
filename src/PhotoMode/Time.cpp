@@ -29,7 +29,7 @@ namespace PhotoMode
 	void Time::GetOriginalState()
 	{
 		originalState.Get();
-        weathers.InitForms();
+		weathers.InitForms();
 	}
 
 	void Time::RevertState()
@@ -37,10 +37,10 @@ namespace PhotoMode
 		originalState.Revert();
 
 		// revert timescale mult
-	    currentTimescaleMult = 1.0f;
+		currentTimescaleMult = 1.0f;
 
-	    // revert weather
-        weathers.ResetIndex();
+		// revert weather
+		weathers.ResetIndex();
 		if (weatherForced) {
 			const auto sky = RE::Sky::GetSingleton();
 			sky->ReleaseWeatherOverride();
@@ -52,14 +52,14 @@ namespace PhotoMode
 		}
 	}
 
-    void Time::OnFrameUpdate() const
-    {
+	void Time::OnFrameUpdate() const
+	{
 		if (weatherForced) {
 			RE::Sky::GetSingleton()->lastWeatherUpdate = RE::Calendar::GetSingleton()->gameHour->value;
 		}
 	}
 
-    void Time::Draw()
+	void Time::Draw()
 	{
 		ImGui::OnOffToggle("$PM_FreezeTime"_T, &RE::Main::GetSingleton()->freezeTime, "$PM_YES"_T, "$PM_NO"_T);
 		ImGui::Slider("$PM_GlobalTimeMult"_T, &RE::BSTimer::GetCurrentGlobalTimeMult(), 0.0f, 2.0f);

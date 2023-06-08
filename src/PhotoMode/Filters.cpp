@@ -6,7 +6,7 @@ namespace PhotoMode
 {
 	void Filters::GetOriginalState()
 	{
-        imods.InitForms();
+		imods.InitForms();
 
 		const auto IMGS = RE::ImageSpaceManager::GetSingleton();
 		if (IMGS->currentBaseData) {
@@ -37,13 +37,13 @@ namespace PhotoMode
 		if (imodPlayed) {
 			if (currentImod) {
 				RE::ImageSpaceModifierInstanceForm::Stop(currentImod);
-                currentImod = nullptr;
+				currentImod = nullptr;
 			}
 			imodPlayed = false;
 		}
 	}
 
-    void Filters::Draw()
+	void Filters::Draw()
 	{
 		imods.GetFormResultFromCombo([&](const auto& imod) {
 			if (currentImod) {

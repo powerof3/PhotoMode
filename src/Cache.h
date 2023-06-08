@@ -60,7 +60,7 @@ namespace Cache
 			*REL::Relocation<bool*>{ RELOCATION_ID(517709, 404236) }
 		};
 
-	    inline static float& nearDist{
+		inline static float& nearDist{
 			*REL::Relocation<float*>{ RELOCATION_ID(528191, 415136) }
 		};
 		inline static float& farDist{

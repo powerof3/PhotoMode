@@ -22,7 +22,7 @@ namespace PhotoMode
 	public:
 		static void Register();
 
-	    void LoadSettings(CSimpleIniA& a_ini);
+		void LoadSettings(CSimpleIniA& a_ini);
 
 		static bool GetValid();
 		bool        IsActive() const;

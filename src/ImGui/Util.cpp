@@ -151,7 +151,7 @@ namespace ImGui
 		// Copied from ListBoxHeader
 		// If popup_max_height_in_items == -1, default height is maximum 7.
 		const float height_in_items_f = (popup_max_height_in_items < 0 ? ImMin(items_count, 7) :
-																		 popup_max_height_in_items) +
+                                                                         popup_max_height_in_items) +
 		                                0.25f;
 		ImVec2 size;
 		size.x = 0.0f;
@@ -315,9 +315,9 @@ namespace ImGui
 
 	bool OnOffToggle(const char* label, bool* a_toggle, const char* on, const char* off)
 	{
-		bool       selected = false;
+		bool selected = false;
 
-	    if (CenteredTextWithArrows(LabelPrefix(label).c_str(), *a_toggle ? on : off)) {
+		if (CenteredTextWithArrows(LabelPrefix(label).c_str(), *a_toggle ? on : off)) {
 			SetItemDefaultFocus();
 			if (IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter)) {
 				*a_toggle = !*a_toggle;
@@ -335,7 +335,7 @@ namespace ImGui
 			RE::PlaySound("UIMenuFocus");
 		}
 
-	    return selected;
+		return selected;
 	}
 
 	bool ThinSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags, float sliderThickness)
@@ -391,9 +391,9 @@ namespace ImGui
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
-																								  ImGuiCol_FrameBg);
+                                                                                                  ImGuiCol_FrameBg);
 		const ImU32 frame_col_after = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered :
-																												  ImGuiCol_FrameBg);
+                                                                                                                  ImGuiCol_FrameBg);
 		RenderNavHighlight(frame_bb, id);
 
 		// Slider behavior
@@ -433,7 +433,7 @@ namespace ImGui
 
 	bool ThinSliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, ImGuiSliderFlags flags)
 	{
-        const auto result = ThinSliderScalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags, 0.5f);
+		const auto result = ThinSliderScalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags, 0.5f);
 		if (result) {
 			RE::PlaySound("UIMenuPrevNext");
 		}
@@ -449,7 +449,7 @@ namespace ImGui
 		return result;
 	}
 
-    bool ActivateOnHover()
+	bool ActivateOnHover()
 	{
 		if (!IsItemActive() && IsItemFocused()) {
 			ActivateItemByID(GetItemID());

@@ -100,7 +100,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 	PhotoMode::Renderer::InstallHook();
 
-    const auto messaging = SKSE::GetMessagingInterface();
+	const auto messaging = SKSE::GetMessagingInterface();
 	messaging->RegisterListener("SKSE", OnInit);
 
 	return true;

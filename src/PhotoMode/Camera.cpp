@@ -18,7 +18,7 @@ namespace PhotoMode
 	}
 
 	void Camera::OriginalState::Revert() const
-    {
+	{
 		RE::PlayerCamera::GetSingleton()->worldFOV = fov;
 		Cache::translateSpeedValue = translateSpeed;
 
@@ -44,7 +44,7 @@ namespace PhotoMode
 		// revert grid
 		gridType = GridType::kDisabled;
 
-	    // revert DOF
+		// revert DOF
 		if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
 			static_cast<RE::ImageSpaceEffectDepthOfField*>(effect)->enabled = true;
 		}
@@ -52,7 +52,7 @@ namespace PhotoMode
 
 	void Camera::Draw()
 	{
-	    ImGui::EnumSlider("$PM_Grid"_T, &gridType, gridTypes);
+		ImGui::EnumSlider("$PM_Grid"_T, &gridType, gridTypes);
 
 		ImGui::Slider("$PM_FieldOfView"_T, &RE::PlayerCamera::GetSingleton()->worldFOV, 5.0f, 150.0f);
 		ImGui::Slider("$PM_ViewRoll"_T, &currentViewRoll, -RE::NI_PI, RE::NI_PI);
@@ -79,7 +79,7 @@ namespace PhotoMode
 	}
 
 	void Camera::DrawGrid() const
-    {
+	{
 		if (gridType == kDisabled) {
 			return;
 		}

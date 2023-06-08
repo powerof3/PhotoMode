@@ -8,10 +8,10 @@
 
 namespace PhotoMode
 {
-    void Manager::Register()
-    {
+	void Manager::Register()
+	{
 		RE::UI::GetSingleton()->AddEventSink(GetSingleton());
-    }
+	}
 
 	void Manager::LoadSettings(CSimpleIniA& a_ini)
 	{
@@ -124,7 +124,7 @@ namespace PhotoMode
 		} else {
 			RE::PlaySound("UIMenuOK");
 
-		    const auto notification = fmt::format("{}", resetAll ? "$PM_ResetNotifAll"_T : TRANSLATE(tabResetNotifs[currentTab]));
+			const auto notification = fmt::format("{}", resetAll ? "$PM_ResetNotifAll"_T : TRANSLATE(tabResetNotifs[currentTab]));
 			RE::DebugNotification(notification.c_str());
 
 			if (resetAll) {

@@ -170,10 +170,10 @@ namespace ImGui
 		std::string name;
 		bool        translated{ false };
 
-		StringMap<FormComboBox<T>>      modNameForms{};
-		std::vector<std::string> modNames{};
-		std::int32_t             index{};
-		bool                     containsFF{ false };
+		StringMap<FormComboBox<T>> modNameForms{};
+		std::vector<std::string>   modNames{};
+		std::int32_t               index{};
+		bool                       containsFF{ false };
 
 		std::string curMod{ allMods };
 	};
