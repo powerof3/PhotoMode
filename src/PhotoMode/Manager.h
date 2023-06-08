@@ -1,39 +1,50 @@
 #pragma once
 
+#include "ImGui/IconsFontAwesome6.h"
+
+#include "Camera.h"
+#include "Filters.h"
 #include "Input.h"
-#include "States.h"
+#include "Player.h"
+#include "Time.h"
 
 namespace Input
 {
-	enum class TYPE;
+	enum class TYPE : std::uint32_t;
 }
 
 namespace PhotoMode
 {
-	class Manager : public ISingleton<Manager>
+	class Manager :
+		public ISingleton<Manager>,
+		public RE::BSTEventSink<RE::MenuOpenCloseEvent>
 	{
 	public:
-		void LoadSettings(CSimpleIniA& a_ini);
+		static void Register();
+
+	    void LoadSettings(CSimpleIniA& a_ini);
 
 		static bool GetValid();
 		bool        IsActive() const;
 		void        Activate();
 		void        Deactivate();
+		void        ToggleActive();
 
-		void GetOriginalState();
 		void Revert(bool a_deactivate = false);
-		void RevertTab(std::int32_t a_tabIndex);
 
-		[[nodiscard]] float GetResetHoldDuration() const;
-		bool                GetResetAll() const;
-		void                DoResetAll(bool a_enable);
+		[[nodiscard]] static float GetResetHoldDuration();
+		;
+		bool GetResetAll() const;
+		;
+		void DoResetAll();
+		;
 
 		void SetInputType(Input::TYPE a_inputType);
+		;
 
 		std::uint32_t ResetKey() const;
 		std::uint32_t TakePhotoKey() const;
 		std::uint32_t ToggleUIKey() const;
-
 		std::uint32_t RightTabKey() const;
 		std::uint32_t LeftTabKey() const;
 
@@ -44,7 +55,7 @@ namespace PhotoMode
 		[[nodiscard]] float GetViewRoll(float a_fallback) const;
 
 		void Draw();
-		void OnFrameUpdate() const;
+		void OnFrameUpdate();
 
 	private:
 		enum TAB_TYPE : std::int32_t
@@ -56,25 +67,22 @@ namespace PhotoMode
 			kScreenshot
 		};
 
-		static void ToggleActive(const KeyCombination*);
-
-		void DrawControls();
-		void DrawBar() const;
-
 		// kMenu | kActivate | kFighting | kJumping | kConsole | kSneaking
 		static constexpr auto controlFlags = static_cast<RE::ControlMap::UEFlag>(1244);
 
 		static constexpr std::array tabs = { "$PM_Camera", "$PM_TimeWeather", "$PM_Player", "$PM_Filters", "$PM_Screenshots" };
+		static constexpr std::array tabIcons = { ICON_FA_CAMERA, ICON_FA_CLOCK, ICON_FA_PERSON, ICON_FA_PAINTBRUSH, ICON_FA_PHOTO_FILM };
 		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifScreenshots" };
+
+		static void ToggleActive_Input(const KeyCombination*);
+
+		void DrawControls();
+		void DrawBar() const;
+
+		EventResult ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
 
 		// members
 		bool activated{ false };
-
-		std::int32_t previousTab{ kCamera };
-		std::int32_t currentTab{ kCamera };
-		bool         updateKeyboardFocus{ false };
-
-		Input::TYPE inputType{};
 
 		struct
 		{
@@ -86,28 +94,27 @@ namespace PhotoMode
 				return gamePad.GetKeys();
 			}
 
-			KeyCombination keyboard{ "N", ToggleActive };
-			KeyCombination gamePad{ "LShoulder+RShoulder", ToggleActive };
+			KeyCombination keyboard{ "N", ToggleActive_Input };
+			KeyCombination gamePad{ "LShoulder+RShoulder", ToggleActive_Input };
 		} IO;
 
-		State           originalState{};
-		RE::CameraState originalCameraState{ RE::CameraState::kThirdPerson };
-		State           currentState{};
+		std::int32_t previousTab{ kCamera };
+		std::int32_t currentTab{ kCamera };
+
+		Camera  cameraTab;
+		Time    timeTab;
+		Player  playerTab;
+		Filters filterTab;
+
+		Input::TYPE inputType{};
+		bool        updateKeyboardFocus{ false };
+
+		RE::CameraState cameraState{ RE::CameraState::kThirdPerson };
 		bool            menusAlreadyHidden{ false };
 		bool            resetWindow{ true };
 
-		float timescaleMult{ 1.0f };
-		bool  idlePlayed{ false };
-		bool  weatherForced{ false };
-		bool  effectsPlayed{ false };
-		bool  vfxPlayed{ false };
-		bool  imodPlayed{ false };
-
-		float resetAllHoldDuration{ 0.5 };
-		bool  resetAll{ false };
-
-		RE::ImageSpaceBaseData imageSpaceData{};
+		bool resetAll{ false };
 	};
 
-	void InstallHook();
+	void InstallHooks();
 }

@@ -133,6 +133,7 @@ else ()
 endif()
 
 find_package(directxtex CONFIG REQUIRED)
+find_package(Freetype REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(rapidfuzz CONFIG REQUIRED)
 find_package(unordered_dense CONFIG REQUIRED)
@@ -199,6 +200,7 @@ target_link_libraries(
 	PRIVATE
 		${CommonLibName}::${CommonLibName}
 		Microsoft::DirectXTex
+		Freetype::Freetype
 		imgui::imgui
 		rapidfuzz::rapidfuzz
 		unordered_dense::unordered_dense

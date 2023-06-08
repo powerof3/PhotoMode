@@ -53,9 +53,15 @@ namespace PhotoMode::Renderer
 				auto& style = ImGui::GetStyle();
 				style.FrameRounding = 4.0f;
 				style.GrabRounding = 4.0f;
+				style.WindowBorderSize = 0.0f;
 
-				style.Colors[ImGuiCol_WindowBg] = { 0.0, 0.0, 0.0, 0.62f };
-				style.Colors[ImGuiCol_Border] = { 0.0f, 0.0f, 0.0f, 0.0f };
+				style.Colors[ImGuiCol_WindowBg] = { 0.0f, 0.0f, 0.0f, 0.62f };
+				style.Colors[ImGuiCol_ChildBg] = { 0.0f, 0.0f, 0.0f, 0.62f };
+
+				style.Colors[ImGuiCol_Border] = { 0.396f, 0.404f, 0.412f, 0.62f };
+				style.Colors[ImGuiCol_Separator] = { 0.396f, 0.404f, 0.412f, 0.62f };
+
+				style.Colors[ImGuiCol_TextDisabled] = { 0.604f, 0.604f, 0.6078f, 1.0f };
 
 				if (!ImGui_ImplWin32_Init(desc.OutputWindow)) {
 					logger::error("ImGui initialization failed (Win32)");
@@ -66,9 +72,7 @@ namespace PhotoMode::Renderer
 					return;
 				}
 
-				io.FontDefault = io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\Jost-Medium.ttf)", 24);
-				selectedFont = io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\Jost-Medium.ttf)", 28);
-
+				Icon::Manager::GetSingleton()->LoadFonts();
 				Icon::Manager::GetSingleton()->LoadIcons();
 
 				logger::info("ImGui initialized.");
@@ -103,11 +107,6 @@ namespace PhotoMode::Renderer
 			const auto photoMode = PhotoMode::Manager::GetSingleton();
 
 			if (!photoMode->IsActive()) {
-				return;
-			}
-
-			if (!photoMode->GetValid()) {
-				photoMode->Deactivate();
 				return;
 			}
 

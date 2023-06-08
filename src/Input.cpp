@@ -449,13 +449,14 @@ namespace Input
 							if (buttonEvent->IsUp()) {
 								photoMode->Revert(false);
 							} else if (buttonEvent->HeldDuration() > photoMode->GetResetHoldDuration()) {
-								photoMode->DoResetAll(true);
+								photoMode->DoResetAll();
 							}
 						} else if (key == photoMode->ToggleUIKey()) {
 							if (buttonEvent->IsDown()) {
 								const auto UI = RE::UI::GetSingleton();
 								UI->ShowMenus(!UI->IsShowingMenus());
 							}
+							RE::PlaySound("UIMenuPrevNext");
 						}
 					}
 

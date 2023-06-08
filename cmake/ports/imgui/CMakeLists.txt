@@ -45,6 +45,10 @@ if(IMGUI_FREETYPE)
     target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_ENABLE_FREETYPE)
 endif()
 
+if(IMGUI_USE_WCHAR32)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_USE_WCHAR32)
+endif()
+
 list(REMOVE_DUPLICATES BINDINGS_SOURCES)
 
 install(
@@ -81,7 +85,7 @@ if(NOT IMGUI_SKIP_HEADERS)
         install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_dx11.h DESTINATION include)
     endif()
 
-     if(IMGUI_BUILD_WIN32_BINDING)
+    if(IMGUI_BUILD_WIN32_BINDING)
         install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/backends/imgui_impl_win32.h DESTINATION include)
     endif()
 

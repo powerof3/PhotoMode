@@ -10,8 +10,9 @@
     "directxtex",
     {
       "name": "imgui",
-      "features": [ "dx11-binding", "win32-binding", "freetype" ]
+      "features": [ "dx11-binding", "win32-binding", "freetype", "wchar32" ]
     },
+    "freetype",
     "rapidfuzz",
     "rsm-binary-io",
     "spdlog",

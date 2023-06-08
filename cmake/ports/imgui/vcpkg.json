@@ -26,6 +26,9 @@
         "freetype"
       ]
     },
+    "wchar32": {
+      "description": "Use WCHAR32 instead of WCHAR16"
+    },
     "win32-binding": {
       "description": "Make available Win32 binding",
       "supports": "windows"

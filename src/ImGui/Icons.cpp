@@ -1,5 +1,6 @@
 #include "Icons.h"
 
+#include "IconsFontAwesome6.h"
 #include "Input.h"
 #include "Util.h"
 
@@ -75,16 +76,52 @@ namespace Icon
 		});
 	}
 
-    const ImageData* Manager::GetStepperLeft() const
+	void Manager::LoadFonts()
+	{
+		constexpr float          baseFontSize = 24.0f;
+		constexpr float          bigFontSize = 28.0f;
+		constexpr float          baseIconSize = 20.0f;
+		constexpr float          bigIconSize = 24.0f;
+		static constexpr ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+
+		const auto& io = ImGui::GetIO();
+		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\Jost-Medium.ttf)", baseFontSize);
+
+		ImFontConfig config;
+		config.MergeMode = true;
+		config.PixelSnapH = true;
+		config.OversampleH = config.OversampleV = 1;
+
+		io.Fonts->AddFontFromFileTTF("Data\\Interface\\Fonts\\" FONT_ICON_FILE_NAME_FAS, baseIconSize, &config, icon_ranges);
+
+		config.MergeMode = false;
+
+		bigIconFont = io.Fonts->AddFontFromFileTTF("Data\\Interface\\Fonts\\" FONT_ICON_FILE_NAME_FAS, bigIconSize, &config, icon_ranges);
+		bigFont = io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\Jost-Medium.ttf)", bigFontSize);
+
+		io.Fonts->Build();
+	}
+
+	ImFont* Manager::GetBigFont() const
+	{
+		return bigFont;
+	}
+
+	ImFont* Manager::GetBigIconFont() const
+	{
+		return bigIconFont;
+	}
+
+	const ImageData* Manager::GetStepperLeft() const
 	{
 		return &stepperLeft;
 	}
-    const ImageData* Manager::GetStepperRight() const
+	const ImageData* Manager::GetStepperRight() const
 	{
 		return &stepperRight;
 	}
 
-    const ImageData* Manager::GetIcon(Input::TYPE a_type, std::uint32_t key)
+	const ImageData* Manager::GetIcon(Input::TYPE a_type, std::uint32_t key)
 	{
 		switch (a_type) {
 		case Input::TYPE::kKeyboard:

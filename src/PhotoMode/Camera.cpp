@@ -1,99 +1,85 @@
-#include "Overrides.h"
+#include "Camera.h"
+
+#include "ImGui/Util.h"
+#include "Translation.h"
 
 namespace PhotoMode
 {
-	namespace Override
+	void Camera::OriginalState::Get()
 	{
-		void InitOverrides()
-		{
-			if (!resetRootIdle) {
-				resetRootIdle = RE::TESForm::LookupByEditorID<RE::TESIdleForm>("ResetRoot");
-			}
+		fov = RE::PlayerCamera::GetSingleton()->worldFOV;
+		translateSpeed = Cache::translateSpeedValue;
 
-			// not static
-			currentWeather = RE::Sky::GetSingleton()->currentWeather;
+		blurMultiplier = DOF::blurMultiplier;
+		nearDist = DOF::nearDist;
+		nearRange = DOF::nearRange;
+		farDist = DOF::farDist;
+		farRange = DOF::farRange;
+	}
 
-			weathers.InitForms();
-			idles.InitForms();
-			effectShaders.InitForms();
-			effectVFX.InitForms();
-			imods.InitForms();
+	void Camera::OriginalState::Revert() const
+    {
+		RE::PlayerCamera::GetSingleton()->worldFOV = fov;
+		Cache::translateSpeedValue = translateSpeed;
+
+		DOF::blurMultiplier = blurMultiplier;
+		DOF::nearDist = nearDist;
+		DOF::nearRange = nearRange;
+		DOF::farDist = farDist;
+		DOF::farRange = farRange;
+	}
+
+	void Camera::GetOriginalState()
+	{
+		originalState.Get();
+	}
+
+	void Camera::RevertState()
+	{
+		originalState.Revert();
+
+		// revert view roll
+		currentViewRoll = 0.0f;
+
+		// revert grid
+		gridType = GridType::kDisabled;
+
+	    // revert DOF
+		if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
+			static_cast<RE::ImageSpaceEffectDepthOfField*>(effect)->enabled = true;
 		}
+	}
 
-		// TESDataHandler idle array is not populated
-		struct SetFormEditorID
-		{
-			static bool thunk(RE::TESIdleForm* a_this, const char* a_str)
+	void Camera::Draw()
+	{
+	    ImGui::EnumSlider("$PM_Grid"_T, &gridType, gridTypes);
+
+		ImGui::Slider("$PM_FieldOfView"_T, &RE::PlayerCamera::GetSingleton()->worldFOV, 5.0f, 150.0f);
+		ImGui::Slider("$PM_ViewRoll"_T, &currentViewRoll, -RE::NI_PI, RE::NI_PI);
+		ImGui::Slider("$PM_TranslateSpeed"_T,
+			&Cache::translateSpeedValue,  // fFreeCameraTranslationSpeed:Camera
+			0.1f, 50.0f);
+
+		if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
+			const auto dofEffect = static_cast<RE::ImageSpaceEffectDepthOfField*>(effect);
+
+			ImGui::OnOffToggle("$PM_DepthOfField"_T, &dofEffect->enabled, "$PM_YES"_T, "$PM_NO"_T);
+
+			ImGui::BeginDisabled(!dofEffect->enabled);
 			{
-				if (!clib_util::string::is_empty(a_str)) {
-					idles.AddForm(a_str, a_this);
+				ImGui::Indent();
+				{
+					ImGui::Slider("$PM_DOF_Strength"_T, &DOF::blurMultiplier, 0.0f, 1.0f);
+					ImGui::Slider("$PM_DOF_Distance"_T, &DOF::nearDist, 0.0f, 1000.0f);
+					ImGui::Slider("$PM_DOF_Range"_T, &DOF::nearRange, 0.0f, 1000.0f);
 				}
-				return func(a_this, a_str);
 			}
-			static inline REL::Relocation<decltype(thunk)> func;
-			static inline constexpr std::size_t            size{ 0x33 };
-		};
-
-		void InstallHooks()
-		{
-			stl::write_vfunc<RE::TESIdleForm, SetFormEditorID>();
+			ImGui::EndDisabled();
 		}
 	}
 
-	namespace MFG
-	{
-		void Expression::ApplyExpression(RE::Actor* a_actor) const
-		{
-			if (const auto faceData = a_actor->GetFaceGenAnimationData()) {
-				if (modifier == 0) {
-					faceData->ClearExpressionOverride();
-					faceData->Reset(0.0f, true, false, false, false);
-					RE::BSFaceGenManager::GetSingleton()->isReset = true;
-				} else {
-					faceData->exprOverride = false;
-					faceData->SetExpressionOverride(modifier - 1, strength);
-					faceData->exprOverride = true;
-				}
-			}
-		}
-
-		void Modifier::ApplyModifier(std::uint32_t idx, RE::Actor* a_actor) const
-		{
-			if (const auto faceData = a_actor->GetFaceGenAnimationData()) {
-				RE::BSSpinLockGuard locker(faceData->lock);
-				faceData->modifierKeyFrame.SetValue(idx, static_cast<float>(strength / 100.0f));
-			}
-		}
-
-		void Modifier::ApplyPhenome(std::uint32_t idx, RE::Actor* a_actor) const
-		{
-			if (const auto faceData = a_actor->GetFaceGenAnimationData()) {
-				RE::BSSpinLockGuard locker(faceData->lock);
-				faceData->phenomeKeyFrame.SetValue(idx, static_cast<float>(strength / 100.0f));
-			}
-		}
-
-		void RevertAllModifiers()
-		{
-			if (const auto faceData = RE::PlayerCharacter::GetSingleton()->GetFaceGenAnimationData()) {
-				faceData->ClearExpressionOverride();
-				faceData->Reset(0.0f, true, true, true, false);
-				RE::BSFaceGenManager::GetSingleton()->isReset = true;
-			}
-
-			expressionData.modifier = 0;
-
-			for (std::uint32_t i = 0; i < phonemes.size(); i++) {
-				phonemeData[i].strength = 0;
-			}
-			for (std::uint32_t i = 0; i < modifiers.size(); i++) {
-				modifierData[i].strength = 0;
-			}
-		}
-	}
-
-	void Grid::Draw()
-	{
+	void Camera::DrawGrid() const
+    {
 		if (gridType == kDisabled) {
 			return;
 		}

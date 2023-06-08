@@ -18,17 +18,18 @@
 #include <DirectXMath.h>
 #include <DirectXTex.h>
 
+#include <ankerl/unordered_dense.h>
+#include <freetype/freetype.h>
+#include <rapidfuzz/rapidfuzz_all.hpp>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <srell.hpp>
+#include <xbyak/xbyak.h>
+
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
 #include <imgui.h>
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>
-
-#include <ankerl/unordered_dense.h>
-#include <rapidfuzz/rapidfuzz_all.hpp>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <srell.hpp>
-#include <xbyak/xbyak.h>
 
 #define DLLEXPORT __declspec(dllexport)
 

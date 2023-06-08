@@ -2,7 +2,7 @@
 
 namespace Input
 {
-	enum class TYPE
+	enum class TYPE : std::uint32_t
 	{
 		kKeyboard,
 		kGamepadDirectX,  // xbox

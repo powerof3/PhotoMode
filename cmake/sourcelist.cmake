@@ -4,9 +4,11 @@ set(sources ${sources}
 	src/ImGui/Util.cpp
 	src/Input.cpp
 	src/PCH.cpp
+	src/PhotoMode/Camera.cpp
+	src/PhotoMode/Filters.cpp
 	src/PhotoMode/Manager.cpp
-	src/PhotoMode/Overrides.cpp
-	src/PhotoMode/States.cpp
+	src/PhotoMode/Player.cpp
+	src/PhotoMode/Time.cpp
 	src/Screenshots/LoadScreen.cpp
 	src/Screenshots/Manager.cpp
 	src/Settings.cpp

@@ -15,12 +15,13 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 
 			Screenshot::InstallHook();
 			LoadScreen::InstallHook();
-			PhotoMode::InstallHook();
+			PhotoMode::InstallHooks();
 		}
 		break;
 	case SKSE::MessagingInterface::kInputLoaded:
 		{
 			Input::Manager::Register();
+			PhotoMode::Manager::Register();
 		}
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
@@ -99,7 +100,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 	PhotoMode::Renderer::InstallHook();
 
-	auto messaging = SKSE::GetMessagingInterface();
+    const auto messaging = SKSE::GetMessagingInterface();
 	messaging->RegisterListener("SKSE", OnInit);
 
 	return true;

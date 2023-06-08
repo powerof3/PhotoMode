@@ -145,6 +145,7 @@ namespace ImGui
 			} else {
 				focus_idx = ImClamp(focus_idx + move_delta, 0, items_count - 1);
 			}
+			RE::PlaySound("UIMenuPrevNext");
 		}
 
 		// Copied from ListBoxHeader
@@ -167,6 +168,7 @@ namespace ImGui
 					value_changed = true;
 					*current_item = idx;
 					CloseCurrentPopup();
+					RE::PlaySound("UIMenuFocus");
 				}
 
 				if (item_selected) {
@@ -184,9 +186,11 @@ namespace ImGui
 				value_changed = true;
 				*current_item = focus_idx;
 				CloseCurrentPopup();
+				RE::PlaySound("UIMenuOK");
 			} else if (IsKeyPressed(ImGuiKey_Escape) || IsKeyPressed(ImGuiKey_NavGamepadCancel)) {
 				value_changed = false;
 				CloseCurrentPopup();
+				RE::PlaySound("UIMenuCancel");
 			}
 		}
 		ImGui::PopStyleColor();
@@ -198,54 +202,6 @@ namespace ImGui
 		}
 
 		return value_changed;
-	}
-
-	// https://github.com/ocornut/imgui/issues/1831#issuecomment-391324007
-	void PushMultiItemsWidthsAndLabels(const char* const labels[], const int components, float w_full)
-	{
-		ImGuiWindow*      window = GetCurrentWindow();
-		const ImGuiStyle& style = GImGui->Style;
-		if (w_full <= 0.0f)
-			w_full = GetContentRegionAvail().x;
-
-		const float w_item_one = ImMax(1.0f, (w_full - (style.ItemInnerSpacing.x * 2.0f) * (components - 1)) / static_cast<float>(components)) - style.ItemInnerSpacing.x;
-		for (int i = 0; i < components; i++)
-			window->DC.ItemWidthStack.push_back(w_item_one - CalcTextSize(labels[i]).x);
-		window->DC.ItemWidth = window->DC.ItemWidthStack.back();
-	}
-
-	bool DragIntNEx(const char* const labels[], int* v, const int components, const float v_speed, const int v_min[], const int v_max[], const char* display_format[], const ImGuiSliderFlags flags)
-	{
-		const ImGuiWindow* window = GetCurrentWindow();
-		if (window->SkipItems)
-			return false;
-
-		ImGuiContext& g = *GImGui;
-
-		bool value_changed = false;
-		BeginGroup();
-
-		PushMultiItemsWidthsAndLabels(labels, components, 0.0f);
-		for (int i = 0; i < components; i++) {
-			PushID(labels[i]);
-			PushID(i);
-			TextUnformatted(labels[i], FindRenderedTextEnd(labels[i]));
-			SameLine();
-			value_changed |= DragInt("", &v[i], v_speed, v_min[i], v_max[i], display_format[i], flags);
-			SameLine(0, g.Style.ItemInnerSpacing.x);
-			PopID();
-			PopID();
-			PopItemWidth();
-		}
-
-		EndGroup();
-
-		return value_changed;
-	}
-
-	bool DragInt2Ex(const char* const labels[], int* v, float v_speed, const int v_min[], const int v_max[], const char* display_format[], ImGuiSliderFlags flags)
-	{
-		return DragIntNEx(labels, v, 2, v_speed, v_min, v_max, display_format, flags);
 	}
 
 	// https://github.com/ocornut/imgui/discussions/3862
@@ -330,10 +286,12 @@ namespace ImGui
 
 		const bool isHovered = IsItemHovered();
 		if (!isHovered) {
-			PushStyleColor(ImGuiCol_Text, ImVec4{ 0.60f, 0.60f, 0.60f, 1.0f });
+			PushStyleColor(ImGuiCol_Text, ImVec4{ 0.604f, 0.604f, 0.6078f, 1.0f });
 		}
 
-		PushFont(PhotoMode::Renderer::selectedFont);
+		static auto iconMgr = Icon::Manager::GetSingleton();
+
+		PushFont(iconMgr->GetBigFont());
 		RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText, nullptr, nullptr, ImVec2(0.5f, 0.5f));
 		PopFont();
 
@@ -342,8 +300,8 @@ namespace ImGui
 		}
 
 		// Draw arrows
-		static auto leftArrow = Icon::Manager::GetSingleton()->GetStepperLeft();
-		static auto rightArrow = Icon::Manager::GetSingleton()->GetStepperRight();
+		static auto leftArrow = iconMgr->GetStepperLeft();
+		static auto rightArrow = iconMgr->GetStepperRight();
 
 		AlignedImage(leftArrow->srView, leftArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(0, 0.5f));
 		AlignedImage(rightArrow->srView, rightArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(1.0, 0.5f));
@@ -357,20 +315,27 @@ namespace ImGui
 
 	bool OnOffToggle(const char* label, bool* a_toggle, const char* on, const char* off)
 	{
-		if (CenteredTextWithArrows(LabelPrefix(label).c_str(), *a_toggle ? on : off)) {
+		bool       selected = false;
+
+	    if (CenteredTextWithArrows(LabelPrefix(label).c_str(), *a_toggle ? on : off)) {
 			SetItemDefaultFocus();
 			if (IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter)) {
 				*a_toggle = !*a_toggle;
-				return true;
+				selected = true;
 			} else if (IsKeyPressed(ImGuiKey_LeftArrow)) {
 				*a_toggle = false;
-				return true;
+				selected = true;
 			} else if (IsKeyPressed(ImGuiKey_RightArrow)) {
 				*a_toggle = true;
-				return true;
+				selected = true;
 			}
 		}
-		return false;
+
+		if (selected) {
+			RE::PlaySound("UIMenuFocus");
+		}
+
+	    return selected;
 	}
 
 	bool ThinSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags, float sliderThickness)
@@ -384,7 +349,7 @@ namespace ImGui
 		const ImGuiID     id = window->GetID(label);
 		const float       w = CalcItemWidth();
 
-		const ImVec2 label_size = CalcTextSize(label, NULL, true);
+		const ImVec2 label_size = CalcTextSize(label, nullptr, true);
 		const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
 		const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 
@@ -394,7 +359,7 @@ namespace ImGui
 			return false;
 
 		// Default format string when passing NULL
-		if (format == NULL)
+		if (format == nullptr)
 			format = DataTypeGetInfo(data_type)->PrintFmt;
 
 		const bool hovered = ItemHoverable(frame_bb, id);
@@ -421,7 +386,7 @@ namespace ImGui
 		if (temp_input_is_active) {
 			// Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set
 			const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0;
-			return TempInputScalar(frame_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : NULL, is_clamp_input ? p_max : NULL);
+			return TempInputScalar(frame_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : nullptr, is_clamp_input ? p_max : nullptr);
 		}
 
 		// Draw frame
@@ -457,7 +422,7 @@ namespace ImGui
 		const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
 		if (g.LogEnabled)
 			LogSetNextTextDecoration("{", "}");
-		RenderTextClipped(frame_bb.Min, frame_bb.Max, value_buf, value_buf_end, NULL, ImVec2(0.5f, 0.5f));
+		RenderTextClipped(frame_bb.Min, frame_bb.Max, value_buf, value_buf_end, nullptr, ImVec2(0.5f, 0.5f));
 
 		if (label_size.x > 0.0f)
 			RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
@@ -468,26 +433,36 @@ namespace ImGui
 
 	bool ThinSliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, ImGuiSliderFlags flags)
 	{
-		return ThinSliderScalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags, 0.5f);
+        const auto result = ThinSliderScalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags, 0.5f);
+		if (result) {
+			RE::PlaySound("UIMenuPrevNext");
+		}
+		return result;
 	}
 
 	bool ThinSliderInt(const char* label, int* v, int v_min, int v_max, const char* format, ImGuiSliderFlags flags)
 	{
-		return ThinSliderScalar(label, ImGuiDataType_S32, v, &v_min, &v_max, format, flags, 0.5f);
+		const auto result = ThinSliderScalar(label, ImGuiDataType_S32, v, &v_min, &v_max, format, flags, 0.5f);
+		if (result) {
+			RE::PlaySound("UIMenuPrevNext");
+		}
+		return result;
 	}
 
-	void ActivateOnHover()
+    bool ActivateOnHover()
 	{
 		if (!IsItemActive() && IsItemFocused()) {
 			ActivateItemByID(GetItemID());
+			return true;
 		}
+		return false;
 	}
 
 	bool OpenTabOnHover(const char* a_label, const ImGuiTabItemFlags flags)
 	{
 		const bool selected = BeginTabItem(a_label, nullptr, flags);
-		if (!selected) {
-			ActivateOnHover();
+		if (!selected && ActivateOnHover()) {
+			RE::PlaySound("UIJournalTabsSD");
 		}
 		return selected;
 	}

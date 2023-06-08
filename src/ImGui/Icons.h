@@ -1,6 +1,9 @@
 #pragma once
 
-#include "Input.h"
+namespace Input
+{
+	enum class TYPE : std::uint32_t;
+}
 
 namespace Icon
 {
@@ -22,6 +25,10 @@ namespace Icon
 	{
 	public:
 		void LoadIcons();
+		void LoadFonts();
+
+		ImFont* GetBigFont() const;
+		ImFont* GetBigIconFont() const;
 
 		const ImageData* GetStepperLeft() const;
 		const ImageData* GetStepperRight() const;
@@ -31,7 +38,10 @@ namespace Icon
 
 	private:
 		// members
-		ImageData stepperLeft{ ImageData(L"StepperLeft"sv) };
+		ImFont* bigFont{ nullptr };
+		ImFont* bigIconFont{ nullptr };
+
+	    ImageData stepperLeft{ ImageData(L"StepperLeft"sv) };
 		ImageData stepperRight{ ImageData(L"StepperRight"sv) };
 
 		ImageData unknownKey{ ImageData(L"UnknownKey"sv) };
