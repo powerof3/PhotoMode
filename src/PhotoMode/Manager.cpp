@@ -387,7 +387,7 @@ namespace PhotoMode
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, 3.0f);
 
 			// content
-			ImGui::SetNextWindowBgAlpha(0.0f);	// child bg color is added ontop of window
+			ImGui::SetNextWindowBgAlpha(0.0f);  // child bg color is added ontop of window
 			ImGui::BeginChild("##PhotoModeChild", ImVec2(0, 0), false, windowFlags);
 			{
 				ImGui::Spacing();

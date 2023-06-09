@@ -1,7 +1,7 @@
 #include "LoadScreen.h"
 
-#include "Textures.h"
 #include "ImGui/Util.h"
+#include "Textures.h"
 
 namespace LoadScreen
 {
@@ -43,7 +43,7 @@ namespace LoadScreen
 	{
 		std::vector<std::string> painting_paths;
 
-	    const auto iterator = std::filesystem::directory_iterator(R"(Data\Meshes\PhotoMode\Paintings)");
+		const auto iterator = std::filesystem::directory_iterator(R"(Data\Meshes\PhotoMode\Paintings)");
 		for (const auto& entry : iterator) {
 			if (entry.exists()) {
 				if (const auto& path = entry.path(); !path.empty() && path.extension() == ".nif") {
