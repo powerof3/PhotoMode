@@ -33,14 +33,10 @@ namespace PhotoMode
 		void Revert(bool a_deactivate = false);
 
 		[[nodiscard]] static float GetResetHoldDuration();
-		;
-		bool GetResetAll() const;
-		;
-		void DoResetAll();
-		;
+		bool                       GetResetAll() const;
+		void                       DoResetAll();
 
 		void SetInputType(Input::TYPE a_inputType);
-		;
 
 		std::uint32_t ResetKey() const;
 		std::uint32_t TakePhotoKey() const;
@@ -64,15 +60,15 @@ namespace PhotoMode
 			kTime,
 			kPlayer,
 			kFilters,
-			kScreenshot
+			kSettings
 		};
 
 		// kMenu | kActivate | kFighting | kJumping | kConsole | kSneaking
 		static constexpr auto controlFlags = static_cast<RE::ControlMap::UEFlag>(1244);
 
-		static constexpr std::array tabs = { "$PM_Camera", "$PM_TimeWeather", "$PM_Player", "$PM_Filters", "$PM_Screenshots" };
-		static constexpr std::array tabIcons = { ICON_FA_CAMERA, ICON_FA_CLOCK, ICON_FA_PERSON, ICON_FA_PAINTBRUSH, ICON_FA_PHOTO_FILM };
-		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifScreenshots" };
+		static constexpr std::array tabs = { "$PM_Camera", "$PM_TimeWeather", "$PM_Player", "$PM_Filters", "$PM_Settings" };
+		static constexpr std::array tabIcons = { ICON_FA_CAMERA, ICON_FA_CLOCK, ICON_FA_PERSON, ICON_FA_PALETTE, ICON_FA_GEAR };
+		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifSettings" };
 
 		static void ToggleActive_Input(const KeyCombination*);
 

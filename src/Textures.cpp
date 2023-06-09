@@ -1,5 +1,16 @@
 #include "Textures.h"
 
+std::string Mesh::Sanitize(std::string& a_path)
+{
+	a_path = clib_util::string::tolower(a_path);
+
+	a_path = srell::regex_replace(a_path, srell::regex("/+|\\\\+"), "\\");
+	a_path = srell::regex_replace(a_path, srell::regex("^\\\\+"), "");
+	a_path = srell::regex_replace(a_path, srell::regex(R"(.*?[^\s]meshes\\|^meshes\\)", srell::regex::icase), "");
+
+	return a_path;
+}
+
 namespace Texture
 {
 	std::string Sanitize(std::string& a_path)

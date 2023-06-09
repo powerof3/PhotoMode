@@ -1,5 +1,6 @@
 #include "LoadScreen.h"
 
+#include "Textures.h"
 #include "ImGui/Util.h"
 
 namespace LoadScreen
@@ -40,13 +41,17 @@ namespace LoadScreen
 
 	void Manager::InitLoadScreenObjects()
 	{
-		constexpr std::array painting_paths{
-			"Meshes\\PhotoMode\\PaintingLandscape01.nif"sv,
-			"Meshes\\PhotoMode\\PaintingLandscape02.nif"sv,
-			"Meshes\\PhotoMode\\PaintingLandscape03.nif"sv,
-			"Meshes\\PhotoMode\\PaintingLandscape04.nif"sv,
-			"Meshes\\PhotoMode\\PaintingLandscape05.nif"sv
-		};
+		std::vector<std::string> painting_paths;
+
+	    const auto iterator = std::filesystem::directory_iterator(R"(Data\Meshes\PhotoMode\Paintings)");
+		for (const auto& entry : iterator) {
+			if (entry.exists()) {
+				if (const auto& path = entry.path(); !path.empty() && path.extension() == ".nif") {
+					auto pathStr = entry.path().string();
+					painting_paths.push_back(Mesh::Sanitize(pathStr));
+				}
+			}
+		}
 
 		if (const auto factory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::TESObjectSTAT>()) {
 			paintingModels.reserve(painting_paths.size());

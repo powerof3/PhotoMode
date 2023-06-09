@@ -12,8 +12,6 @@ namespace PhotoMode
 		if (IMGS->currentBaseData) {
 			imageSpaceData = *IMGS->currentBaseData;
 		}
-		imageSpaceData.tint.amount = 0.0f;
-		imageSpaceData.tint.color = { 1.0f, 1.0f, 1.0f };
 		IMGS->overrideBaseData = &imageSpaceData;
 	}
 
@@ -27,8 +25,6 @@ namespace PhotoMode
 			if (IMGS->currentBaseData) {
 				imageSpaceData = *IMGS->currentBaseData;
 			}
-			imageSpaceData.tint.amount = 0.0f;
-			imageSpaceData.tint.color = { 1.0f, 1.0f, 1.0f };
 			IMGS->overrideBaseData = &imageSpaceData;
 		}
 

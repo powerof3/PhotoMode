@@ -1,5 +1,10 @@
 #pragma once
 
+namespace Mesh
+{
+	std::string Sanitize(std::string& a_path);
+}
+
 namespace Texture
 {
 	std::string Sanitize(std::string& a_path);

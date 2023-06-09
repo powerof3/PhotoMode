@@ -95,23 +95,23 @@ namespace PhotoMode
 		const std::int32_t tabIndex = a_deactivate ? -1 : currentTab;
 
 		// Camera
-		if (tabIndex == -1 || tabIndex == 0) {
+		if (tabIndex == -1 || tabIndex == kCamera) {
 			cameraTab.RevertState();
 		}
 		// Time/Weather
-		if (tabIndex == -1 || tabIndex == 1) {
+		if (tabIndex == -1 || tabIndex == kTime) {
 			timeTab.RevertState();
 		}
 		// Player
-		if (tabIndex == -1 || tabIndex == 2) {
+		if (tabIndex == -1 || tabIndex == kPlayer) {
 			playerTab.RevertState();
 		}
 		// Filters
-		if (tabIndex == -1 || tabIndex == 3) {
+		if (tabIndex == -1 || tabIndex == kFilters) {
 			filterTab.RevertState(tabIndex == -1);
 		}
-		// Screenshots
-		if (tabIndex == 4) {
+		// Settings
+		if (tabIndex == kSettings) {
 			Screenshot::Manager::GetSingleton()->Revert();
 		}
 
@@ -296,16 +296,17 @@ namespace PhotoMode
 	void Manager::Draw()
 	{
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+
 		ImGui::SetNextWindowPos(viewport->Pos);
 		ImGui::SetNextWindowSize(viewport->Size);
 
 		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
+		{
+			DrawControls();
+			DrawBar();
 
-		DrawControls();
-		DrawBar();
-
-		cameraTab.DrawGrid();
-
+			cameraTab.DrawGrid();
+		}
 		ImGui::End();
 	}
 
@@ -337,14 +338,13 @@ namespace PhotoMode
 
 		ImGui::SetNextWindowPos(ImVec2(center.x + third_width, center.y + third_height * 0.8f), ImGuiCond_Always, ImVec2(0.5, 0.5));
 		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x / 3.25f, viewport->Size.y / 3.125f));
-		ImGui::SetNextWindowBgAlpha(0.66f);
 
 		constexpr auto windowFlags = ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoDecoration;
 
 		ImGui::Begin("$PM_Title"_T, nullptr, windowFlags);
 		{
 			if (resetWindow) {
-				currentTab = 0;
+				currentTab = kCamera;
 			}
 
 			static auto iconMgr = Icon::Manager::GetSingleton();
@@ -384,10 +384,10 @@ namespace PhotoMode
 			//		CAMERA
 			// ----------------
 			ImGui::CenteredText(TRANSLATE(tabs[currentTab]));
-			ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, 1.5f);
-			ImGui::Spacing();
+			ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, 3.0f);
 
 			// content
+			ImGui::SetNextWindowBgAlpha(0.0f);	// child bg color is added ontop of window
 			ImGui::BeginChild("##PhotoModeChild", ImVec2(0, 0), false, windowFlags);
 			{
 				ImGui::Spacing();
@@ -417,7 +417,7 @@ namespace PhotoMode
 				case TAB_TYPE::kFilters:
 					filterTab.Draw();
 					break;
-				case TAB_TYPE::kScreenshot:
+				case TAB_TYPE::kSettings:
 					Screenshot::Manager::GetSingleton()->Draw();
 					break;
 				default:
@@ -437,7 +437,6 @@ namespace PhotoMode
 		const static auto offset = viewport->Size.y / 20.25f;
 
 		ImGui::SetNextWindowPos(ImVec2(center.x, viewport->Size.y - offset), ImGuiCond_Always, ImVec2(0.5, 0.5));
-		ImGui::SetNextWindowBgAlpha(0.6f);
 
 		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.5f, offset), false, ImGuiWindowFlags_NoBringToFrontOnFocus);  // same offset as control window
 		{

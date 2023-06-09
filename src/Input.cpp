@@ -456,7 +456,7 @@ namespace Input
 								const auto UI = RE::UI::GetSingleton();
 								UI->ShowMenus(!UI->IsShowingMenus());
 							}
-							RE::PlaySound("UIMenuPrevNext");
+							RE::PlaySound("UIMenuFocus");
 						}
 					}
 
