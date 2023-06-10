@@ -79,10 +79,10 @@ namespace Icon
 
 	void Manager::LoadFonts()
 	{
-	    constexpr float          baseFontSize = 24.0f;
-		constexpr float          bigFontSize = 28.0f;
-		constexpr float          baseIconSize = 20.0f;
-		constexpr float          bigIconSize = 24.0f;
+		constexpr float baseFontSize = 24.0f;
+		constexpr float bigFontSize = 28.0f;
+		constexpr float baseIconSize = 20.0f;
+		constexpr float bigIconSize = 24.0f;
 
 		static constexpr ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 

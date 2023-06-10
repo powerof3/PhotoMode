@@ -73,7 +73,7 @@ namespace PhotoMode::Renderer
 					return;
 				}
 
-			    Icon::Manager::GetSingleton()->LoadIcons();
+				Icon::Manager::GetSingleton()->LoadIcons();
 
 				logger::info("ImGui initialized.");
 
