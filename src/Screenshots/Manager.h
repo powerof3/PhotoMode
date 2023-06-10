@@ -24,10 +24,10 @@ namespace Screenshot
 	{
 	public:
 		void LoadScreenshotIndex(CSimpleIniA& a_ini);
-	    void LoadSettings(const CSimpleIniA& a_ini);
+		void LoadSettings(const CSimpleIniA& a_ini);
 		void LoadScreenshotTextures();
 
-	    void TakeScreenshotAsTexture();
+		void TakeScreenshotAsTexture();
 
 		std::uint32_t GetIndex() const;
 		void          IncrementIndex();
@@ -36,7 +36,7 @@ namespace Screenshot
 		std::string GetRandomScreenshot();
 		std::string GetRandomPaintingShot();
 
-		bool AllowMultiScreenshots() const;
+		bool  AllowMultiScreenshots() const;
 		float GetKeyHeldDuration() const;
 
 	private:
@@ -47,7 +47,7 @@ namespace Screenshot
 		std::vector<std::string> screenshots{};
 		std::vector<std::string> paintings{};
 		std::uint32_t            index{ 0 };
-		
+
 		bool takeScreenshotAsDDS{ true };
 		bool compressTextures{ true };
 

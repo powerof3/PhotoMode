@@ -19,7 +19,7 @@ void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSim
 
 void Settings::LoadSettings() const
 {
-    SerializeINI(configPath, [](auto& ini) {
+	SerializeINI(configPath, [](auto& ini) {
 		MANAGER(PhotoMode)->LoadSettings(ini);          // hotkeys
 		MANAGER(Screenshot)->LoadScreenshotIndex(ini);  // screenshot index
 	});
@@ -40,7 +40,7 @@ void Settings::LoadMCMSettings() const
 void Settings::SaveSettings() const
 {
 	SerializeINI(configPath, [](auto& ini) {
-		MANAGER(PhotoMode)->SaveSettings(ini);	// hotkeys
+		MANAGER(PhotoMode)->SaveSettings(ini);  // hotkeys
 	});
 }
 

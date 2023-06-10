@@ -26,13 +26,13 @@ namespace PhotoMode
 		IO.gamePad.SetPattern(gPattern);
 	}
 
-    void Manager::SaveSettings(CSimpleIniA& a_ini) const
-    {
+	void Manager::SaveSettings(CSimpleIniA& a_ini) const
+	{
 		a_ini.SetValue("PhotoMode", "Key", IO.keyboard.GetPattern().data(), ";Toggle photomode\n\n;Default is N\n;DXScanCodes : https://www.creationkit.com/index.php?title=Input_Script");
 		a_ini.SetValue("PhotoMode", "GamepadKey", IO.gamePad.GetPattern().data(), ";Default is LShoulder+RShoulder");
 	}
 
-    bool Manager::GetValid()
+	bool Manager::GetValid()
 	{
 		static constexpr std::array badMenus{
 			RE::MainMenu::MENU_NAME,
@@ -373,11 +373,11 @@ namespace PhotoMode
 					} else {
 						ImGui::PushFont(iconMgr->GetBigIconFont());
 					}
-				    ImGui::Button(tabIcons[i], ImVec2(tabWidth, ImGui::GetFrameHeightWithSpacing()));
+					ImGui::Button(tabIcons[i], ImVec2(tabWidth, ImGui::GetFrameHeightWithSpacing()));
 					if (currentTab != i) {
 						ImGui::EndDisabled();
 					} else {
-					    ImGui::PopFont();
+						ImGui::PopFont();
 					}
 					ImGui::SameLine();
 				}

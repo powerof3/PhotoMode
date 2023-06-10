@@ -68,21 +68,21 @@ namespace PhotoMode
 		static constexpr auto controlFlags = static_cast<RE::ControlMap::UEFlag>(1244);
 
 		static constexpr std::array tabs = {
-		    "$PM_Camera",
-		    "$PM_TimeWeather",
-		    "$PM_Player",
-		    "$PM_Filters",
-		    "$PM_Settings"
+			"$PM_Camera",
+			"$PM_TimeWeather",
+			"$PM_Player",
+			"$PM_Filters",
+			"$PM_Settings"
 		};
 		static constexpr std::array tabIcons = {
-		    ICON_FA_CAMERA,
-		    ICON_FA_CLOCK,
-		    ICON_FA_PERSON,
-		    ICON_FA_CIRCLE_HALF_STROKE,
-		    ICON_FA_GEAR
+			ICON_FA_CAMERA,
+			ICON_FA_CLOCK,
+			ICON_FA_PERSON,
+			ICON_FA_CIRCLE_HALF_STROKE,
+			ICON_FA_GEAR
 		};
 
-	    static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifSettings" };
+		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifSettings" };
 
 		static void ToggleActive_Input(const KeyCombination*);
 

@@ -55,7 +55,7 @@ namespace Screenshot
 	{
 		logger::info("Loading screenshot textures...");
 
-	    get_textures(screenshotFolder, screenshots);
+		get_textures(screenshotFolder, screenshots);
 		get_textures(paintingFolder, paintings);
 
 		logger::info("\t{} screenshots", screenshots.size());
