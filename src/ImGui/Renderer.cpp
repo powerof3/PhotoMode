@@ -1,5 +1,6 @@
 #include "Renderer.h"
-#include "Icons.h"
+#include "IconsFonts.h"
+
 #include "PhotoMode/Manager.h"
 
 namespace PhotoMode::Renderer
@@ -72,8 +73,7 @@ namespace PhotoMode::Renderer
 					return;
 				}
 
-				Icon::Manager::GetSingleton()->LoadFonts();
-				Icon::Manager::GetSingleton()->LoadIcons();
+			    Icon::Manager::GetSingleton()->LoadIcons();
 
 				logger::info("ImGui initialized.");
 
@@ -109,6 +109,8 @@ namespace PhotoMode::Renderer
 			if (!photoMode->IsActive() || !photoMode->OnFrameUpdate()) {
 				return;
 			}
+
+			Icon::Manager::GetSingleton()->LoadFonts();
 
 			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();

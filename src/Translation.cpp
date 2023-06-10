@@ -5,7 +5,7 @@ namespace Translation
 	std::string Manager::GetLanguage()
 	{
 		const auto iniSettingCollection = RE::INISettingCollection::GetSingleton();
-		auto       setting = iniSettingCollection ? iniSettingCollection->GetSetting("sLanguage:General") : nullptr;
+        const auto setting = iniSettingCollection ? iniSettingCollection->GetSetting("sLanguage:General") : nullptr;
 
 		return (setting && setting->GetType() == RE::Setting::Type::kString) ? setting->data.s : "ENGLISH"s;
 	}

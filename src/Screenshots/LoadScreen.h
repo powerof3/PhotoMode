@@ -33,7 +33,7 @@ namespace LoadScreen
 
 	private:
 		Type        GetScreenshotModelType() const;
-		std::string GetScreenshotTexture();
+		std::string GetScreenshotTexture() const;
 
 		// members
 		std::int32_t fullscreenChance{ 50 };

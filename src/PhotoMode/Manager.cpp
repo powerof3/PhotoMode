@@ -1,6 +1,6 @@
 #include "Manager.h"
 
-#include "ImGui/Icons.h"
+#include "ImGui/IconsFonts.h"
 #include "ImGui/Util.h"
 #include "Input.h"
 #include "Screenshots/Manager.h"

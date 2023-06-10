@@ -17,6 +17,7 @@
 #include <ClibUtil/simpleINI.hpp>
 #include <ClibUtil/singleton.hpp>
 #include <ClibUtil/string.hpp>
+#include <ClibUtil/hash.hpp>
 #include <DirectXMath.h>
 #include <DirectXTex.h>
 
@@ -36,6 +37,7 @@
 #define DLLEXPORT __declspec(dllexport)
 
 using namespace std::literals;
+using namespace clib_util::string::literals;
 
 namespace logger = SKSE::log;
 namespace ini = clib_util::ini;

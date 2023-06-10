@@ -38,7 +38,7 @@ namespace Icon
 
 	private:
 		// members
-		ImFont* bigFont{ nullptr };
+	    ImFont* bigFont{ nullptr };
 		ImFont* bigIconFont{ nullptr };
 
 		ImageData stepperLeft{ ImageData(L"StepperLeft"sv) };

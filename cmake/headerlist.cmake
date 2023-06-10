@@ -1,8 +1,8 @@
 set(headers ${headers}
 	src/Cache.h
 	src/ImGui/FormComboBox.h
-	src/ImGui/Icons.h
 	src/ImGui/IconsFontAwesome6.h
+	src/ImGui/IconsFonts.h
 	src/ImGui/Renderer.h
 	src/ImGui/Util.h
 	src/Input.h

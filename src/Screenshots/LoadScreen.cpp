@@ -1,42 +1,13 @@
 #include "LoadScreen.h"
 
-#include "ImGui/Util.h"
 #include "Textures.h"
 
 namespace LoadScreen
 {
-	void Manager::LoadSettings(CSimpleIniA& a_ini)
+	void Manager::LoadSettings(const CSimpleIniA& a_ini)
 	{
-		ini::get_value(a_ini, fullscreenSSType, "LoadScreen", "ShowFullScreen", ";Display fullscreen screenshots\n;0 - Disabled, 1 - Screenshot, 2 - Painting");
-		ini::get_value(a_ini, paintingSSType, "LoadScreen", "ShowPainting", ";Display screenshots as paintings");
-		ini::get_value(a_ini, fullscreenChance, "LoadScreen", "FullScreenChance", ";How often screenshots will appear in place of existing loadscreens");
-		ini::get_value(a_ini, paintingChance, "LoadScreen", "PaintingChance", nullptr);
-	}
-
-	void Manager::SaveSettings(CSimpleIniA& a_ini) const
-	{
-		a_ini.SetLongValue("LoadScreen", "ShowFullScreen", stl::to_underlying(fullscreenSSType), ";Display fullscreen screenshots\n;0 - Disabled, 1 - Screenshot, 2 - Painting");
-		a_ini.SetLongValue("LoadScreen", "ShowPainting", stl::to_underlying(paintingSSType), ";Display screenshots as paintings");
-		a_ini.SetLongValue("LoadScreen", "FullScreenChance", fullscreenChance, ";How often screenshots will appear in place of existing loadscreens");
-		a_ini.SetLongValue("LoadScreen", "PaintingChance", paintingChance, nullptr);
-	}
-
-	void Manager::Revert()
-	{
-		fullscreenSSType = Screenshot::Type::kScreenshot;
-		fullscreenChance = 50;
-
-		paintingSSType = Screenshot::Type::kPainting;
-		paintingChance = 50;
-	}
-
-	void Manager::Draw()
-	{
-		ImGui::EnumSlider("$PM_TypeFullScreen"_T, &fullscreenSSType, screenshotTypes);
-		ImGui::Slider("$PM_FullScreenChance"_T, &fullscreenChance, 0, 100);
-
-		ImGui::EnumSlider("$PM_TypePainting"_T, &paintingSSType, screenshotTypes);
-		ImGui::Slider("$PM_PaintingChance"_T, &paintingChance, 0, 100);
+		fullscreenChance = a_ini.GetLongValue("LoadScreen", "iChanceFullScreenArt", fullscreenChance);
+		paintingChance = a_ini.GetLongValue("LoadScreen", "iChancePainting", paintingChance);
 	}
 
 	void Manager::InitLoadScreenObjects()
@@ -72,12 +43,13 @@ namespace LoadScreen
 	{
 		if (Screenshot::Manager::GetSingleton()->CanDisplayScreenshot()) {
 			auto rng = RNG();
+
 			// process fullscreen art first
-			if (fullscreenSSType > Screenshot::Type::kNone && rng.Generate<std::int32_t>(0, 100) <= fullscreenChance) {
+			if (rng.Generate<std::int32_t>(0, 100) <= fullscreenChance) {
 				return Type::kFullScreen;
 			}
 
-			if (paintingSSType > Screenshot::Type::kNone && rng.Generate<std::int32_t>(0, 100) <= paintingChance) {
+			if (rng.Generate<std::int32_t>(0, 100) <= paintingChance) {
 				return Type::kPainting;
 			}
 		}
@@ -93,8 +65,8 @@ namespace LoadScreen
 		case Type::kFullScreen:
 			{
 				current.obj = fullscreenModel;
-				current.ssType = fullscreenSSType;
-				current.texturePath = GetScreenshotTexture(fullscreenSSType);
+				current.ssType = Screenshot::Type::kScreenshot;
+				current.texturePath = GetScreenshotTexture();
 
 				// skip if empty
 				if (current.texturePath.empty()) {
@@ -106,8 +78,8 @@ namespace LoadScreen
 		case Type::kPainting:
 			{
 				current.obj = paintingModels[RNG().Generate<std::size_t>(0, paintingModels.size() - 1)];  // Load random painting mesh
-				current.ssType = paintingSSType;
-				current.texturePath = GetScreenshotTexture(paintingSSType);
+				current.ssType = Screenshot::Type::kPainting;
+				current.texturePath = GetScreenshotTexture();
 
 				// skip if empty
 				if (current.texturePath.empty()) {
@@ -140,15 +112,13 @@ namespace LoadScreen
 		}
 	}
 
-	std::string Manager::GetScreenshotTexture(Screenshot::Type a_ssType)
+	std::string Manager::GetScreenshotTexture() const
 	{
-		const auto screenshotMgr = Screenshot::Manager::GetSingleton();
-
-		switch (a_ssType) {
+		switch (current.ssType) {
 		case Screenshot::Type::kScreenshot:
-			return screenshotMgr->GetRandomScreenshot();
+			return MANAGER(Screenshot)->GetRandomScreenshot();
 		case Screenshot::Type::kPainting:
-			return screenshotMgr->GetRandomPaintingShot();
+			return MANAGER(Screenshot)->GetRandomPaintingShot();
 		default:
 			return {};
 		}
@@ -207,11 +177,11 @@ namespace LoadScreen
 	{
 		static void thunk(RE::MistMenu* a_this, float a_scale, const RE::NiPoint3& a_rotateOffset, const RE::NiPoint3& a_translateOffset, const char* a_cameraShotPath)
 		{
-			const auto mgr = Manager::GetSingleton();
-			if (auto transform = mgr->GetModelTransform()) {
-				func(a_this, transform->scale, transform->rotationalOffset, transform->translateOffset, mgr->GetCameraShotPath(a_cameraShotPath));
+			if (auto transform = MANAGER(LoadScreen)->GetModelTransform()) {
+				func(a_this, transform->scale, transform->rotationalOffset, transform->translateOffset, MANAGER(LoadScreen)->GetCameraShotPath(a_cameraShotPath));
+
 				if (const auto canvas = a_this->loadScreenModel ? a_this->loadScreenModel->GetObjectByName("Canvas:0") : nullptr) {
-					mgr->ApplyScreenshotTexture(canvas->AsGeometry());
+					MANAGER(LoadScreen)->ApplyScreenshotTexture(canvas->AsGeometry());
 				}
 			} else {
 				func(a_this, a_scale, a_rotateOffset, a_translateOffset, a_cameraShotPath);

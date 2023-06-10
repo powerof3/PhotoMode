@@ -1,7 +1,8 @@
-#include "Icons.h"
+#include "IconsFonts.h"
 
 #include "IconsFontAwesome6.h"
 #include "Input.h"
+#include "Translation.h"
 #include "Util.h"
 
 namespace Icon
@@ -78,14 +79,16 @@ namespace Icon
 
 	void Manager::LoadFonts()
 	{
-		constexpr float          baseFontSize = 24.0f;
+	    constexpr float          baseFontSize = 24.0f;
 		constexpr float          bigFontSize = 28.0f;
 		constexpr float          baseIconSize = 20.0f;
 		constexpr float          bigIconSize = 24.0f;
+
 		static constexpr ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 
 		const auto& io = ImGui::GetIO();
 		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\Jost-Medium.ttf)", baseFontSize);
+		bigFont = io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\Jost-Medium.ttf)", bigFontSize);
 
 		ImFontConfig config;
 		config.MergeMode = true;
@@ -97,7 +100,6 @@ namespace Icon
 		config.MergeMode = false;
 
 		bigIconFont = io.Fonts->AddFontFromFileTTF("Data\\Interface\\Fonts\\" FONT_ICON_FILE_NAME_FAS, bigIconSize, &config, icon_ranges);
-		bigFont = io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\Jost-Medium.ttf)", bigFontSize);
 
 		io.Fonts->Build();
 	}
@@ -106,7 +108,6 @@ namespace Icon
 	{
 		return bigFont;
 	}
-
 	ImFont* Manager::GetBigIconFont() const
 	{
 		return bigIconFont;
