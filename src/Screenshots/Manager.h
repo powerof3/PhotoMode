@@ -23,13 +23,11 @@ namespace Screenshot
 	class Manager final : public ISingleton<Manager>
 	{
 	public:
-		void LoadSettings(CSimpleIniA& a_ini);
-		void SaveSettings(CSimpleIniA& a_ini) const;
-		void Revert();
+		void LoadScreenshotIndex(CSimpleIniA& a_ini);
+	    void LoadSettings(const CSimpleIniA& a_ini);
+		void LoadScreenshotTextures();
 
-		void Draw();
-
-		bool TakeScreenshotAsTexture();
+	    void TakeScreenshotAsTexture();
 
 		std::uint32_t GetIndex() const;
 		void          IncrementIndex();
@@ -37,6 +35,9 @@ namespace Screenshot
 		bool        CanDisplayScreenshot() const;
 		std::string GetRandomScreenshot();
 		std::string GetRandomPaintingShot();
+
+		bool AllowMultiScreenshots() const;
+		float GetKeyHeldDuration() const;
 
 	private:
 		static void get_textures(std::string_view a_folder, std::vector<std::string>& a_textures);
@@ -46,18 +47,19 @@ namespace Screenshot
 		std::vector<std::string> screenshots{};
 		std::vector<std::string> paintings{};
 		std::uint32_t            index{ 0 };
-
-		bool takeScreenshotAsPNG{ true };
+		
 		bool takeScreenshotAsDDS{ true };
-
 		bool compressTextures{ true };
 
 		bool applyPaintFilter{ true };
 		struct
 		{
-			std::int32_t radius{ 3 };
-			float        intensity{ 20.0f };
+			std::int32_t radius{ 4 };
+			float        intensity{ 30.0f };
 		} paintFilter;
+
+		bool  allowMultiScreenshots{ true };
+		float keyHeldDuration{ 0.5 };
 	};
 
 	void InstallHook();

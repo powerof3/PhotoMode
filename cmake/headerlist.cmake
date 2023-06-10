@@ -7,6 +7,7 @@ set(headers ${headers}
 	src/ImGui/Util.h
 	src/Input.h
 	src/PCH.h
+	src/Papyrus.h
 	src/PhotoMode/Camera.h
 	src/PhotoMode/Filters.h
 	src/PhotoMode/Manager.h

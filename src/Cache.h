@@ -50,9 +50,12 @@ namespace Cache
 		}
 	}
 
-	inline static float& translateSpeedValue{
-		*REL::Relocation<float*>{ RELOCATION_ID(509808, 382522) }
-	};
+	namespace FreeCamera
+	{
+		inline static float& translateSpeed{
+			*REL::Relocation<float*>{ RELOCATION_ID(509808, 382522) }
+		};
+	}
 
 	namespace DOF
 	{
@@ -95,3 +98,4 @@ namespace Cache
 }
 namespace EditorID = Cache::EditorID;
 namespace DOF = Cache::DOF;
+namespace FreeCamera = Cache::FreeCamera;

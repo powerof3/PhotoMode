@@ -1,38 +1,50 @@
 #include "Settings.h"
-#include "Input.h"
+
 #include "PhotoMode/Manager.h"
-#include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
 
-void Settings::LoadSettings() const
+void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSimpleIniA&)>& a_func)
 {
 	CSimpleIniA ini;
 	ini.SetUnicode();
 
-	ini.LoadFile(path);
+	if (const auto rc = ini.LoadFile(a_path); rc < SI_OK) {
+		return;
+	}
 
-	Load<PhotoMode::Manager>(ini);   // photomode IO
-	Load<Input::Manager>(ini);       // multi screenshot
-	Load<Screenshot::Manager>(ini);  // screenshot
-	Load<LoadScreen::Manager>(ini);  // loadscreen
+	a_func(ini);
 
-	(void)ini.SaveFile(path);
+	(void)ini.SaveFile(a_path);
+}
+
+void Settings::LoadSettings() const
+{
+    SerializeINI(configPath, [](auto& ini) {
+		MANAGER(PhotoMode)->LoadSettings(ini);          // hotkeys
+		MANAGER(Screenshot)->LoadScreenshotIndex(ini);  // screenshot index
+	});
+
+	LoadMCMSettings();
+}
+
+void Settings::LoadMCMSettings() const
+{
+	SerializeINI(defaultMCMPath, [](auto& ini) {
+		MANAGER(Screenshot)->LoadSettings(ini);
+	});
+	SerializeINI(userMCMPath, [](auto& ini) {
+		MANAGER(Screenshot)->LoadSettings(ini);
+	});
 }
 
 void Settings::SaveSettings() const
 {
-	CSimpleIniA ini;
-	ini.SetUnicode();
-
-	ini.LoadFile(path);
-
-	Save<Screenshot::Manager>(ini);
-	Save<LoadScreen::Manager>(ini);
-
-	(void)ini.SaveFile(path);
+	SerializeINI(configPath, [](auto& ini) {
+		MANAGER(PhotoMode)->SaveSettings(ini);	// hotkeys
+	});
 }
 
-const wchar_t* Settings::GetPath() const
+const wchar_t* Settings::GetConfigPath() const
 {
-	return path;
+	return configPath;
 }

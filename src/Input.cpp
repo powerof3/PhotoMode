@@ -1,18 +1,12 @@
 #include "Input.h"
+
 #include "PhotoMode/Manager.h"
+#include "Screenshots/Manager.h"
 
 namespace Input
 {
-	void Manager::LoadSettings(CSimpleIniA& a_ini)
-	{
-		ini::get_value(a_ini, screenshots.allowMultiScreenshots, "MultiScreenshots", "Enable", ";Allow multi-screenshots by holding down the PrintScrn key");
-		ini::get_value(a_ini, screenshots.keyHeldDuration, "MultiScreenshots", "PrintScrnHoldDuration", ";How long should PrintScrn be held down (in seconds).");
-	}
-
 	void Manager::Register()
 	{
-		logger::info("{:*^30}", "EVENTS");
-
 		if (const auto inputMgr = RE::BSInputDeviceManager::GetSingleton()) {
 			inputMgr->AddEventSink<RE::InputEvent*>(GetSingleton());
 			logger::info("Registered for hotkey event");
@@ -26,12 +20,12 @@ namespace Input
 
 	bool Manager::IsScreenshotQueued() const
 	{
-		return screenshots.queued;
+		return screenshotQueued;
 	}
 
 	void Manager::QueueScreenshot(bool a_forceQueue)
 	{
-		screenshots.queued = true;
+		screenshotQueued = true;
 
 		if (inputType != TYPE::kKeyboard || a_forceQueue) {
 			(void)RE::MenuControls::GetSingleton()->QueueScreenshot();
@@ -40,7 +34,7 @@ namespace Input
 
 	void Manager::OnScreenshotFinish()
 	{
-		screenshots.queued = false;
+		screenshotQueued = false;
 	}
 
 	ImGuiKey Manager::ToImGuiKey(RE::BSWin32KeyboardDevice::Key a_key)
@@ -366,18 +360,6 @@ namespace Input
 		ImGui::GetIO().AddKeyEvent(key, a_keyPressed);
 	}
 
-	void Manager::HideMenu(bool a_hide)
-	{
-		if (a_hide && RE::UI::GetSingleton()->IsShowingMenus()) {
-			RE::UI::GetSingleton()->ShowMenus(false);
-			menuHidden = true;
-		}
-		if (!a_hide && menuHidden) {
-			RE::UI::GetSingleton()->ShowMenus(true);
-			menuHidden = false;
-		}
-	}
-
 	EventResult Manager::ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*)
 	{
 		if (!a_evn) {
@@ -385,7 +367,7 @@ namespace Input
 		}
 
 		auto&      io = ImGui::GetIO();
-		const auto photoMode = PhotoMode::Manager::GetSingleton();
+		const auto photoMode = MANAGER(PhotoMode);
 
 		photoMode->CheckActive(a_evn);
 
@@ -394,7 +376,7 @@ namespace Input
 				// process multi-screenshots
 				if (const auto buttonEvent = event->AsButtonEvent()) {
 					if (buttonEvent->QUserEvent() == RE::UserEvents::GetSingleton()->screenshot) {
-						if (screenshots.allowMultiScreenshots && buttonEvent->HeldDuration() > screenshots.keyHeldDuration) {
+						if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > MANAGER(Screenshot)->GetKeyHeldDuration()) {
 							RE::MenuControls::GetSingleton()->QueueScreenshot();
 						}
 					}
@@ -442,7 +424,7 @@ namespace Input
 						} else if (key == photoMode->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
 								QueueScreenshot(false);
-							} else if (screenshots.allowMultiScreenshots && buttonEvent->HeldDuration() > screenshots.keyHeldDuration) {
+							} else if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > MANAGER(Screenshot)->GetKeyHeldDuration()) {
 								QueueScreenshot(true);
 							}
 						} else if (key == photoMode->ResetKey()) {

@@ -4,6 +4,7 @@ set(sources ${sources}
 	src/ImGui/Util.cpp
 	src/Input.cpp
 	src/PCH.cpp
+	src/Papyrus.cpp
 	src/PhotoMode/Camera.cpp
 	src/PhotoMode/Filters.cpp
 	src/PhotoMode/Manager.cpp

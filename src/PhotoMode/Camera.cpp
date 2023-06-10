@@ -8,7 +8,7 @@ namespace PhotoMode
 	void Camera::OriginalState::Get()
 	{
 		fov = RE::PlayerCamera::GetSingleton()->worldFOV;
-		translateSpeed = Cache::translateSpeedValue;
+		translateSpeed = FreeCamera::translateSpeed;
 
 		blurMultiplier = DOF::blurMultiplier;
 		nearDist = DOF::nearDist;
@@ -20,7 +20,7 @@ namespace PhotoMode
 	void Camera::OriginalState::Revert() const
 	{
 		RE::PlayerCamera::GetSingleton()->worldFOV = fov;
-		Cache::translateSpeedValue = translateSpeed;
+		FreeCamera::translateSpeed = translateSpeed;
 
 		DOF::blurMultiplier = blurMultiplier;
 		DOF::nearDist = nearDist;
@@ -57,7 +57,7 @@ namespace PhotoMode
 		ImGui::Slider("$PM_FieldOfView"_T, &RE::PlayerCamera::GetSingleton()->worldFOV, 5.0f, 150.0f);
 		ImGui::Slider("$PM_ViewRoll"_T, &currentViewRoll, -RE::NI_PI, RE::NI_PI);
 		ImGui::Slider("$PM_TranslateSpeed"_T,
-			&Cache::translateSpeedValue,  // fFreeCameraTranslationSpeed:Camera
+			&FreeCamera::translateSpeed,  // fFreeCameraTranslationSpeed:Camera
 			0.1f, 50.0f);
 
 		if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {

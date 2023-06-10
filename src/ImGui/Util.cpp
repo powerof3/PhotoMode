@@ -1,7 +1,6 @@
 #include "Util.h"
 
 #include "Icons.h"
-#include "Renderer.h"
 
 namespace ImGui
 {
@@ -242,11 +241,6 @@ namespace ImGui
 		SetNextItemWidth(-1);
 
 		return "##"s + label;
-	}
-
-	std::string LabelPrefix(const std::string& label)
-	{
-		return LabelPrefix(label.c_str());
 	}
 
 	void CenteredText(const char* label, bool vertical)

@@ -1,6 +1,5 @@
 #include "Screenshots/Manager.h"
 
-#include "ImGui/Util.h"
 #include "Input.h"
 #include "LoadScreen.h"
 #include "Settings.h"
@@ -33,63 +32,34 @@ namespace Screenshot
 		}
 	}
 
-	void Manager::LoadSettings(CSimpleIniA& a_ini)
+	void Manager::LoadScreenshotIndex(CSimpleIniA& a_ini)
 	{
-		ini::get_value(a_ini, index, "Screenshots", "ScreenShotIndex", nullptr);
-		ini::get_value(a_ini, takeScreenshotAsPNG, "Screenshots", "SaveAsPNG", ";Take regular screenshots in PhotoMode");
-		ini::get_value(a_ini, takeScreenshotAsDDS, "Screenshots", "SaveAsDDS", ";Save screenshots as DDS (show in loading screens)");
-		ini::get_value(a_ini, applyPaintFilter, "Screenshots", "ApplyPaintingFilter", ";Apply an oil painting filter (to loadscreen screenshots)");
-		ini::get_value(a_ini, paintFilter.intensity, "Screenshots", "PaintIntensity", nullptr);
-		ini::get_value(a_ini, paintFilter.radius, "Screenshots", "PaintRadius", nullptr);
-		ini::get_value(a_ini, compressTextures, "Screenshots", "CompressTextures", ";Save screenshot textures with BC7 compression");
+		ini::get_value(a_ini, index, "Screenshots", "Index", nullptr);
+	}
 
-		get_textures(screenshotFolder, screenshots);
+	void Manager::LoadSettings(const CSimpleIniA& a_ini)
+	{
+		allowMultiScreenshots = a_ini.GetBoolValue("Screenshots", "bMultiScreenshots", allowMultiScreenshots);
+		takeScreenshotAsDDS = a_ini.GetBoolValue("Screenshots", "bLoadScreenPics", takeScreenshotAsDDS);
+
+		applyPaintFilter = a_ini.GetBoolValue("Screenshots", "bPaintFilter", applyPaintFilter);
+		paintFilter.intensity = a_ini.GetDoubleValue("Screenshots", "bPaintIntensity", paintFilter.intensity);
+		paintFilter.radius = a_ini.GetLongValue("Screenshots", "iPaintRadius", paintFilter.radius);
+
+		compressTextures = a_ini.GetBoolValue("Screenshots", "bCompressTextures", compressTextures);
+
+		MANAGER(LoadScreen)->LoadSettings(a_ini);
+	}
+
+	void Manager::LoadScreenshotTextures()
+	{
+		logger::info("Loading screenshot textures...");
+
+	    get_textures(screenshotFolder, screenshots);
 		get_textures(paintingFolder, paintings);
-	}
 
-	void Manager::SaveSettings(CSimpleIniA& a_ini) const
-	{
-		a_ini.SetBoolValue("Screenshots", "SaveAsPNG", takeScreenshotAsPNG);
-		a_ini.SetBoolValue("Screenshots", "SaveAsDDS", takeScreenshotAsDDS);
-		a_ini.SetBoolValue("Screenshots", "ApplyPaintingFilter", applyPaintFilter);
-		a_ini.SetDoubleValue("Screenshots", "PaintIntensity", paintFilter.intensity);
-		a_ini.SetLongValue("Screenshots", "PaintRadius", paintFilter.radius);
-	}
-
-	void Manager::Revert()
-	{
-		takeScreenshotAsPNG = true;
-		takeScreenshotAsDDS = true;
-		applyPaintFilter = true;
-
-		paintFilter.radius = 3;
-		paintFilter.intensity = 20;
-
-		LoadScreen::Manager::GetSingleton()->Revert();
-	}
-
-	void Manager::Draw()
-	{
-		ImGui::OnOffToggle("$PM_RegularScreenshots"_T, &takeScreenshotAsPNG, "$PM_YES"_T, "$PM_NO"_T);
-		ImGui::OnOffToggle("$PM_LoadScreenScreenshots"_T, &takeScreenshotAsDDS, "$PM_YES"_T, "$PM_NO"_T);
-
-		ImGui::BeginDisabled(!takeScreenshotAsDDS);
-		{
-			ImGui::Dummy({ 0, 5 });
-			ImGui::OnOffToggle("$PM_PaintingFilter"_T, &applyPaintFilter, "$PM_ENABLED"_T, "$PM_DISABLED"_T);
-
-			ImGui::Slider("$PM_PaintIntensity"_T, &paintFilter.intensity, 1.0f, 100.0f);
-			ImGui::Slider("$PM_PaintRadius"_T, &paintFilter.radius, 1, 10);
-
-			if (ImGui::BeginTabBar("LoadScreen##Bar")) {
-				if (ImGui::BeginTabItem("$PM_LoadScreen"_T)) {
-					LoadScreen::Manager::GetSingleton()->Draw();
-					ImGui::EndTabItem();
-				}
-				ImGui::EndTabBar();
-			}
-		}
-		ImGui::EndDisabled();
+		logger::info("\t{} screenshots", screenshots.size());
+		logger::info("\t{} paintings", paintings.size());
 	}
 
 	void Manager::AddScreenshotPaths(Paths& a_paths)
@@ -105,16 +75,25 @@ namespace Screenshot
 
 	void Manager::IncrementIndex()
 	{
-		index++;
-
-		const auto path = Settings::GetSingleton()->GetPath();
+		const auto path = Settings::GetSingleton()->GetConfigPath();
 
 		CSimpleIniA ini;
 		ini.SetUnicode();
 		ini.LoadFile(path);
-		ini.SetLongValue("Screenshots", "ScreenShotIndex", index);
+
+		ini.SetLongValue("Screenshots", "Index", index++);
 
 		(void)ini.SaveFile(path);
+	}
+
+	bool Manager::AllowMultiScreenshots() const
+	{
+		return allowMultiScreenshots;
+	}
+
+	float Manager::GetKeyHeldDuration() const
+	{
+		return keyHeldDuration;
 	}
 
 	bool Manager::CanDisplayScreenshot() const
@@ -122,15 +101,15 @@ namespace Screenshot
 		return takeScreenshotAsDDS && (!screenshots.empty() || !paintings.empty());
 	}
 
-	bool Manager::TakeScreenshotAsTexture()
+	void Manager::TakeScreenshotAsTexture()
 	{
 		if (!takeScreenshotAsDDS) {
-			return false;
+			return;
 		}
 
 		const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
 		if (!renderer) {
-			return false;
+			return;
 		}
 
 		Paths ssPaths(GetIndex());
@@ -171,9 +150,6 @@ namespace Screenshot
 
 		// render target should have no UI, safe to enable
 		Input::Manager::GetSingleton()->OnScreenshotFinish();
-
-		// return false so it can capture vanilla screenshot as well
-		return !takeScreenshotAsPNG;
 	}
 
 	std::string Manager::GetRandomScreenshot()
@@ -199,9 +175,10 @@ namespace Screenshot
 	{
 		static void thunk(const char* a_screenshotPath, RE::BSGraphics::TextureFileFormat a_format)
 		{
-			if (!Input::Manager::GetSingleton()->IsScreenshotQueued() || !Screenshot::Manager::GetSingleton()->TakeScreenshotAsTexture()) {
-				func(a_screenshotPath, a_format);
+			if (MANAGER(Input)->IsScreenshotQueued()) {
+				MANAGER(Screenshot)->TakeScreenshotAsTexture();
 			}
+			func(a_screenshotPath, a_format);
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
 	};

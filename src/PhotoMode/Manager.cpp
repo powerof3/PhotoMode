@@ -11,6 +11,8 @@ namespace PhotoMode
 	void Manager::Register()
 	{
 		RE::UI::GetSingleton()->AddEventSink(GetSingleton());
+
+		logger::info("Registered for menu open/close event");
 	}
 
 	void Manager::LoadSettings(CSimpleIniA& a_ini)
@@ -24,7 +26,13 @@ namespace PhotoMode
 		IO.gamePad.SetPattern(gPattern);
 	}
 
-	bool Manager::GetValid()
+    void Manager::SaveSettings(CSimpleIniA& a_ini) const
+    {
+		a_ini.SetValue("PhotoMode", "Key", IO.keyboard.GetPattern().data(), ";Toggle photomode\n\n;Default is N\n;DXScanCodes : https://www.creationkit.com/index.php?title=Input_Script");
+		a_ini.SetValue("PhotoMode", "GamepadKey", IO.gamePad.GetPattern().data(), ";Default is LShoulder+RShoulder");
+	}
+
+    bool Manager::GetValid()
 	{
 		static constexpr std::array badMenus{
 			RE::MainMenu::MENU_NAME,
@@ -112,7 +120,7 @@ namespace PhotoMode
 		}
 		// Settings
 		if (tabIndex == kSettings) {
-			Screenshot::Manager::GetSingleton()->Revert();
+			// tbd
 		}
 
 		if (a_deactivate) {
@@ -136,8 +144,6 @@ namespace PhotoMode
 	void Manager::Deactivate()
 	{
 		Revert(true);
-
-		Settings::GetSingleton()->SaveSettings();
 
 		// reset controls
 		const auto controlMap = RE::ControlMap::GetSingleton();
@@ -310,11 +316,11 @@ namespace PhotoMode
 		ImGui::End();
 	}
 
-	void Manager::OnFrameUpdate()
+	bool Manager::OnFrameUpdate()
 	{
 		if (!GetValid()) {
 			Deactivate();
-			return;
+			return false;
 		}
 
 		// disable controls
@@ -323,6 +329,8 @@ namespace PhotoMode
 		controlMap->ToggleControls(controlFlags, false);
 
 		timeTab.OnFrameUpdate();
+
+		return true;
 	}
 
 	void Manager::DrawControls()
@@ -341,7 +349,7 @@ namespace PhotoMode
 
 		constexpr auto windowFlags = ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoDecoration;
 
-		ImGui::Begin("$PM_Title"_T, nullptr, windowFlags);
+		ImGui::Begin("$PM_Title_Menu"_T, nullptr, windowFlags);
 		{
 			if (resetWindow) {
 				currentTab = kCamera;
@@ -365,11 +373,11 @@ namespace PhotoMode
 					} else {
 						ImGui::PushFont(iconMgr->GetBigIconFont());
 					}
-					ImGui::Button(tabIcons[i], ImVec2(tabWidth, ImGui::GetFrameHeightWithSpacing()));
+				    ImGui::Button(tabIcons[i], ImVec2(tabWidth, ImGui::GetFrameHeightWithSpacing()));
 					if (currentTab != i) {
 						ImGui::EndDisabled();
 					} else {
-						ImGui::PopFont();
+					    ImGui::PopFont();
 					}
 					ImGui::SameLine();
 				}
@@ -418,7 +426,7 @@ namespace PhotoMode
 					filterTab.Draw();
 					break;
 				case TAB_TYPE::kSettings:
-					Screenshot::Manager::GetSingleton()->Draw();
+					// TBD
 					break;
 				default:
 					break;
@@ -523,7 +531,7 @@ namespace PhotoMode
 					if (categoryList.GetMember("entryList", &entryList)) {
 						RE::GFxValue entry;
 						view->CreateObject(&entry);
-						entry.SetMember("text", TRANSLATE("$PM_Title"));
+						entry.SetMember("text", TRANSLATE("$PM_Title_Menu"));
 
 						entryList.SetElement(3, entry);
 						categoryList.Invoke("InvalidateData");

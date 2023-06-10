@@ -48,5 +48,4 @@ namespace PhotoMode
 		static constexpr std::array gridTypes{ "$PM_NONE", "$PM_Grid_Thirds", "$PM_Grid_Diagonal", "$PM_Grid_Triangle", "$PM_Grid_GoldenRatio" /*,"$PM_Grid_GoldenSpiral"*/, "$PM_Grid_Grid" };
 		GridType                    gridType{ kDisabled };
 	};
-
 }

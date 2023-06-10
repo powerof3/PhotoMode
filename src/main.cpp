@@ -1,5 +1,6 @@
 #include "ImGui/Renderer.h"
 #include "Input.h"
+#include "Papyrus.h"
 #include "PhotoMode/Manager.h"
 #include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
@@ -13,6 +14,9 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 		{
 			Settings::GetSingleton()->LoadSettings();
 
+			MANAGER(Screenshot)->LoadScreenshotTextures();
+			MANAGER(Translation)->BuildTranslationMap();
+
 			Screenshot::InstallHook();
 			LoadScreen::InstallHook();
 			PhotoMode::InstallHooks();
@@ -20,15 +24,14 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 		break;
 	case SKSE::MessagingInterface::kInputLoaded:
 		{
-			Input::Manager::Register();
-			PhotoMode::Manager::Register();
+			logger::info("{:*^30}", "EVENTS");
+
+			MANAGER(Input)->Register();
+			MANAGER(PhotoMode)->Register();
 		}
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
-		{
-			Translation::Manager::GetSingleton()->BuildTranslationMap();
-			LoadScreen::Manager::GetSingleton()->InitLoadScreenObjects();
-		}
+		MANAGER(LoadScreen)->InitLoadScreenObjects();
 		break;
 	default:
 		break;
@@ -102,6 +105,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 	const auto messaging = SKSE::GetMessagingInterface();
 	messaging->RegisterListener("SKSE", OnInit);
+
+	SKSE::GetPapyrusInterface()->Register(Papyrus::Register);
 
 	return true;
 }
