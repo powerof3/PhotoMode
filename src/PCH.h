@@ -13,11 +13,11 @@
 #include <wrl/client.h>
 
 #include <ClibUtil/RNG.hpp>
+#include <ClibUtil/hash.hpp>
 #include <ClibUtil/hotkeys.hpp>
 #include <ClibUtil/simpleINI.hpp>
 #include <ClibUtil/singleton.hpp>
 #include <ClibUtil/string.hpp>
-#include <ClibUtil/hash.hpp>
 #include <DirectXMath.h>
 #include <DirectXTex.h>
 
