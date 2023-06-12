@@ -74,7 +74,7 @@ namespace PhotoMode::Renderer
 					return;
 				}
 
-			    MANAGER(IconFont)->LoadIcons();
+				MANAGER(IconFont)->LoadIcons();
 
 				logger::info("ImGui initialized.");
 

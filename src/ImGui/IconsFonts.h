@@ -26,7 +26,7 @@ namespace IconFont
 	public:
 		void LoadSettings(CSimpleIniA& a_ini);
 
-	    void LoadIcons();
+		void LoadIcons();
 		void LoadFonts();
 
 		ImFont* GetLargeFont() const;

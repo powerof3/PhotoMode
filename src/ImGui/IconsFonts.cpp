@@ -59,9 +59,9 @@ namespace IconFont
 		return result;
 	}
 
-    void Manager::LoadSettings(CSimpleIniA& a_ini)
+	void Manager::LoadSettings(CSimpleIniA& a_ini)
 	{
-	    ini::get_value(a_ini, fontName, "Fonts", "Font", nullptr);
+		ini::get_value(a_ini, fontName, "Fonts", "Font", nullptr);
 		fontName = R"(Data\Interface\Fonts\)" + fontName;
 
 		ini::get_value(a_ini, fontSize, "Fonts", "FontSize", nullptr);
@@ -94,16 +94,16 @@ namespace IconFont
 			return;
 		}
 
-	    loadedFonts = true;
+		loadedFonts = true;
 
-	    ImVector<ImWchar>        ranges;
+		ImVector<ImWchar>        ranges;
 		ImFontGlyphRangesBuilder builder;
 		builder.AddText(RE::BSScaleformManager::GetSingleton()->validNameChars.c_str());
-		builder.AddChar(0xf030);	// CAMERA
-		builder.AddChar(0xf017);	// CLOCK
-		builder.AddChar(0xf183);	// PERSON
-		builder.AddChar(0xf042);	// CONTRAST
-		builder.AddChar(0xf013);	// GEAR
+		builder.AddChar(0xf030);  // CAMERA
+		builder.AddChar(0xf017);  // CLOCK
+		builder.AddChar(0xf183);  // PERSON
+		builder.AddChar(0xf042);  // CONTRAST
+		builder.AddChar(0xf013);  // GEAR
 		builder.BuildRanges(&ranges);
 
 		auto& io = ImGui::GetIO();
@@ -113,11 +113,11 @@ namespace IconFont
 		io.Fonts->Build();
 	}
 
-    ImFont* Manager::LoadFontIconPair(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const
-    {
+	ImFont* Manager::LoadFontIconPair(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const
+	{
 		const auto& io = ImGui::GetIO();
 
-	    const auto font = io.Fonts->AddFontFromFileTTF(fontName.c_str(), a_fontSize, nullptr, a_ranges.Data);
+		const auto font = io.Fonts->AddFontFromFileTTF(fontName.c_str(), a_fontSize, nullptr, a_ranges.Data);
 
 		ImFontConfig icon_config;
 		icon_config.MergeMode = true;
