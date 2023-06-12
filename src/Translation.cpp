@@ -2,17 +2,17 @@
 
 namespace Translation
 {
-	std::string Manager::GetLanguage()
+	std::string Manager::GetGameLanguage()
 	{
 		const auto iniSettingCollection = RE::INISettingCollection::GetSingleton();
         const auto setting = iniSettingCollection ? iniSettingCollection->GetSetting("sLanguage:General") : nullptr;
 
-		return (setting && setting->GetType() == RE::Setting::Type::kString) ? setting->data.s : "ENGLISH"s;
+		return (setting && setting->GetType() == RE::Setting::Type::kString) ? clib_util::string::toupper(setting->data.s) : "ENGLISH"s;
 	}
 
 	void Manager::BuildTranslationMap()
 	{
-		std::filesystem::path path{ fmt::format(R"(Data\Interface\Translations\PhotoMode_{}.txt)", GetLanguage()) };
+		std::filesystem::path path{ fmt::format(R"(Data\Interface\Translations\PhotoMode_{}.txt)", GetGameLanguage()) };
 
 		if (!LoadTranslation(path)) {
 			LoadTranslation(R"(Data\Interface\Translations\PhotoMode_ENGLISH.txt)"sv);

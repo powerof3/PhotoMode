@@ -2,10 +2,9 @@
 
 #include "IconsFontAwesome6.h"
 #include "Input.h"
-#include "Translation.h"
 #include "Util.h"
 
-namespace Icon
+namespace IconFont
 {
 	ImageData::ImageData(std::wstring_view a_iconName)
 	{
@@ -60,6 +59,18 @@ namespace Icon
 		return result;
 	}
 
+    void Manager::LoadSettings(CSimpleIniA& a_ini)
+	{
+	    ini::get_value(a_ini, fontName, "Fonts", "Font", nullptr);
+		fontName = R"(Data\Interface\Fonts\)" + fontName;
+
+		ini::get_value(a_ini, fontSize, "Fonts", "FontSize", nullptr);
+		ini::get_value(a_ini, largeFontSize, "Fonts", "LargeFontSize", nullptr);
+
+		ini::get_value(a_ini, iconSize, "Fonts", "IconSize", nullptr);
+		ini::get_value(a_ini, largeIconSize, "Fonts", "LargeIconSize", nullptr);
+	}
+
 	void Manager::LoadIcons()
 	{
 		unknownKey.Init();
@@ -79,38 +90,48 @@ namespace Icon
 
 	void Manager::LoadFonts()
 	{
-	    constexpr float          baseFontSize = 24.0f;
-		constexpr float          bigFontSize = 28.0f;
-		constexpr float          baseIconSize = 20.0f;
-		constexpr float          bigIconSize = 24.0f;
+		if (loadedFonts) {
+			return;
+		}
 
-		static constexpr ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	    loadedFonts = true;
 
-		const auto& io = ImGui::GetIO();
-		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\Jost-Medium.ttf)", baseFontSize);
-		bigFont = io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\Jost-Medium.ttf)", bigFontSize);
+	    ImVector<ImWchar>        ranges;
+		ImFontGlyphRangesBuilder builder;
+		builder.AddText(RE::BSScaleformManager::GetSingleton()->validNameChars.c_str());
+		builder.AddChar(0xf030);	// CAMERA
+		builder.AddChar(0xf017);	// CLOCK
+		builder.AddChar(0xf183);	// PERSON
+		builder.AddChar(0xf042);	// CONTRAST
+		builder.AddChar(0xf013);	// GEAR
+		builder.BuildRanges(&ranges);
 
-		ImFontConfig config;
-		config.MergeMode = true;
-		config.PixelSnapH = true;
-		config.OversampleH = config.OversampleV = 1;
-
-		io.Fonts->AddFontFromFileTTF("Data\\Interface\\Fonts\\" FONT_ICON_FILE_NAME_FAS, baseIconSize, &config, icon_ranges);
-
-		config.MergeMode = false;
-
-		bigIconFont = io.Fonts->AddFontFromFileTTF("Data\\Interface\\Fonts\\" FONT_ICON_FILE_NAME_FAS, bigIconSize, &config, icon_ranges);
+		auto& io = ImGui::GetIO();
+		io.FontDefault = LoadFontIconPair(fontSize, iconSize, ranges);
+		largeFont = LoadFontIconPair(largeFontSize, largeIconSize, ranges);
 
 		io.Fonts->Build();
 	}
 
-	ImFont* Manager::GetBigFont() const
-	{
-		return bigFont;
+    ImFont* Manager::LoadFontIconPair(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const
+    {
+		const auto& io = ImGui::GetIO();
+
+	    const auto font = io.Fonts->AddFontFromFileTTF(fontName.c_str(), a_fontSize, nullptr, a_ranges.Data);
+
+		ImFontConfig icon_config;
+		icon_config.MergeMode = true;
+		icon_config.PixelSnapH = true;
+		icon_config.OversampleH = icon_config.OversampleV = 1;
+
+		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\)" FONT_ICON_FILE_NAME_FAS, a_iconSize, &icon_config, a_ranges.Data);
+
+		return font;
 	}
-	ImFont* Manager::GetBigIconFont() const
+
+	ImFont* Manager::GetLargeFont() const
 	{
-		return bigIconFont;
+		return largeFont;
 	}
 
 	const ImageData* Manager::GetStepperLeft() const
@@ -180,17 +201,17 @@ namespace Icon
 
 ImVec2 ImGui::ButtonIcon(Input::TYPE a_type, std::uint32_t a_key)
 {
-	const auto imageData = Icon::Manager::GetSingleton()->GetIcon(a_type, a_key);
+	const auto imageData = MANAGER(IconFont)->GetIcon(a_type, a_key);
 	return ButtonIcon(imageData, false);
 }
 
 void ImGui::ButtonIcon(Input::TYPE a_type, const std::set<std::uint32_t>& a_keys)
 {
-	const auto imageData = Icon::Manager::GetSingleton()->GetIcons(a_type, a_keys);
+	const auto imageData = MANAGER(IconFont)->GetIcons(a_type, a_keys);
 	return ButtonIcon(imageData, false);
 }
 
-ImVec2 ImGui::ButtonIcon(const Icon::ImageData* a_imageData, bool a_centerIcon)
+ImVec2 ImGui::ButtonIcon(const IconFont::ImageData* a_imageData, bool a_centerIcon)
 {
 	if (a_centerIcon) {
 		const float height = ImGui::GetWindowSize().y;
@@ -201,7 +222,7 @@ ImVec2 ImGui::ButtonIcon(const Icon::ImageData* a_imageData, bool a_centerIcon)
 	return a_imageData->size;
 }
 
-void ImGui::ButtonIcon(const std::set<const Icon::ImageData*>& a_imageData, bool a_centerIcon)
+void ImGui::ButtonIcon(const std::set<const IconFont::ImageData*>& a_imageData, bool a_centerIcon)
 {
 	BeginGroup();
 	for (auto& imageData : a_imageData) {
@@ -212,14 +233,14 @@ void ImGui::ButtonIcon(const std::set<const Icon::ImageData*>& a_imageData, bool
 	EndGroup();
 }
 
-void ImGui::ButtonIconWithLabel(const char* a_text, const Icon::ImageData* a_imageData, bool a_centerIcon)
+void ImGui::ButtonIconWithLabel(const char* a_text, const IconFont::ImageData* a_imageData, bool a_centerIcon)
 {
 	ImGui::ButtonIcon(a_imageData, a_centerIcon);
 	ImGui::SameLine();
 	ImGui::CenteredText(a_text, true);
 }
 
-void ImGui::ButtonIconWithLabel(const char* a_text, const std::set<const Icon::ImageData*>& a_imageData, bool a_centerIcon)
+void ImGui::ButtonIconWithLabel(const char* a_text, const std::set<const IconFont::ImageData*>& a_imageData, bool a_centerIcon)
 {
 	ImGui::ButtonIcon(a_imageData, a_centerIcon);
 	ImGui::SameLine();

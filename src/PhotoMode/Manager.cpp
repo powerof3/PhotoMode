@@ -299,23 +299,6 @@ namespace PhotoMode
 		return IsActive() ? cameraTab.GetViewRoll() : a_fallback;
 	}
 
-	void Manager::Draw()
-	{
-		const ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
-
-		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
-		{
-			DrawControls();
-			DrawBar();
-
-			cameraTab.DrawGrid();
-		}
-		ImGui::End();
-	}
-
 	bool Manager::OnFrameUpdate()
 	{
 		if (!GetValid()) {
@@ -331,6 +314,23 @@ namespace PhotoMode
 		timeTab.OnFrameUpdate();
 
 		return true;
+	}
+
+	void Manager::Draw()
+	{
+		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+		ImGui::SetNextWindowPos(viewport->Pos);
+		ImGui::SetNextWindowSize(viewport->Size);
+
+		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
+		{
+			DrawControls();
+			DrawBar();
+
+			cameraTab.DrawGrid();
+		}
+		ImGui::End();
 	}
 
 	void Manager::DrawControls()
@@ -355,8 +355,6 @@ namespace PhotoMode
 				currentTab = kCamera;
 			}
 
-			static auto iconMgr = Icon::Manager::GetSingleton();
-
 			// Q [Tab Tab Tab Tab Tab] E
 			ImGui::BeginGroup();
 			{
@@ -371,7 +369,7 @@ namespace PhotoMode
 					if (currentTab != i) {
 						ImGui::BeginDisabled(true);
 					} else {
-						ImGui::PushFont(iconMgr->GetBigIconFont());
+						ImGui::PushFont(MANAGER(IconFont)->GetLargeFont());
 					}
 					ImGui::Button(tabIcons[i], ImVec2(tabWidth, ImGui::GetFrameHeightWithSpacing()));
 					if (currentTab != i) {
@@ -453,10 +451,10 @@ namespace PhotoMode
 			const auto        resetLabel = GetResetAll() ? "$PM_RESET_ALL"_T : "$PM_RESET"_T;
 			const static auto exitLabel = "$PM_EXIT"_T;
 
-			const auto& takePhotoIcon = Icon::Manager::GetSingleton()->GetIcon(inputType, TakePhotoKey());
-			const auto& toggleUIIcon = Icon::Manager::GetSingleton()->GetIcon(inputType, ToggleUIKey());
-			const auto& resetIcon = Icon::Manager::GetSingleton()->GetIcon(inputType, ResetKey());
-			const auto& exitIcons = Icon::Manager::GetSingleton()->GetIcons(inputType, IO.GetKeys());
+			const auto& takePhotoIcon = MANAGER(IconFont)->GetIcon(inputType, TakePhotoKey());
+			const auto& toggleUIIcon = MANAGER(IconFont)->GetIcon(inputType, ToggleUIKey());
+			const auto& resetIcon = MANAGER(IconFont)->GetIcon(inputType, ResetKey());
+			const auto& exitIcons = MANAGER(IconFont)->GetIcons(inputType, IO.GetKeys());
 
 			// calc total elements width
 			const ImGuiStyle& style = ImGui::GetStyle();

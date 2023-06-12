@@ -5,7 +5,7 @@ namespace Translation
 	class Manager final : public ISingleton<Manager>
 	{
 	public:
-		static std::string GetLanguage();
+		static std::string GetGameLanguage();
 
 		void BuildTranslationMap();
 		bool LoadTranslation(const std::filesystem::path& a_path);

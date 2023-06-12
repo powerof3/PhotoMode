@@ -5,7 +5,7 @@ namespace Input
 	enum class TYPE : std::uint32_t;
 }
 
-namespace Icon
+namespace IconFont
 {
 	struct ImageData
 	{
@@ -24,11 +24,12 @@ namespace Icon
 	class Manager final : public ISingleton<Manager>
 	{
 	public:
-		void LoadIcons();
+		void LoadSettings(CSimpleIniA& a_ini);
+
+	    void LoadIcons();
 		void LoadFonts();
 
-		ImFont* GetBigFont() const;
-		ImFont* GetBigIconFont() const;
+		ImFont* GetLargeFont() const;
 
 		const ImageData* GetStepperLeft() const;
 		const ImageData* GetStepperRight() const;
@@ -37,9 +38,18 @@ namespace Icon
 		std::set<const ImageData*> GetIcons(Input::TYPE a_type, const std::set<std::uint32_t>& keys);
 
 	private:
+		ImFont* LoadFontIconPair(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const;
+
 		// members
-	    ImFont* bigFont{ nullptr };
-		ImFont* bigIconFont{ nullptr };
+		bool loadedFonts{ false };
+
+		std::string   fontName{ "Jost-Medium.ttf" };
+		std::uint32_t fontSize{ 24 };
+		std::uint32_t iconSize{ 20 };
+		std::uint32_t largeFontSize{ 28 };
+		std::uint32_t largeIconSize{ 24 };
+
+		ImFont* largeFont{ nullptr };
 
 		ImageData stepperLeft{ ImageData(L"StepperLeft"sv) };
 		ImageData stepperRight{ ImageData(L"StepperRight"sv) };
@@ -195,9 +205,9 @@ namespace ImGui
 	ImVec2 ButtonIcon(Input::TYPE a_type, std::uint32_t a_key);
 	void   ButtonIcon(Input::TYPE a_type, const std::set<std::uint32_t>& a_keys);
 
-	ImVec2 ButtonIcon(const Icon::ImageData* a_imageData, bool a_centerIcon);
-	void   ButtonIcon(const std::set<const Icon::ImageData*>& a_imageData, bool a_centerIcon);
+	ImVec2 ButtonIcon(const IconFont::ImageData* a_imageData, bool a_centerIcon);
+	void   ButtonIcon(const std::set<const IconFont::ImageData*>& a_imageData, bool a_centerIcon);
 
-	void ButtonIconWithLabel(const char* a_text, const Icon::ImageData* a_imageData, bool a_centerIcon);
-	void ButtonIconWithLabel(const char* a_text, const std::set<const Icon::ImageData*>& a_imageData, bool a_centerIcon);
+	void ButtonIconWithLabel(const char* a_text, const IconFont::ImageData* a_imageData, bool a_centerIcon);
+	void ButtonIconWithLabel(const char* a_text, const std::set<const IconFont::ImageData*>& a_imageData, bool a_centerIcon);
 }

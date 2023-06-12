@@ -150,7 +150,7 @@ namespace ImGui
 		// Copied from ListBoxHeader
 		// If popup_max_height_in_items == -1, default height is maximum 7.
 		const float height_in_items_f = (popup_max_height_in_items < 0 ? ImMin(items_count, 7) :
-                                                                         popup_max_height_in_items) +
+																		 popup_max_height_in_items) +
 		                                0.25f;
 		ImVec2 size;
 		size.x = 0.0f;
@@ -283,9 +283,7 @@ namespace ImGui
 			PushStyleColor(ImGuiCol_Text, ImVec4{ 0.604f, 0.604f, 0.6078f, 1.0f });
 		}
 
-		static auto iconMgr = Icon::Manager::GetSingleton();
-
-		PushFont(iconMgr->GetBigFont());
+		PushFont(MANAGER(IconFont)->GetLargeFont());
 		RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText, nullptr, nullptr, ImVec2(0.5f, 0.5f));
 		PopFont();
 
@@ -294,8 +292,8 @@ namespace ImGui
 		}
 
 		// Draw arrows
-		static auto leftArrow = iconMgr->GetStepperLeft();
-		static auto rightArrow = iconMgr->GetStepperRight();
+		static auto leftArrow = MANAGER(IconFont)->GetStepperLeft();
+		static auto rightArrow = MANAGER(IconFont)->GetStepperRight();
 
 		AlignedImage(leftArrow->srView, leftArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(0, 0.5f));
 		AlignedImage(rightArrow->srView, rightArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(1.0, 0.5f));
@@ -385,9 +383,9 @@ namespace ImGui
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
-                                                                                                  ImGuiCol_FrameBg);
+																								  ImGuiCol_FrameBg);
 		const ImU32 frame_col_after = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered :
-                                                                                                                  ImGuiCol_FrameBg);
+																												  ImGuiCol_FrameBg);
 		RenderNavHighlight(frame_bb, id);
 
 		// Slider behavior

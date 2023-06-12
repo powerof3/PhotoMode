@@ -55,6 +55,7 @@ namespace PhotoMode::Renderer
 				style.FrameRounding = 4.0f;
 				style.GrabRounding = 4.0f;
 				style.WindowBorderSize = 3.0f;
+				style.ChildBorderSize = 0.0f;
 
 				style.Colors[ImGuiCol_WindowBg] = { 0.0f, 0.0f, 0.0f, 0.62f };
 				style.Colors[ImGuiCol_ChildBg] = { 0.0f, 0.0f, 0.0f, 0.62f };
@@ -73,7 +74,7 @@ namespace PhotoMode::Renderer
 					return;
 				}
 
-			    Icon::Manager::GetSingleton()->LoadIcons();
+			    MANAGER(IconFont)->LoadIcons();
 
 				logger::info("ImGui initialized.");
 
@@ -110,7 +111,7 @@ namespace PhotoMode::Renderer
 				return;
 			}
 
-			Icon::Manager::GetSingleton()->LoadFonts();
+			MANAGER(IconFont)->LoadFonts();
 
 			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();
