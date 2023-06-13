@@ -5,11 +5,12 @@ set(sources ${sources}
 	src/Input.cpp
 	src/PCH.cpp
 	src/Papyrus.cpp
-	src/PhotoMode/Camera.cpp
-	src/PhotoMode/Filters.cpp
+	src/PhotoMode/Hotkeys.cpp
 	src/PhotoMode/Manager.cpp
-	src/PhotoMode/Player.cpp
-	src/PhotoMode/Time.cpp
+	src/PhotoMode/Tabs/Camera.cpp
+	src/PhotoMode/Tabs/Filters.cpp
+	src/PhotoMode/Tabs/Player.cpp
+	src/PhotoMode/Tabs/Time.cpp
 	src/Screenshots/LoadScreen.cpp
 	src/Screenshots/Manager.cpp
 	src/Settings.cpp

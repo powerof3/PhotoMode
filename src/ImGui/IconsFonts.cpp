@@ -103,7 +103,6 @@ namespace IconFont
 		builder.AddChar(0xf017);  // CLOCK
 		builder.AddChar(0xf183);  // PERSON
 		builder.AddChar(0xf042);  // CONTRAST
-		builder.AddChar(0xf013);  // GEAR
 		builder.BuildRanges(&ranges);
 
 		auto& io = ImGui::GetIO();
@@ -143,9 +142,9 @@ namespace IconFont
 		return &stepperRight;
 	}
 
-	const ImageData* Manager::GetIcon(Input::TYPE a_type, std::uint32_t key)
+	const ImageData* Manager::GetIcon(std::uint32_t key)
 	{
-		switch (a_type) {
+		switch (Input::inputType) {
 		case Input::TYPE::kKeyboard:
 			{
 				if (const auto it = keyboard.find(static_cast<KEY>(key)); it != keyboard.end()) {
@@ -174,13 +173,13 @@ namespace IconFont
 		return &unknownKey;
 	}
 
-	std::set<const ImageData*> Manager::GetIcons(Input::TYPE a_type, const std::set<std::uint32_t>& keys)
+	std::set<const ImageData*> Manager::GetIcons(const std::set<std::uint32_t>& keys)
 	{
 		std::uint32_t              processedKey = 0;
 		std::set<const ImageData*> icons{};
 
 		for (auto& key : keys) {
-			switch (a_type) {
+			switch (Input::inputType) {
 			case Input::TYPE::kKeyboard:
 				processedKey = key;
 				break;
@@ -192,22 +191,22 @@ namespace IconFont
 				break;
 			}
 
-			icons.insert(GetIcon(a_type, processedKey));
+			icons.insert(GetIcon(processedKey));
 		}
 
 		return icons;
 	}
 }
 
-ImVec2 ImGui::ButtonIcon(Input::TYPE a_type, std::uint32_t a_key)
+ImVec2 ImGui::ButtonIcon(std::uint32_t a_key)
 {
-	const auto imageData = MANAGER(IconFont)->GetIcon(a_type, a_key);
+	const auto imageData = MANAGER(IconFont)->GetIcon(a_key);
 	return ButtonIcon(imageData, false);
 }
 
-void ImGui::ButtonIcon(Input::TYPE a_type, const std::set<std::uint32_t>& a_keys)
+void ImGui::ButtonIcon(const std::set<std::uint32_t>& a_keys)
 {
-	const auto imageData = MANAGER(IconFont)->GetIcons(a_type, a_keys);
+	const auto imageData = MANAGER(IconFont)->GetIcons(a_keys);
 	return ButtonIcon(imageData, false);
 }
 

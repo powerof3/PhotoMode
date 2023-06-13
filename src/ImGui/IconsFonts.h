@@ -1,9 +1,6 @@
 #pragma once
 
-namespace Input
-{
-	enum class TYPE : std::uint32_t;
-}
+#include "Input.h"
 
 namespace IconFont
 {
@@ -34,8 +31,8 @@ namespace IconFont
 		const ImageData* GetStepperLeft() const;
 		const ImageData* GetStepperRight() const;
 
-		const ImageData*           GetIcon(Input::TYPE a_type, std::uint32_t key);
-		std::set<const ImageData*> GetIcons(Input::TYPE a_type, const std::set<std::uint32_t>& keys);
+		const ImageData*           GetIcon(std::uint32_t key);
+		std::set<const ImageData*> GetIcons(const std::set<std::uint32_t>& keys);
 
 	private:
 		ImFont* LoadFontIconPair(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const;
@@ -202,8 +199,8 @@ namespace IconFont
 
 namespace ImGui
 {
-	ImVec2 ButtonIcon(Input::TYPE a_type, std::uint32_t a_key);
-	void   ButtonIcon(Input::TYPE a_type, const std::set<std::uint32_t>& a_keys);
+	ImVec2 ButtonIcon(std::uint32_t a_key);
+	void   ButtonIcon(const std::set<std::uint32_t>& a_keys);
 
 	ImVec2 ButtonIcon(const IconFont::ImageData* a_imageData, bool a_centerIcon);
 	void   ButtonIcon(const std::set<const IconFont::ImageData*>& a_imageData, bool a_centerIcon);

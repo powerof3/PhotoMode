@@ -2,16 +2,10 @@
 
 #include "ImGui/IconsFontAwesome6.h"
 
-#include "Camera.h"
-#include "Filters.h"
-#include "Input.h"
-#include "Player.h"
-#include "Time.h"
-
-namespace Input
-{
-	enum class TYPE : std::uint32_t;
-}
+#include "Tabs/Camera.h"
+#include "Tabs/Filters.h"
+#include "Tabs/Player.h"
+#include "Tabs/Time.h"
 
 namespace PhotoMode
 {
@@ -21,9 +15,6 @@ namespace PhotoMode
 	{
 	public:
 		static void Register();
-
-		void LoadSettings(CSimpleIniA& a_ini);
-		void SaveSettings(CSimpleIniA& a_ini) const;
 
 		static bool GetValid();
 		bool        IsActive() const;
@@ -37,17 +28,7 @@ namespace PhotoMode
 		bool                       GetResetAll() const;
 		void                       DoResetAll();
 
-		void SetInputType(Input::TYPE a_inputType);
-
-		std::uint32_t ResetKey() const;
-		std::uint32_t TakePhotoKey() const;
-		std::uint32_t ToggleUIKey() const;
-		std::uint32_t RightTabKey() const;
-		std::uint32_t LeftTabKey() const;
-
 		void NavigateTab(bool a_left);
-
-		void CheckActive(RE::InputEvent* const* a_event);
 
 		[[nodiscard]] float GetViewRoll(float a_fallback) const;
 
@@ -60,8 +41,7 @@ namespace PhotoMode
 			kCamera,
 			kTime,
 			kPlayer,
-			kFilters,
-			kSettings
+			kFilters
 		};
 
 		// kMenu | kActivate | kFighting | kJumping | kConsole | kSneaking
@@ -71,20 +51,15 @@ namespace PhotoMode
 			"$PM_Camera",
 			"$PM_TimeWeather",
 			"$PM_Player",
-			"$PM_Filters",
-			"$PM_Settings"
+			"$PM_Filters"
 		};
 		static constexpr std::array tabIcons = {
 			ICON_FA_CAMERA,
 			ICON_FA_CLOCK,
 			ICON_FA_PERSON,
-			ICON_FA_CIRCLE_HALF_STROKE,
-			ICON_FA_GEAR
+			ICON_FA_CIRCLE_HALF_STROKE
 		};
-
-		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifSettings" };
-
-		static void ToggleActive_Input(const KeyCombination*);
+		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters" };
 
 		void DrawControls();
 		void DrawBar() const;
@@ -94,20 +69,6 @@ namespace PhotoMode
 		// members
 		bool activated{ false };
 
-		struct
-		{
-			const std::set<std::uint32_t>& GetKeys() const
-			{
-				if (GetSingleton()->inputType == Input::TYPE::kKeyboard) {
-					return keyboard.GetKeys();
-				}
-				return gamePad.GetKeys();
-			}
-
-			KeyCombination keyboard{ "N", ToggleActive_Input };
-			KeyCombination gamePad{ "LShoulder+RShoulder", ToggleActive_Input };
-		} IO;
-
 		std::int32_t previousTab{ kCamera };
 		std::int32_t currentTab{ kCamera };
 
@@ -116,7 +77,6 @@ namespace PhotoMode
 		Player  playerTab;
 		Filters filterTab;
 
-		Input::TYPE inputType{};
 		bool        updateKeyboardFocus{ false };
 
 		RE::CameraState cameraState{ RE::CameraState::kThirdPerson };

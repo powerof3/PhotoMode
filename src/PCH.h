@@ -14,7 +14,6 @@
 
 #include <ClibUtil/RNG.hpp>
 #include <ClibUtil/hash.hpp>
-#include <ClibUtil/hotkeys.hpp>
 #include <ClibUtil/simpleINI.hpp>
 #include <ClibUtil/singleton.hpp>
 #include <ClibUtil/string.hpp>
@@ -43,7 +42,6 @@ namespace logger = SKSE::log;
 namespace ini = clib_util::ini;
 
 using namespace clib_util::singleton;
-using namespace clib_util::hotkeys;
 
 using RNG = clib_util::RNG;
 using EventResult = RE::BSEventNotifyControl;

@@ -9,6 +9,8 @@ namespace Input
 		kGamepadOrbis     // ps4
 	};
 
+	inline TYPE inputType;
+
 	class Manager final :
 		public ISingleton<Manager>,
 		public RE::BSTEventSink<RE::InputEvent*>
@@ -31,7 +33,6 @@ namespace Input
 		EventResult ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*) override;
 
 		// members
-		TYPE inputType{};
 		bool screenshotQueued{ false };
 	};
 }

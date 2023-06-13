@@ -1,7 +1,7 @@
 #include "Settings.h"
 
 #include "ImGui/IconsFonts.h"
-#include "PhotoMode/Manager.h"
+#include "PhotoMode/Hotkeys.h"
 #include "Screenshots/Manager.h"
 
 void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSimpleIniA&)>& a_func)
@@ -22,7 +22,6 @@ void Settings::LoadSettings() const
 {
 	SerializeINI(configPath, [](auto& ini) {
 		MANAGER(Screenshot)->LoadScreenshotIndex(ini);  // screenshot index
-		MANAGER(PhotoMode)->LoadSettings(ini);          // hotkeys
 		MANAGER(IconFont)->LoadSettings(ini);           // fonts, icons
 	});
 
@@ -32,17 +31,12 @@ void Settings::LoadSettings() const
 void Settings::LoadMCMSettings() const
 {
 	SerializeINI(defaultMCMPath, [](auto& ini) {
+		MANAGER(Hotkeys)->LoadHotKeys(ini);
 		MANAGER(Screenshot)->LoadSettings(ini);
 	});
 	SerializeINI(userMCMPath, [](auto& ini) {
+		MANAGER(Hotkeys)->LoadHotKeys(ini);
 		MANAGER(Screenshot)->LoadSettings(ini);
-	});
-}
-
-void Settings::SaveSettings() const
-{
-	SerializeINI(configPath, [](auto& ini) {
-		MANAGER(PhotoMode)->SaveSettings(ini);  // hotkeys
 	});
 }
 

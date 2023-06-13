@@ -8,11 +8,12 @@ set(headers ${headers}
 	src/Input.h
 	src/PCH.h
 	src/Papyrus.h
-	src/PhotoMode/Camera.h
-	src/PhotoMode/Filters.h
+	src/PhotoMode/Hotkeys.h
 	src/PhotoMode/Manager.h
-	src/PhotoMode/Player.h
-	src/PhotoMode/Time.h
+	src/PhotoMode/Tabs/Camera.h
+	src/PhotoMode/Tabs/Filters.h
+	src/PhotoMode/Tabs/Player.h
+	src/PhotoMode/Tabs/Time.h
 	src/Screenshots/LoadScreen.h
 	src/Screenshots/Manager.h
 	src/Settings.h

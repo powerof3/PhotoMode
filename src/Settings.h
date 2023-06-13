@@ -6,8 +6,6 @@ public:
 	void LoadSettings() const;
 	void LoadMCMSettings() const;
 
-	void SaveSettings() const;
-
 	const wchar_t* GetConfigPath() const;
 
 private:

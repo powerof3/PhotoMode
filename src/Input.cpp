@@ -1,5 +1,6 @@
 #include "Input.h"
 
+#include "PhotoMode/Hotkeys.h"
 #include "PhotoMode/Manager.h"
 #include "Screenshots/Manager.h"
 
@@ -369,7 +370,7 @@ namespace Input
 		auto&      io = ImGui::GetIO();
 		const auto photoMode = MANAGER(PhotoMode);
 
-		photoMode->CheckActive(a_evn);
+		MANAGER(Hotkeys)->TogglePhotoMode(a_evn);
 
 		for (auto event = *a_evn; event; event = event->next) {
 			if (!photoMode->IsActive()) {
@@ -404,7 +405,6 @@ namespace Input
 				default:
 					break;
 				}
-				photoMode->SetInputType(inputType);
 
 				// process inputs
 				if (const auto charEvent = event->AsCharEvent()) {
@@ -413,27 +413,27 @@ namespace Input
 					const auto key = buttonEvent->GetIDCode();
 
 					if (!io.WantTextInput) {
-						if (key == photoMode->RightTabKey()) {
+						if (key == MANAGER(Hotkeys)->NextTabKey()) {
 							if (buttonEvent->IsDown()) {
 								photoMode->NavigateTab(false);
 							}
-						} else if (key == photoMode->LeftTabKey()) {
+						} else if (key == MANAGER(Hotkeys)->PreviousTabKey()) {
 							if (buttonEvent->IsDown()) {
 								photoMode->NavigateTab(true);
 							}
-						} else if (key == photoMode->TakePhotoKey()) {
+						} else if (key == MANAGER(Hotkeys)->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
 								QueueScreenshot(false);
 							} else if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > MANAGER(Screenshot)->GetKeyHeldDuration()) {
 								QueueScreenshot(true);
 							}
-						} else if (key == photoMode->ResetKey()) {
+						} else if (key == MANAGER(Hotkeys)->ResetKey()) {
 							if (buttonEvent->IsUp()) {
 								photoMode->Revert(false);
 							} else if (buttonEvent->HeldDuration() > photoMode->GetResetHoldDuration()) {
 								photoMode->DoResetAll();
 							}
-						} else if (key == photoMode->ToggleUIKey()) {
+						} else if (key == MANAGER(Hotkeys)->ToggleUIKey()) {
 							if (buttonEvent->IsDown()) {
 								const auto UI = RE::UI::GetSingleton();
 								UI->ShowMenus(!UI->IsShowingMenus());

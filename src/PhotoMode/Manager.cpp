@@ -1,10 +1,10 @@
 #include "Manager.h"
 
+#include "Hotkeys.h"
 #include "ImGui/IconsFonts.h"
 #include "ImGui/Util.h"
 #include "Input.h"
 #include "Screenshots/Manager.h"
-#include "Settings.h"
 
 namespace PhotoMode
 {
@@ -13,23 +13,6 @@ namespace PhotoMode
 		RE::UI::GetSingleton()->AddEventSink(GetSingleton());
 
 		logger::info("Registered for menu open/close event");
-	}
-
-	void Manager::LoadSettings(CSimpleIniA& a_ini)
-	{
-		std::string kPattern{ IO.keyboard.GetPattern() };
-		ini::get_value(a_ini, kPattern, "PhotoMode", "HotKey", ";Toggle photomode\n\n;Default is N\n;DXScanCodes : https://www.creationkit.com/index.php?title=Input_Script");
-		IO.keyboard.SetPattern(kPattern);
-
-		std::string gPattern{ IO.gamePad.GetPattern() };
-		ini::get_value(a_ini, gPattern, "PhotoMode", "GamepadKey", ";Default is LShoulder+RShoulder");
-		IO.gamePad.SetPattern(gPattern);
-	}
-
-	void Manager::SaveSettings(CSimpleIniA& a_ini) const
-	{
-		a_ini.SetValue("PhotoMode", "Key", IO.keyboard.GetPattern().data(), ";Toggle photomode\n\n;Default is N\n;DXScanCodes : https://www.creationkit.com/index.php?title=Input_Script");
-		a_ini.SetValue("PhotoMode", "GamepadKey", IO.gamePad.GetPattern().data(), ";Default is LShoulder+RShoulder");
 	}
 
 	bool Manager::GetValid()
@@ -118,10 +101,6 @@ namespace PhotoMode
 		if (tabIndex == -1 || tabIndex == kFilters) {
 			filterTab.RevertState(tabIndex == -1);
 		}
-		// Settings
-		if (tabIndex == kSettings) {
-			// tbd
-		}
 
 		if (a_deactivate) {
 			// reset UI
@@ -181,11 +160,6 @@ namespace PhotoMode
 		}
 	}
 
-	void Manager::ToggleActive_Input(const KeyCombination*)
-	{
-		GetSingleton()->ToggleActive();
-	}
-
 	float Manager::GetResetHoldDuration()
 	{
 		return 0.5f;
@@ -201,81 +175,6 @@ namespace PhotoMode
 		resetAll = true;
 	}
 
-	void Manager::SetInputType(Input::TYPE a_inputType)
-	{
-		inputType = a_inputType;
-	}
-
-	std::uint32_t Manager::ResetKey() const
-	{
-		switch (inputType) {
-		case Input::TYPE::kKeyboard:
-			return KEY::kR;
-		case Input::TYPE::kGamepadDirectX:
-			return GAMEPAD_DIRECTX::kY;
-		case Input::TYPE::kGamepadOrbis:
-			return GAMEPAD_ORBIS::kPS3_Y;
-		default:
-			return 0;
-		}
-	}
-
-	std::uint32_t Manager::TakePhotoKey() const
-	{
-		switch (inputType) {
-		case Input::TYPE::kKeyboard:
-			return KEY::kPrintScreen;
-		case Input::TYPE::kGamepadDirectX:
-			return GAMEPAD_DIRECTX::kBack;
-		case Input::TYPE::kGamepadOrbis:
-			return GAMEPAD_ORBIS::kPS3_Back;
-		default:
-			return 0;
-		}
-	}
-
-	std::uint32_t Manager::ToggleUIKey() const
-	{
-		switch (inputType) {
-		case Input::TYPE::kKeyboard:
-			return KEY::kT;
-		case Input::TYPE::kGamepadDirectX:
-			return GAMEPAD_DIRECTX::kX;
-		case Input::TYPE::kGamepadOrbis:
-			return GAMEPAD_ORBIS::kPS3_X;
-		default:
-			return 0;
-		}
-	}
-
-	std::uint32_t Manager::RightTabKey() const
-	{
-		switch (inputType) {
-		case Input::TYPE::kKeyboard:
-			return KEY::kE;
-		case Input::TYPE::kGamepadDirectX:
-			return GAMEPAD_DIRECTX::kRightTrigger;
-		case Input::TYPE::kGamepadOrbis:
-			return GAMEPAD_ORBIS::kPS3_RT;
-		default:
-			return 0;
-		}
-	}
-
-	std::uint32_t Manager::LeftTabKey() const
-	{
-		switch (inputType) {
-		case Input::TYPE::kKeyboard:
-			return KEY::kQ;
-		case Input::TYPE::kGamepadDirectX:
-			return GAMEPAD_DIRECTX::kLeftTrigger;
-		case Input::TYPE::kGamepadOrbis:
-			return GAMEPAD_ORBIS::kPS3_LT;
-		default:
-			return 0;
-		}
-	}
-
 	void Manager::NavigateTab(bool a_left)
 	{
 		if (a_left) {
@@ -284,14 +183,6 @@ namespace PhotoMode
 			currentTab = (currentTab + 1) % tabs.size();
 		}
 		updateKeyboardFocus = true;
-	}
-
-	void Manager::CheckActive(RE::InputEvent* const* a_event)
-	{
-		IO.keyboard.Process(a_event);
-		if (RE::BSInputDeviceManager::GetSingleton()->IsGamepadEnabled()) {
-			IO.gamePad.Process(a_event);
-		}
 	}
 
 	float Manager::GetViewRoll(const float a_fallback) const
@@ -358,7 +249,7 @@ namespace PhotoMode
 			// Q [Tab Tab Tab Tab Tab] E
 			ImGui::BeginGroup();
 			{
-				const auto buttonSize = ImGui::ButtonIcon(inputType, LeftTabKey());
+				const auto buttonSize = ImGui::ButtonIcon(MANAGER(Hotkeys)->PreviousTabKey());
 				ImGui::SameLine();
 
 				const float tabWidth = (ImGui::GetContentRegionAvail().x - (buttonSize.x + styling.ItemSpacing.x * tabs.size())) / tabs.size();
@@ -383,7 +274,7 @@ namespace PhotoMode
 				ImGui::PopItemFlag();
 
 				ImGui::SameLine();
-				ImGui::ButtonIcon(inputType, RightTabKey());
+				ImGui::ButtonIcon(MANAGER(Hotkeys)->NextTabKey());
 			}
 			ImGui::EndGroup();
 
@@ -423,9 +314,6 @@ namespace PhotoMode
 				case TAB_TYPE::kFilters:
 					filterTab.Draw();
 					break;
-				case TAB_TYPE::kSettings:
-					// TBD
-					break;
 				default:
 					break;
 				}
@@ -451,10 +339,10 @@ namespace PhotoMode
 			const auto        resetLabel = GetResetAll() ? "$PM_RESET_ALL"_T : "$PM_RESET"_T;
 			const static auto exitLabel = "$PM_EXIT"_T;
 
-			const auto& takePhotoIcon = MANAGER(IconFont)->GetIcon(inputType, TakePhotoKey());
-			const auto& toggleUIIcon = MANAGER(IconFont)->GetIcon(inputType, ToggleUIKey());
-			const auto& resetIcon = MANAGER(IconFont)->GetIcon(inputType, ResetKey());
-			const auto& exitIcons = MANAGER(IconFont)->GetIcons(inputType, IO.GetKeys());
+			const auto& takePhotoIcon = MANAGER(IconFont)->GetIcon(MANAGER(Hotkeys)->TakePhotoKey());
+			const auto& toggleUIIcon = MANAGER(IconFont)->GetIcon(MANAGER(Hotkeys)->ToggleUIKey());
+			const auto& resetIcon = MANAGER(IconFont)->GetIcon(MANAGER(Hotkeys)->ResetKey());
+			const auto& exitIcons = MANAGER(IconFont)->GetIcons(MANAGER(Hotkeys)->TogglePhotoModeKeys());
 
 			// calc total elements width
 			const ImGuiStyle& style = ImGui::GetStyle();
