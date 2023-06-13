@@ -77,7 +77,7 @@ namespace PhotoMode
 		Player  playerTab;
 		Filters filterTab;
 
-		bool        updateKeyboardFocus{ false };
+		bool updateKeyboardFocus{ false };
 
 		RE::CameraState cameraState{ RE::CameraState::kThirdPerson };
 		bool            menusAlreadyHidden{ false };

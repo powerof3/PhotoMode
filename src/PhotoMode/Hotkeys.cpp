@@ -15,17 +15,17 @@ namespace PhotoMode::Hotkeys
 		previousTab.LoadKeys(a_ini, "iPreviousTab");
 	}
 
-    const std::set<std::uint32_t>& Manager::TogglePhotoModeKeys() const
-    {
+	const std::set<std::uint32_t>& Manager::TogglePhotoModeKeys() const
+	{
 		return openPhotoModeCombo.GetKeys();
 	}
 
-    void Manager::TogglePhotoMode(RE::InputEvent* const* a_event)
+	void Manager::TogglePhotoMode(RE::InputEvent* const* a_event)
 	{
 		openPhotoModeCombo.ProcessKeyPress(a_event);
 	}
 
-    void Manager::Key::LoadKeys(const CSimpleIniA& a_ini, std::string_view a_setting)
+	void Manager::Key::LoadKeys(const CSimpleIniA& a_ini, std::string_view a_setting)
 	{
 		keyboard = a_ini.GetLongValue("Controls", fmt::format("{}Key", a_setting).c_str(), keyboard);
 		gamePad = a_ini.GetLongValue("Controls", fmt::format("{}GamePad", a_setting).c_str(), gamePad);
@@ -69,7 +69,7 @@ namespace PhotoMode::Hotkeys
 		gamePad.LoadKeys(a_ini, "iOpenPhotoModeGamePad");
 	}
 
-    const std::set<std::uint32_t>& Manager::KeyCombo::GetKeys() const
+	const std::set<std::uint32_t>& Manager::KeyCombo::GetKeys() const
 	{
 		if (Input::inputType == Input::TYPE::kKeyboard) {
 			return keyboard.keys;
@@ -77,7 +77,7 @@ namespace PhotoMode::Hotkeys
 		return gamePad.keys;
 	}
 
-    bool Manager::KeyCombo::ProcessKeyPress(RE::InputEvent* const* a_event)
+	bool Manager::KeyCombo::ProcessKeyPress(RE::InputEvent* const* a_event)
 	{
 		std::set<std::uint32_t> pressed;
 
