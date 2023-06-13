@@ -1,0 +1,289 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Exit-9B/MCM-Helper/main/docs/config.schema.json",
+  "modName": "PhotoMode",
+  "displayName": "$PM_Title_MCM",
+  "minMcmVersion": 13,
+  "pluginRequirements": [ "PhotoMode.esp" ],
+  "cursorFillMode": "topToBottom",
+  "pages": [
+    {
+      "pageDisplayName": "$PM_Controls_Page",
+      "cursorFillMode": "topToBottom",
+      "content": [
+        {
+          "text": "$PM_OpenPhotoMode_Header",
+          "type": "header"
+        },
+        {
+          "id": "iOpenPhotoModeKey:Controls",
+          "text": "$PM_PrimaryKey_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iOpenPhotoModeKeyModifier:Controls",
+          "text": "$PM_ModifierKey_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "text": "$PM_MiscKeybinds_Header",
+          "type": "header"
+        },
+        {
+          "id": "iNextTabKey:Controls",
+          "text": "$PM_NextTab_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iPreviousTabKey:Controls",
+          "text": "$PM_PreviousTab_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iTakePhotoKey:Controls",
+          "text": "$PM_TakePhoto_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iToggleUIKey:Controls",
+          "text": "$PM_ToggleUI_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iResetKey:Controls",
+          "text": "$PM_Reset_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "text": "$PM_OpenPhotoMode_Gamepad_Header",
+          "type": "header",
+          "position": 1
+        },
+        {
+          "id": "iOpenPhotoModeGamePad:Controls",
+          "text": "$PM_PrimaryKey_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iOpenPhotoModeGamePadModifier:Controls",
+          "text": "$PM_ModifierKey_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "text": "$PM_MiscKeybinds_GamePad_Header",
+          "type": "header"
+        },
+        {
+          "id": "iNextTabGamePad:Controls",
+          "text": "$PM_NextTab_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iPreviousTabGamePad:Controls",
+          "text": "$PM_PreviousTab_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iTakePhotoGamePad:Controls",
+          "text": "$PM_TakePhoto_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iToggleUIGamePad:Controls",
+          "text": "$PM_ToggleUI_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iResetGamePad:Controls",
+          "text": "$PM_Reset_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "id": "iButtonScheme:Controls",
+          "text": "$PM_ControllerButtonScheme_Text",
+          "type": "enum",
+          "valueOptions": {
+            "options": [ "$PM_AUTODETECT", "$PM_XBOX", "$PM_PLAYSTATION" ],
+            "sourceType": "ModSettingInt"
+          }
+        }
+      ]
+    },
+    {
+      "pageDisplayName": "$PM_ScreenshotsPage",
+      "cursorFillMode": "topToBottom",
+      "content": [
+        {
+          "id": "iMultiScreenshots:Screenshots",
+          "text": "$PM_MultiScreenshots_Text",
+          "type": "toggle",
+          "help": "$PM_MultiScreenshots_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "id": "bPaintFilter:Screenshots",
+          "text": "$PM_PaintFilter_Text",
+          "type": "toggle",
+          "help": "$PM_PaintFilter_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "id": "fPaintIntensity:Screenshots",
+          "text": "$PM_PaintIntensity_Text",
+          "type": "slider",
+          "help": "$PM_PaintIntensity_Help",
+          "valueOptions": {
+            "min": 1.0,
+            "max": 100.0,
+            "step": 1.0,
+            "formatString": "{1}",
+            "sourceType": "ModSettingFloat"
+          }
+        },
+        {
+          "id": "iPaintRadius:Screenshots",
+          "text": "$PM_PaintRadius_Text",
+          "type": "slider",
+          "help": "$PM_PaintRadius_Help",
+          "valueOptions": {
+            "min": 1,
+            "max": 10,
+            "step": 1,
+            "formatString": "{0}",
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "id": "bCompressTextures:Screenshots",
+          "text": "$PM_CompressTextures_Text",
+          "type": "toggle",
+          "help": "$PM_CompressTextures_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        }
+      ]
+    },
+    {
+      "pageDisplayName": "$PM_LoadScreenPage",
+      "cursorFillMode": "topToBottom",
+      "content": [
+        {
+          "id": "bLoadScreenPics:Screenshots",
+          "text": "$PM_LoadScreenPics_Text",
+          "type": "toggle",
+          "help": "$PM_LoadScreenPics_Help",
+          "groupControl": 1,
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "id": "iChanceFullScreenArt:LoadScreen",
+          "text": "$PM_LoadScreenChance_FullScreen_Text",
+          "type": "slider",
+          "help": "$PM_LoadScreenChance_FullScreen_Help",
+          "groupCondition": 1,
+          "valueOptions": {
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "formatString": "{0} %",
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iChancePainting:LoadScreen",
+          "text": "$PM_LoadScreenChance_Painting_Text",
+          "type": "slider",
+          "help": "$PM_LoadScreenChance_Painting_Help",
+          "groupCondition": 1,
+          "valueOptions": {
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "formatString": "{0} %",
+            "sourceType": "ModSettingInt"
+          }
+        }
+      ]
+    }
+  ]
+}
