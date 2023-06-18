@@ -25,7 +25,7 @@ namespace IconFont
 			ImageData ps4;
 		};
 
-	    void LoadSettings(CSimpleIniA& a_ini);
+		void LoadSettings(CSimpleIniA& a_ini);
 		void LoadMCMSettings(const CSimpleIniA& a_ini);
 
 		void LoadIcons();
@@ -44,12 +44,12 @@ namespace IconFont
 	private:
 		enum class BUTTON_SCHEME
 		{
-		    kAutoDetect,
+			kAutoDetect,
 			kXbox,
 			kPS4
 		};
 
-	    ImFont* LoadFontIconPair(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const;
+		ImFont* LoadFontIconPair(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const;
 
 		// members
 		bool loadedFonts{ false };

@@ -71,16 +71,16 @@ namespace IconFont
 		ini::get_value(a_ini, largeIconSize, "Fonts", "LargeIconSize", nullptr);
 	}
 
-    void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
+	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
 		buttonScheme = static_cast<BUTTON_SCHEME>(a_ini.GetLongValue("Controls", "iButtonScheme", std::to_underlying(buttonScheme)));
 	}
 
-    void Manager::LoadIcons()
+	void Manager::LoadIcons()
 	{
 		unknownKey.Init();
 
-	    upKey.Init();
+		upKey.Init();
 		downKey.Init();
 		leftKey.Init();
 		rightKey.Init();
@@ -90,7 +90,7 @@ namespace IconFont
 		});
 		std::for_each(gamePad.begin(), gamePad.end(), [](auto& imageData) {
 			auto& [xbox, ps4] = imageData.second;
-		    xbox.Init();
+			xbox.Init();
 			ps4.Init();
 		});
 
@@ -192,19 +192,19 @@ namespace IconFont
 		return icons;
 	}
 
-    const ImageData* Manager::GetGamePadIcon(const GamepadIcon& a_icons) const
-    {
+	const ImageData* Manager::GetGamePadIcon(const GamepadIcon& a_icons) const
+	{
 		switch (buttonScheme) {
 		case BUTTON_SCHEME::kAutoDetect:
 			return Input::GetInputType() == Input::TYPE::kGamepadOrbis ? &a_icons.ps4 : &a_icons.xbox;
-        case BUTTON_SCHEME::kXbox:
+		case BUTTON_SCHEME::kXbox:
 			return &a_icons.xbox;
-        case BUTTON_SCHEME::kPS4:
+		case BUTTON_SCHEME::kPS4:
 			return &a_icons.ps4;
-        default: 
+		default:
 			return &a_icons.xbox;
-        }
-    }
+		}
+	}
 }
 
 ImVec2 ImGui::ButtonIcon(std::uint32_t a_key)

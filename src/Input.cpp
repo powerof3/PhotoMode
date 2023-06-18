@@ -6,10 +6,10 @@
 
 namespace Input
 {
-    TYPE GetInputType()
-    {
+	TYPE GetInputType()
+	{
 		return inputType;
-    }
+	}
 
 	void Manager::Register()
 	{
@@ -19,12 +19,12 @@ namespace Input
 		}
 	}
 
-    void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
-    {
+	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
+	{
 		keyHeldDuration = a_ini.GetDoubleValue("Controls", "iKeyHeldDuration", keyHeldDuration);
-    }
+	}
 
-    bool Manager::IsScreenshotQueued() const
+	bool Manager::IsScreenshotQueued() const
 	{
 		return screenshotQueued;
 	}

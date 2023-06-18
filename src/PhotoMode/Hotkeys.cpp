@@ -93,13 +93,13 @@ namespace PhotoMode::Hotkeys
 			if (button->IsPressed()) {
 				auto key = button->GetIDCode();
 				switch (button->GetDevice()) {
-                case RE::INPUT_DEVICE::kKeyboard:
-                    break;
-                case RE::INPUT_DEVICE::kGamepad:
+				case RE::INPUT_DEVICE::kKeyboard:
+					break;
+				case RE::INPUT_DEVICE::kGamepad:
 					key = SKSE::InputMap::GamepadMaskToKeycode(key);
-                default: 
+				default:
 					continue;
-                }
+				}
 				pressed.insert(key);
 			}
 		}
@@ -108,8 +108,7 @@ namespace PhotoMode::Hotkeys
 			if (!triggered) {
 				triggered = true;
 				a_callback();
-
-            }
+			}
 		} else {
 			triggered = false;
 		}
