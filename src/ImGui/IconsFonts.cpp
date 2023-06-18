@@ -62,7 +62,7 @@ namespace IconFont
 	void Manager::LoadSettings(CSimpleIniA& a_ini)
 	{
 		ini::get_value(a_ini, fontName, "Fonts", "Font", nullptr);
-		fontName = R"(Data\Interface\Fonts\)" + fontName;
+		fontName = R"(Data\Interface\PhotoMode\Fonts\)" + fontName;
 
 		ini::get_value(a_ini, fontSize, "Fonts", "FontSize", nullptr);
 		ini::get_value(a_ini, largeFontSize, "Fonts", "LargeFontSize", nullptr);
@@ -71,21 +71,31 @@ namespace IconFont
 		ini::get_value(a_ini, largeIconSize, "Fonts", "LargeIconSize", nullptr);
 	}
 
-	void Manager::LoadIcons()
+    void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
+	{
+		buttonScheme = static_cast<BUTTON_SCHEME>(a_ini.GetLongValue("Controls", "iButtonScheme", std::to_underlying(buttonScheme)));
+	}
+
+    void Manager::LoadIcons()
 	{
 		unknownKey.Init();
-		stepperLeft.Init();
-		stepperRight.Init();
+
+	    upKey.Init();
+		downKey.Init();
+		leftKey.Init();
+		rightKey.Init();
 
 		std::for_each(keyboard.begin(), keyboard.end(), [](auto& imageData) {
 			imageData.second.Init();
 		});
-		std::for_each(xbox.begin(), xbox.end(), [](auto& imageData) {
-			imageData.second.Init();
+		std::for_each(gamePad.begin(), gamePad.end(), [](auto& imageData) {
+			auto& [xbox, ps4] = imageData.second;
+		    xbox.Init();
+			ps4.Init();
 		});
-		std::for_each(ps4.begin(), ps4.end(), [](auto& imageData) {
-			imageData.second.Init();
-		});
+
+		stepperLeft.Init();
+		stepperRight.Init();
 	}
 
 	void Manager::LoadFonts()
@@ -106,8 +116,8 @@ namespace IconFont
 		builder.BuildRanges(&ranges);
 
 		auto& io = ImGui::GetIO();
-		io.FontDefault = LoadFontIconPair(fontSize, iconSize, ranges);
-		largeFont = LoadFontIconPair(largeFontSize, largeIconSize, ranges);
+		io.FontDefault = LoadFontIconPair(static_cast<float>(fontSize), static_cast<float>(iconSize), ranges);
+		largeFont = LoadFontIconPair(static_cast<float>(largeFontSize), static_cast<float>(largeIconSize), ranges);
 
 		io.Fonts->Build();
 	}
@@ -123,7 +133,7 @@ namespace IconFont
 		icon_config.PixelSnapH = true;
 		icon_config.OversampleH = icon_config.OversampleV = 1;
 
-		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\Fonts\)" FONT_ICON_FILE_NAME_FAS, a_iconSize, &icon_config, a_ranges.Data);
+		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\PhotoMode\Fonts\)" FONT_ICON_FILE_NAME_FAS, a_iconSize, &icon_config, a_ranges.Data);
 
 		return font;
 	}
@@ -144,69 +154,62 @@ namespace IconFont
 
 	const ImageData* Manager::GetIcon(std::uint32_t key)
 	{
-		switch (Input::inputType) {
-		case Input::TYPE::kKeyboard:
-			{
-				if (const auto it = keyboard.find(static_cast<KEY>(key)); it != keyboard.end()) {
-					return &it->second;
-				}
-			}
-			break;
-		case Input::TYPE::kGamepadDirectX:
-			{
-				if (const auto it = xbox.find(static_cast<GAMEPAD_DIRECTX>(key)); it != xbox.end()) {
-					return &it->second;
-				}
-			}
-			break;
-		case Input::TYPE::kGamepadOrbis:
-			{
-				if (const auto it = ps4.find(static_cast<GAMEPAD_ORBIS>(key)); it != ps4.end()) {
-					return &it->second;
-				}
-			}
-			break;
+		switch (key) {
+		case KEY::kUp:
+		case SKSE::InputMap::kGamepadButtonOffset_DPAD_UP:
+			return &upKey;
+		case KEY::kDown:
+		case SKSE::InputMap::kGamepadButtonOffset_DPAD_DOWN:
+			return &downKey;
+		case KEY::kLeft:
+		case SKSE::InputMap::kGamepadButtonOffset_DPAD_LEFT:
+			return &leftKey;
+		case KEY::kRight:
+		case SKSE::InputMap::kGamepadButtonOffset_DPAD_RIGHT:
+			return &rightKey;
 		default:
-			break;
+			{
+				if (Input::GetInputType() == Input::TYPE::kKeyboard) {
+					if (const auto it = keyboard.find(static_cast<KEY>(key)); it != keyboard.end()) {
+						return &it->second;
+					}
+				} else {
+					if (const auto it = gamePad.find(key); it != gamePad.end()) {
+						return GetGamePadIcon(it->second);
+					}
+				}
+				return &unknownKey;
+			}
 		}
-
-		return &unknownKey;
 	}
 
 	std::set<const ImageData*> Manager::GetIcons(const std::set<std::uint32_t>& keys)
 	{
-		std::uint32_t              processedKey = 0;
 		std::set<const ImageData*> icons{};
-
 		for (auto& key : keys) {
-			switch (Input::inputType) {
-			case Input::TYPE::kKeyboard:
-				processedKey = key;
-				break;
-			case Input::TYPE::kGamepadDirectX:
-			case Input::TYPE::kGamepadOrbis:
-				processedKey = SKSE::InputMap::GamepadKeycodeToMask(key);
-				break;
-			default:
-				break;
-			}
-
-			icons.insert(GetIcon(processedKey));
+			icons.insert(GetIcon(key));
 		}
-
 		return icons;
 	}
+
+    const ImageData* Manager::GetGamePadIcon(const GamepadIcon& a_icons) const
+    {
+		switch (buttonScheme) {
+		case BUTTON_SCHEME::kAutoDetect:
+			return Input::GetInputType() == Input::TYPE::kGamepadOrbis ? &a_icons.ps4 : &a_icons.xbox;
+        case BUTTON_SCHEME::kXbox:
+			return &a_icons.xbox;
+        case BUTTON_SCHEME::kPS4:
+			return &a_icons.ps4;
+        default: 
+			return &a_icons.xbox;
+        }
+    }
 }
 
 ImVec2 ImGui::ButtonIcon(std::uint32_t a_key)
 {
 	const auto imageData = MANAGER(IconFont)->GetIcon(a_key);
-	return ButtonIcon(imageData, false);
-}
-
-void ImGui::ButtonIcon(const std::set<std::uint32_t>& a_keys)
-{
-	const auto imageData = MANAGER(IconFont)->GetIcons(a_keys);
 	return ButtonIcon(imageData, false);
 }
 

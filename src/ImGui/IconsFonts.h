@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Input.h"
-
 namespace IconFont
 {
 	struct ImageData
@@ -13,7 +11,7 @@ namespace IconFont
 		bool Init();
 
 		// members
-		std::wstring              path{ LR"(Data\Interface\Icons\)" };
+		std::wstring              path{ LR"(Data\Interface\PhotoMode\Icons\)" };
 		ID3D11ShaderResourceView* srView{ nullptr };
 		ImVec2                    size{};
 	};
@@ -21,7 +19,14 @@ namespace IconFont
 	class Manager final : public ISingleton<Manager>
 	{
 	public:
-		void LoadSettings(CSimpleIniA& a_ini);
+		struct GamepadIcon
+		{
+			ImageData xbox;
+			ImageData ps4;
+		};
+
+	    void LoadSettings(CSimpleIniA& a_ini);
+		void LoadMCMSettings(const CSimpleIniA& a_ini);
 
 		void LoadIcons();
 		void LoadFonts();
@@ -34,8 +39,17 @@ namespace IconFont
 		const ImageData*           GetIcon(std::uint32_t key);
 		std::set<const ImageData*> GetIcons(const std::set<std::uint32_t>& keys);
 
+		const ImageData* GetGamePadIcon(const GamepadIcon& a_icons) const;
+
 	private:
-		ImFont* LoadFontIconPair(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const;
+		enum class BUTTON_SCHEME
+		{
+		    kAutoDetect,
+			kXbox,
+			kPS4
+		};
+
+	    ImFont* LoadFontIconPair(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const;
 
 		// members
 		bool loadedFonts{ false };
@@ -48,17 +62,18 @@ namespace IconFont
 
 		ImFont* largeFont{ nullptr };
 
-		ImageData stepperLeft{ ImageData(L"StepperLeft"sv) };
-		ImageData stepperRight{ ImageData(L"StepperRight"sv) };
+		ImageData stepperLeft{ L"StepperLeft"sv };
+		ImageData stepperRight{ L"StepperRight"sv };
 
-		ImageData unknownKey{ ImageData(L"UnknownKey"sv) };
+		ImageData unknownKey{ L"UnknownKey"sv };
+
+		ImageData leftKey{ L"Left"sv };
+		ImageData rightKey{ L"Right"sv };
+		ImageData upKey{ L"Up"sv };
+		ImageData downKey{ L"Down"sv };
 
 		Map<KEY, ImageData> keyboard{
 			{ KEY::kTab, ImageData(L"Tab"sv) },
-			{ KEY::kLeft, ImageData(L"Left"sv) },
-			{ KEY::kRight, ImageData(L"Right"sv) },
-			{ KEY::kUp, ImageData(L"Up"sv) },
-			{ KEY::kDown, ImageData(L"Down"sv) },
 			{ KEY::kPageUp, ImageData(L"PgUp"sv) },
 			{ KEY::kPageDown, ImageData(L"PgDown"sv) },
 			{ KEY::kHome, ImageData(L"Home"sv) },
@@ -158,49 +173,29 @@ namespace IconFont
 			{ KEY::kKP_Plus, ImageData(L"NumPadPlus"sv) },
 			//{ KEY::kKP_Enter, ImageData(L"KeypadEnter"sv) }
 		};
-		Map<GAMEPAD_DIRECTX, ImageData> xbox{
-			//{ GAMEPAD_DIRECTX::kUp, ImageData(L"Up"sv) },
-			//{ GAMEPAD_DIRECTX::kDown, ImageData(L"Down"sv) },
-			//{ GAMEPAD_DIRECTX::kLeft, ImageData(L"Left"sv) },
-			//{ GAMEPAD_DIRECTX::kRight, ImageData(L"Right"sv) },
-			{ GAMEPAD_DIRECTX::kStart, ImageData(L"360_Start"sv) },
-			{ GAMEPAD_DIRECTX::kBack, ImageData(L"360_Back"sv) },
-			{ GAMEPAD_DIRECTX::kLeftThumb, ImageData(L"360_LS"sv) },
-			{ GAMEPAD_DIRECTX::kRightThumb, ImageData(L"360_RS"sv) },
-			{ GAMEPAD_DIRECTX::kLeftShoulder, ImageData(L"360_LB"sv) },
-			{ GAMEPAD_DIRECTX::kRightShoulder, ImageData(L"360_RB"sv) },
-			{ GAMEPAD_DIRECTX::kA, ImageData(L"360_A"sv) },
-			{ GAMEPAD_DIRECTX::kB, ImageData(L"360_B"sv) },
-			{ GAMEPAD_DIRECTX::kX, ImageData(L"360_X"sv) },
-			{ GAMEPAD_DIRECTX::kY, ImageData(L"360_Y"sv) },
-			{ GAMEPAD_DIRECTX::kLeftTrigger, ImageData(L"360_LT"sv) },
-			{ GAMEPAD_DIRECTX::kRightTrigger, ImageData(L"360_RT"sv) }
+
+		Map<std::uint32_t, GamepadIcon> gamePad{
+			{ SKSE::InputMap::kGamepadButtonOffset_START, { ImageData(L"360_Start"sv), ImageData(L"PS3_Start"sv) } },
+			{ SKSE::InputMap::kGamepadButtonOffset_BACK, { ImageData(L"360_Back"sv), ImageData(L"PS3_Back"sv) } },
+			{ SKSE::InputMap::kGamepadButtonOffset_LEFT_THUMB, { ImageData(L"360_LS"sv), ImageData(L"PS3_L3"sv) } },
+			{ SKSE::InputMap::kGamepadButtonOffset_RIGHT_THUMB, { ImageData(L"360_RS"sv), ImageData(L"PS3_R3"sv) } },
+			{ SKSE::InputMap::kGamepadButtonOffset_LEFT_SHOULDER, { ImageData(L"360_LB"sv), ImageData(L"PS3_LB"sv) } },
+			{ SKSE::InputMap::kGamepadButtonOffset_RIGHT_SHOULDER, { ImageData(L"360_RB"sv), ImageData(L"PS3_RB"sv) } },
+			{ SKSE::InputMap::kGamepadButtonOffset_A, { ImageData(L"360_A"sv), ImageData(L"PS3_A"sv) } },
+			{ SKSE::InputMap::kGamepadButtonOffset_B, { ImageData(L"PS3_B"sv), ImageData(L"PS3_B"sv) } },
+			{ SKSE::InputMap::kGamepadButtonOffset_X, { ImageData(L"360_X"sv), ImageData(L"PS3_X"sv) } },
+			{ SKSE::InputMap::kGamepadButtonOffset_Y, { ImageData(L"360_Y"sv), ImageData(L"PS3_Y"sv) } },
+			{ SKSE::InputMap::kGamepadButtonOffset_LT, { ImageData(L"360_LT"sv), ImageData(L"PS3_LT"sv) } },
+			{ SKSE::InputMap::kGamepadButtonOffset_LT, { ImageData(L"360_RT"sv), ImageData(L"PS3_RT"sv) } },
 		};
-		Map<GAMEPAD_ORBIS, ImageData> ps4{
-			//{ GAMEPAD_ORBIS::kUp, ImageData(L"Up"sv) },
-			//{ GAMEPAD_ORBIS::kDown, ImageData(L"Down"sv) },
-			//{ GAMEPAD_ORBIS::kLeft, ImageData(L"Left"sv) },
-			//{ GAMEPAD_ORBIS::kRight, ImageData(L"Right"sv) },
-			{ GAMEPAD_ORBIS::kPS3_Start, ImageData(L"PS3_Start"sv) },
-			{ GAMEPAD_ORBIS::kPS3_Back, ImageData(L"PS3_Back"sv) },
-			{ GAMEPAD_ORBIS::kPS3_L3, ImageData(L"PS3_L3"sv) },
-			{ GAMEPAD_ORBIS::kPS3_R3, ImageData(L"PS3_R3"sv) },
-			{ GAMEPAD_ORBIS::kPS3_LB, ImageData(L"PS3_LB"sv) },
-			{ GAMEPAD_ORBIS::kPS3_RB, ImageData(L"PS3_RB"sv) },
-			{ GAMEPAD_ORBIS::kPS3_A, ImageData(L"PS3_A"sv) },
-			{ GAMEPAD_ORBIS::kPS3_B, ImageData(L"PS3_B"sv) },
-			{ GAMEPAD_ORBIS::kPS3_X, ImageData(L"PS3_X"sv) },
-			{ GAMEPAD_ORBIS::kPS3_Y, ImageData(L"PS3_Y"sv) },
-			{ GAMEPAD_ORBIS::kPS3_LT, ImageData(L"PS3_LT"sv) },
-			{ GAMEPAD_ORBIS::kPS3_RT, ImageData(L"PS3_RT"sv) }
-		};
+
+		BUTTON_SCHEME buttonScheme{ BUTTON_SCHEME::kAutoDetect };
 	};
 }
 
 namespace ImGui
 {
 	ImVec2 ButtonIcon(std::uint32_t a_key);
-	void   ButtonIcon(const std::set<std::uint32_t>& a_keys);
 
 	ImVec2 ButtonIcon(const IconFont::ImageData* a_imageData, bool a_centerIcon);
 	void   ButtonIcon(const std::set<const IconFont::ImageData*>& a_imageData, bool a_centerIcon);

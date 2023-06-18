@@ -6,6 +6,11 @@
 
 namespace Input
 {
+    TYPE GetInputType()
+    {
+		return inputType;
+    }
+
 	void Manager::Register()
 	{
 		if (const auto inputMgr = RE::BSInputDeviceManager::GetSingleton()) {
@@ -14,12 +19,12 @@ namespace Input
 		}
 	}
 
-	TYPE Manager::GetInputType() const
-	{
-		return inputType;
-	}
+    void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
+    {
+		keyHeldDuration = a_ini.GetDoubleValue("Controls", "iKeyHeldDuration", keyHeldDuration);
+    }
 
-	bool Manager::IsScreenshotQueued() const
+    bool Manager::IsScreenshotQueued() const
 	{
 		return screenshotQueued;
 	}
@@ -28,14 +33,21 @@ namespace Input
 	{
 		screenshotQueued = true;
 
+		if (MANAGER(Screenshot)->CanAutoHideMenus()) {
+			HideMenu(true);
+		}
+
 		if (inputType != TYPE::kKeyboard || a_forceQueue) {
-			(void)RE::MenuControls::GetSingleton()->QueueScreenshot();
+			RE::MenuControls::GetSingleton()->QueueScreenshot();
 		}
 	}
 
 	void Manager::OnScreenshotFinish()
 	{
-		screenshotQueued = false;
+		if (screenshotQueued) {
+			screenshotQueued = false;
+			HideMenu(false);
+		}
 	}
 
 	ImGuiKey Manager::ToImGuiKey(RE::BSWin32KeyboardDevice::Key a_key)
@@ -361,23 +373,37 @@ namespace Input
 		ImGui::GetIO().AddKeyEvent(key, a_keyPressed);
 	}
 
+	void Manager::HideMenu(bool a_hide)
+	{
+		if (a_hide && RE::UI::GetSingleton()->IsShowingMenus()) {
+			RE::UI::GetSingleton()->ShowMenus(false);
+			menuHidden = true;
+		}
+		if (!a_hide && menuHidden) {
+			RE::UI::GetSingleton()->ShowMenus(true);
+			menuHidden = false;
+		}
+	}
+
 	EventResult Manager::ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*)
 	{
 		if (!a_evn) {
 			return EventResult::kContinue;
 		}
 
-		auto&      io = ImGui::GetIO();
-		const auto photoMode = MANAGER(PhotoMode);
+		auto& io = ImGui::GetIO();
 
-		MANAGER(Hotkeys)->TogglePhotoMode(a_evn);
+		const auto photoMode = MANAGER(PhotoMode);
+		const auto hotKeys = MANAGER(PhotoMode::Hotkeys);
+
+		hotKeys->TogglePhotoMode(a_evn);
 
 		for (auto event = *a_evn; event; event = event->next) {
 			if (!photoMode->IsActive()) {
 				// process multi-screenshots
 				if (const auto buttonEvent = event->AsButtonEvent()) {
 					if (buttonEvent->QUserEvent() == RE::UserEvents::GetSingleton()->screenshot) {
-						if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > MANAGER(Screenshot)->GetKeyHeldDuration()) {
+						if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > keyHeldDuration) {
 							RE::MenuControls::GetSingleton()->QueueScreenshot();
 						}
 					}
@@ -388,52 +414,54 @@ namespace Input
 					return EventResult::kContinue;
 				}
 
-				// get input type
-				switch (event->GetDevice()) {
-				case RE::INPUT_DEVICE::kKeyboard:
-					inputType = TYPE::kKeyboard;
-					break;
-				case RE::INPUT_DEVICE::kGamepad:
-					{
-						if (RE::ControlMap::GetSingleton()->GetGamePadType() == RE::PC_GAMEPAD_TYPE::kOrbis) {
-							inputType = TYPE::kGamepadOrbis;
-						} else {
-							inputType = TYPE::kGamepadDirectX;
-						}
-					}
-					break;
-				default:
-					break;
-				}
-
 				// process inputs
 				if (const auto charEvent = event->AsCharEvent()) {
 					io.AddInputCharacter(charEvent->keycode);
 				} else if (const auto buttonEvent = event->AsButtonEvent()) {
 					const auto key = buttonEvent->GetIDCode();
+					auto       hotKey = key;
+
+					// get input type
+					switch (event->GetDevice()) {
+					case RE::INPUT_DEVICE::kKeyboard:
+						inputType = TYPE::kKeyboard;
+						break;
+					case RE::INPUT_DEVICE::kGamepad:
+						{
+							if (RE::ControlMap::GetSingleton()->GetGamePadType() == RE::PC_GAMEPAD_TYPE::kOrbis) {
+								inputType = TYPE::kGamepadOrbis;
+							} else {
+								inputType = TYPE::kGamepadDirectX;
+							}
+							hotKey = SKSE::InputMap::GamepadMaskToKeycode(hotKey);
+						}
+						break;
+					default:
+						continue;
+					}
 
 					if (!io.WantTextInput) {
-						if (key == MANAGER(Hotkeys)->NextTabKey()) {
+						if (hotKey == hotKeys->NextTabKey()) {
 							if (buttonEvent->IsDown()) {
 								photoMode->NavigateTab(false);
 							}
-						} else if (key == MANAGER(Hotkeys)->PreviousTabKey()) {
+						} else if (hotKey == hotKeys->PreviousTabKey()) {
 							if (buttonEvent->IsDown()) {
 								photoMode->NavigateTab(true);
 							}
-						} else if (key == MANAGER(Hotkeys)->TakePhotoKey()) {
+						} else if (hotKey == hotKeys->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
 								QueueScreenshot(false);
-							} else if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > MANAGER(Screenshot)->GetKeyHeldDuration()) {
+							} else if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > keyHeldDuration) {
 								QueueScreenshot(true);
 							}
-						} else if (key == MANAGER(Hotkeys)->ResetKey()) {
+						} else if (hotKey == hotKeys->ResetKey()) {
 							if (buttonEvent->IsUp()) {
 								photoMode->Revert(false);
-							} else if (buttonEvent->HeldDuration() > photoMode->GetResetHoldDuration()) {
+							} else if (buttonEvent->HeldDuration() > keyHeldDuration) {
 								photoMode->DoResetAll();
 							}
-						} else if (key == MANAGER(Hotkeys)->ToggleUIKey()) {
+						} else if (hotKey == hotKeys->ToggleMenusKey()) {
 							if (buttonEvent->IsDown()) {
 								const auto UI = RE::UI::GetSingleton();
 								UI->ShowMenus(!UI->IsShowingMenus());

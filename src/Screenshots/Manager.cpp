@@ -1,8 +1,5 @@
 #include "Screenshots/Manager.h"
 
-#include "Input.h"
-#include "LoadScreen.h"
-#include "Settings.h"
 #include "Textures.h"
 
 namespace Screenshot
@@ -12,33 +9,9 @@ namespace Screenshot
 		painting(fmt::format("{}/Screenshot_{}.dds", paintingFolder, index))
 	{}
 
-	void Manager::get_textures(std::string_view a_folder, std::vector<std::string>& a_textures)
+	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
-		const std::filesystem::directory_entry folder{ a_folder };
-		if (!folder.exists()) {
-			std::filesystem::create_directory(a_folder);
-			return;
-		}
-
-		const auto iterator = std::filesystem::directory_iterator(a_folder);
-
-		for (const auto& entry : iterator) {
-			if (entry.exists()) {
-				if (const auto& path = entry.path(); !path.empty() && path.extension() == ".dds") {
-					auto pathStr = entry.path().string();
-					a_textures.push_back(Texture::Sanitize(pathStr));
-				}
-			}
-		}
-	}
-
-	void Manager::LoadScreenshotIndex(CSimpleIniA& a_ini)
-	{
-		ini::get_value(a_ini, index, "Screenshots", "Index", nullptr);
-	}
-
-	void Manager::LoadSettings(const CSimpleIniA& a_ini)
-	{
+		autoHideMenus = a_ini.GetBoolValue("Screenshots", "bAutoHideMenus", autoHideMenus);
 		allowMultiScreenshots = a_ini.GetBoolValue("Screenshots", "bMultiScreenshots", allowMultiScreenshots);
 		takeScreenshotAsDDS = a_ini.GetBoolValue("Screenshots", "bLoadScreenPics", takeScreenshotAsDDS);
 
@@ -47,19 +20,39 @@ namespace Screenshot
 		paintFilter.radius = a_ini.GetLongValue("Screenshots", "iPaintRadius", paintFilter.radius);
 
 		compressTextures = a_ini.GetBoolValue("Screenshots", "bCompressTextures", compressTextures);
-
-		MANAGER(LoadScreen)->LoadSettings(a_ini);
 	}
 
 	void Manager::LoadScreenshotTextures()
 	{
 		logger::info("Loading screenshot textures...");
 
+		constexpr auto get_textures = [](std::string_view a_folder, std::vector<std::string>& a_textures) {
+			const std::filesystem::directory_entry folder{ a_folder };
+			if (!folder.exists()) {
+				std::filesystem::create_directory(a_folder);
+				return;
+			}
+
+			const auto iterator = std::filesystem::directory_iterator(a_folder);
+
+			for (const auto& entry : iterator) {
+				if (entry.exists()) {
+					if (const auto& path = entry.path(); !path.empty() && path.extension() == ".dds") {
+						auto pathStr = entry.path().string();
+						a_textures.push_back(Texture::Sanitize(pathStr));
+					}
+				}
+			}
+		};
+
 		get_textures(screenshotFolder, screenshots);
 		get_textures(paintingFolder, paintings);
 
+		index = screenshots.size();  // current index + 1
+
 		logger::info("\t{} screenshots", screenshots.size());
 		logger::info("\t{} paintings", paintings.size());
+		logger::info("\tscreenshot index : {}", index);
 	}
 
 	void Manager::AddScreenshotPaths(Paths& a_paths)
@@ -75,15 +68,7 @@ namespace Screenshot
 
 	void Manager::IncrementIndex()
 	{
-		const auto path = Settings::GetSingleton()->GetConfigPath();
-
-		CSimpleIniA ini;
-		ini.SetUnicode();
-		ini.LoadFile(path);
-
-		ini.SetLongValue("Screenshots", "Index", index++);
-
-		(void)ini.SaveFile(path);
+		index++;
 	}
 
 	bool Manager::AllowMultiScreenshots() const
@@ -91,9 +76,9 @@ namespace Screenshot
 		return allowMultiScreenshots;
 	}
 
-	float Manager::GetKeyHeldDuration() const
+	bool Manager::CanAutoHideMenus() const
 	{
-		return keyHeldDuration;
+		return autoHideMenus;
 	}
 
 	bool Manager::CanDisplayScreenshot() const
@@ -147,9 +132,6 @@ namespace Screenshot
 
 		IncrementIndex();
 		AddScreenshotPaths(ssPaths);
-
-		// render target should have no UI, safe to enable
-		Input::Manager::GetSingleton()->OnScreenshotFinish();
 	}
 
 	std::string Manager::GetRandomScreenshot()
@@ -169,23 +151,5 @@ namespace Screenshot
 		}
 
 		return paintings[RNG().Generate<std::size_t>(0, screenshots.size() - 1)];
-	}
-
-	struct TakeScreenshot
-	{
-		static void thunk(const char* a_screenshotPath, RE::BSGraphics::TextureFileFormat a_format)
-		{
-			if (MANAGER(Input)->IsScreenshotQueued()) {
-				MANAGER(Screenshot)->TakeScreenshotAsTexture();
-			}
-			func(a_screenshotPath, a_format);
-		}
-		static inline REL::Relocation<decltype(thunk)> func;
-	};
-
-	void InstallHook()
-	{
-		REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(35556, 36555), OFFSET(0x48E, 0x454) };  // Main::Swap
-		stl::write_thunk_call<TakeScreenshot>(target.address());
 	}
 }

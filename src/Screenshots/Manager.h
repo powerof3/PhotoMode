@@ -23,8 +23,7 @@ namespace Screenshot
 	class Manager final : public ISingleton<Manager>
 	{
 	public:
-		void LoadScreenshotIndex(CSimpleIniA& a_ini);
-		void LoadSettings(const CSimpleIniA& a_ini);
+		void LoadMCMSettings(const CSimpleIniA& a_ini);
 		void LoadScreenshotTextures();
 
 		void TakeScreenshotAsTexture();
@@ -36,12 +35,11 @@ namespace Screenshot
 		std::string GetRandomScreenshot();
 		std::string GetRandomPaintingShot();
 
-		bool  AllowMultiScreenshots() const;
-		float GetKeyHeldDuration() const;
+		bool AllowMultiScreenshots() const;
+		bool CanAutoHideMenus() const;
 
 	private:
-		static void get_textures(std::string_view a_folder, std::vector<std::string>& a_textures);
-		void        AddScreenshotPaths(Paths& a_paths);
+		void AddScreenshotPaths(Paths& a_paths);
 
 		// members
 		std::vector<std::string> screenshots{};
@@ -58,9 +56,7 @@ namespace Screenshot
 			float        intensity{ 30.0f };
 		} paintFilter;
 
-		bool  allowMultiScreenshots{ true };
-		float keyHeldDuration{ 0.5 };
+		bool allowMultiScreenshots{ true };
+		bool autoHideMenus{ true };
 	};
-
-	void InstallHook();
 }

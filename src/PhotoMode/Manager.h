@@ -24,9 +24,8 @@ namespace PhotoMode
 
 		void Revert(bool a_deactivate = false);
 
-		[[nodiscard]] static float GetResetHoldDuration();
-		bool                       GetResetAll() const;
-		void                       DoResetAll();
+		bool GetResetAll() const;
+		void DoResetAll();
 
 		void NavigateTab(bool a_left);
 
@@ -85,6 +84,4 @@ namespace PhotoMode
 
 		bool resetAll{ false };
 	};
-
-	void InstallHooks();
 }

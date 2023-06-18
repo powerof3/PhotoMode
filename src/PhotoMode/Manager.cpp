@@ -3,7 +3,6 @@
 #include "Hotkeys.h"
 #include "ImGui/IconsFonts.h"
 #include "ImGui/Util.h"
-#include "Input.h"
 #include "Screenshots/Manager.h"
 
 namespace PhotoMode
@@ -151,18 +150,15 @@ namespace PhotoMode
 	{
 		if (!IsActive()) {
 			if (GetValid() && !RE::UI::GetSingleton()->IsMenuOpen(RE::Console::MENU_NAME)) {
+				RE::PlaySound("UIMenuOK");
 				Activate();
 			}
 		} else {
 			if (!ImGui::GetIO().WantTextInput) {
 				Deactivate();
+				RE::PlaySound("UIMenuCancel");
 			}
 		}
-	}
-
-	float Manager::GetResetHoldDuration()
-	{
-		return 0.5f;
 	}
 
 	bool Manager::GetResetAll() const
@@ -335,55 +331,51 @@ namespace PhotoMode
 		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.5f, offset), false, ImGuiWindowFlags_NoBringToFrontOnFocus);  // same offset as control window
 		{
 			const static auto takePhotoLabel = "$PM_TAKEPHOTO"_T;
-			const static auto toggleUILabel = "$PM_TOGGLEUI"_T;
+			const static auto toggleMenusLabel = "$PM_TOGGLEMENUS"_T;
 			const auto        resetLabel = GetResetAll() ? "$PM_RESET_ALL"_T : "$PM_RESET"_T;
-			const static auto exitLabel = "$PM_EXIT"_T;
+			const static auto togglePMLabel = "$PM_EXIT"_T;
 
-			const auto& takePhotoIcon = MANAGER(IconFont)->GetIcon(MANAGER(Hotkeys)->TakePhotoKey());
-			const auto& toggleUIIcon = MANAGER(IconFont)->GetIcon(MANAGER(Hotkeys)->ToggleUIKey());
-			const auto& resetIcon = MANAGER(IconFont)->GetIcon(MANAGER(Hotkeys)->ResetKey());
-			const auto& exitIcons = MANAGER(IconFont)->GetIcons(MANAGER(Hotkeys)->TogglePhotoModeKeys());
+			const auto& takePhotoIcon = MANAGER(Hotkeys)->TakePhotoIcon();
+			const auto& toggleMenusIcon = MANAGER(Hotkeys)->ToggleMenusIcon();
+			const auto& resetIcon = MANAGER(Hotkeys)->ResetIcon();
+			const auto& togglePMIcons = MANAGER(Hotkeys)->TogglePhotoModeIcons();
 
 			// calc total elements width
 			const ImGuiStyle& style = ImGui::GetStyle();
 
 			float width = 0.0f;
 
-			width += takePhotoIcon->size.x;
-			width += style.ItemSpacing.x;
-			width += ImGui::CalcTextSize(takePhotoLabel).x;
-			width += style.ItemSpacing.x;
+			const auto calc_width = [&](const IconFont::ImageData* a_icon, const char* a_textLabel) {
+				width += a_icon->size.x;
+				width += style.ItemSpacing.x;
+				width += ImGui::CalcTextSize(a_textLabel).x;
+				width += style.ItemSpacing.x;
+			};
 
-			width += toggleUIIcon->size.x;
-			width += style.ItemSpacing.x;
-			width += ImGui::CalcTextSize(toggleUILabel).x;
-			width += style.ItemSpacing.x;
+			calc_width(takePhotoIcon, takePhotoLabel);
+			calc_width(toggleMenusIcon, toggleMenusLabel);
+			calc_width(resetIcon, resetLabel);
 
-			width += resetIcon->size.x;
-			width += style.ItemSpacing.x;
-			width += ImGui::CalcTextSize(resetLabel).x;
-			width += style.ItemSpacing.x;
-
-			for (const auto& icon : exitIcons) {
+			for (const auto& icon : togglePMIcons) {
 				width += icon->size.x;
 			}
 			width += style.ItemSpacing.x;
-			width += ImGui::CalcTextSize(exitLabel).x;
+			width += ImGui::CalcTextSize(togglePMLabel).x;
 
 			// align at center
 			ImGui::AlignForWidth(width);
 
 			// draw
-			ImGui::ButtonIconWithLabel(takePhotoLabel, takePhotoIcon, true);
-			ImGui::SameLine();
+			constexpr auto draw_button = [](const IconFont::ImageData* a_icon, const char* a_textLabel) {
+				ImGui::ButtonIconWithLabel(a_textLabel, a_icon, true);
+				ImGui::SameLine();
+			};
 
-			ImGui::ButtonIconWithLabel(toggleUILabel, toggleUIIcon, true);
-			ImGui::SameLine();
+			draw_button(takePhotoIcon, takePhotoLabel);
+			draw_button(toggleMenusIcon, toggleMenusLabel);
+			draw_button(resetIcon, resetLabel);
 
-			ImGui::ButtonIconWithLabel(resetLabel, resetIcon, true);
-			ImGui::SameLine();
-
-			ImGui::ButtonIconWithLabel(exitLabel, exitIcons, true);
+			ImGui::ButtonIconWithLabel(togglePMLabel, togglePMIcons, true);
 		}
 		ImGui::EndChild();
 	}
@@ -437,36 +429,5 @@ namespace PhotoMode
 		}
 
 		return EventResult::kContinue;
-	}
-
-	struct FromEulerAnglesZXY
-	{
-		static void thunk(RE::NiMatrix3* a_matrix, float a_z, float a_x, float a_y)
-		{
-			return func(a_matrix, a_z, a_x, Manager::GetSingleton()->GetViewRoll(a_y));
-		}
-		static inline REL::Relocation<decltype(thunk)> func;
-	};
-
-	// TESDataHandler idle array is not populated
-	struct SetFormEditorID
-	{
-		static bool thunk(RE::TESIdleForm* a_this, const char* a_str)
-		{
-			if (!clib_util::string::is_empty(a_str)) {
-				idles.AddForm(a_str, a_this);
-			}
-			return func(a_this, a_str);
-		}
-		static inline REL::Relocation<decltype(thunk)> func;
-		static inline constexpr std::size_t            size{ 0x33 };
-	};
-
-	void InstallHooks()
-	{
-		REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(49814, 50744), 0x1B };  // FreeCamera::GetRotation
-		stl::write_thunk_call<FromEulerAnglesZXY>(target.address());
-
-		stl::write_vfunc<RE::TESIdleForm, SetFormEditorID>();
 	}
 }

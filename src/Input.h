@@ -10,6 +10,7 @@ namespace Input
 	};
 
 	inline TYPE inputType;
+	TYPE GetInputType();
 
 	class Manager final :
 		public ISingleton<Manager>,
@@ -17,10 +18,10 @@ namespace Input
 	{
 	public:
 		static void Register();
+		void        LoadMCMSettings(const CSimpleIniA& a_ini);
 
-		TYPE GetInputType() const;
-
-		bool IsScreenshotQueued() const;
+		void HideMenu(bool a_hide);
+	    bool IsScreenshotQueued() const;
 		void QueueScreenshot(bool a_forceQueue);
 		void OnScreenshotFinish();
 
@@ -30,9 +31,12 @@ namespace Input
 		static ImGuiKey ToImGuiKey(GAMEPAD_ORBIS a_key);
 		void            SendKeyEvent(std::uint32_t a_key, bool a_keyPressed) const;
 
-		EventResult ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*) override;
+        EventResult ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*) override;
 
 		// members
 		bool screenshotQueued{ false };
+		bool menuHidden{ false };
+
+		float keyHeldDuration{ 0.5 };
 	};
 }

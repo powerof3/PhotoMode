@@ -1,4 +1,6 @@
 #include "Hotkeys.h"
+
+#include "ImGui/IconsFonts.h"
 #include "Input.h"
 #include "Manager.h"
 
@@ -6,23 +8,25 @@ namespace PhotoMode::Hotkeys
 {
 	void Manager::LoadHotKeys(const CSimpleIniA& a_ini)
 	{
-		openPhotoModeCombo.LoadKeys(a_ini);
+		togglePhotoMode.LoadKeys(a_ini);
 
 		reset.LoadKeys(a_ini, "iReset");
 		takePhoto.LoadKeys(a_ini, "iTakePhoto");
-		toggleUI.LoadKeys(a_ini, "iToggleUI");
+		toggleMenus.LoadKeys(a_ini, "iToggleMenus");
 		nextTab.LoadKeys(a_ini, "iNextTab");
 		previousTab.LoadKeys(a_ini, "iPreviousTab");
 	}
 
 	const std::set<std::uint32_t>& Manager::TogglePhotoModeKeys() const
 	{
-		return openPhotoModeCombo.GetKeys();
+		return togglePhotoMode.GetKeys();
 	}
 
 	void Manager::TogglePhotoMode(RE::InputEvent* const* a_event)
 	{
-		openPhotoModeCombo.ProcessKeyPress(a_event);
+		togglePhotoMode.ProcessKeyPress(a_event, []() {
+			MANAGER(PhotoMode)->ToggleActive();
+		});
 	}
 
 	void Manager::Key::LoadKeys(const CSimpleIniA& a_ini, std::string_view a_setting)
@@ -33,7 +37,7 @@ namespace PhotoMode::Hotkeys
 
 	std::uint32_t Manager::Key::GetKey() const
 	{
-		if (Input::inputType == Input::TYPE::kKeyboard) {
+		if (Input::GetInputType() == Input::TYPE::kKeyboard) {
 			return keyboard;
 		}
 		return gamePad;
@@ -71,13 +75,13 @@ namespace PhotoMode::Hotkeys
 
 	const std::set<std::uint32_t>& Manager::KeyCombo::GetKeys() const
 	{
-		if (Input::inputType == Input::TYPE::kKeyboard) {
+		if (Input::GetInputType() == Input::TYPE::kKeyboard) {
 			return keyboard.keys;
 		}
 		return gamePad.keys;
 	}
 
-	bool Manager::KeyCombo::ProcessKeyPress(RE::InputEvent* const* a_event)
+	bool Manager::KeyCombo::ProcessKeyPress(RE::InputEvent* const* a_event, std::function<void()> a_callback)
 	{
 		std::set<std::uint32_t> pressed;
 
@@ -86,18 +90,16 @@ namespace PhotoMode::Hotkeys
 			if (!button || !button->HasIDCode()) {
 				continue;
 			}
-
-			auto key = button->GetIDCode();
-
-			switch (button->GetDevice()) {
-			case RE::INPUT_DEVICE::kGamepad:
-				key = SKSE::InputMap::GamepadMaskToKeycode(key);
-				break;
-			default:
-				break;
-			}
-
 			if (button->IsPressed()) {
+				auto key = button->GetIDCode();
+				switch (button->GetDevice()) {
+                case RE::INPUT_DEVICE::kKeyboard:
+                    break;
+                case RE::INPUT_DEVICE::kGamepad:
+					key = SKSE::InputMap::GamepadMaskToKeycode(key);
+                default: 
+					continue;
+                }
 				pressed.insert(key);
 			}
 		}
@@ -105,8 +107,9 @@ namespace PhotoMode::Hotkeys
 		if (pressed == keyboard.keys || pressed == gamePad.keys) {
 			if (!triggered) {
 				triggered = true;
-				MANAGER(PhotoMode)->ToggleActive();
-			}
+				a_callback();
+
+            }
 		} else {
 			triggered = false;
 		}
@@ -124,9 +127,9 @@ namespace PhotoMode::Hotkeys
 		return takePhoto.GetKey();
 	}
 
-	std::uint32_t Manager::ToggleUIKey() const
+	std::uint32_t Manager::ToggleMenusKey() const
 	{
-		return toggleUI.GetKey();
+		return toggleMenus.GetKey();
 	}
 
 	std::uint32_t Manager::NextTabKey() const
@@ -137,5 +140,35 @@ namespace PhotoMode::Hotkeys
 	std::uint32_t Manager::PreviousTabKey() const
 	{
 		return previousTab.GetKey();
+	}
+
+	const IconFont::ImageData* Manager::ResetIcon() const
+	{
+		return MANAGER(IconFont)->GetIcon(reset.GetKey());
+	}
+
+	const IconFont::ImageData* Manager::TakePhotoIcon() const
+	{
+		return MANAGER(IconFont)->GetIcon(takePhoto.GetKey());
+	}
+
+	const IconFont::ImageData* Manager::ToggleMenusIcon() const
+	{
+		return MANAGER(IconFont)->GetIcon(toggleMenus.GetKey());
+	}
+
+	const IconFont::ImageData* Manager::NextTabIcon() const
+	{
+		return MANAGER(IconFont)->GetIcon(nextTab.GetKey());
+	}
+
+	const IconFont::ImageData* Manager::PreviousTabIcon() const
+	{
+		return MANAGER(IconFont)->GetIcon(previousTab.GetKey());
+	}
+
+	std::set<const IconFont::ImageData*> Manager::TogglePhotoModeIcons() const
+	{
+		return MANAGER(IconFont)->GetIcons(togglePhotoMode.GetKeys());
 	}
 }

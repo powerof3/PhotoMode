@@ -1,4 +1,5 @@
 set(sources ${sources}
+	src/Hooks.cpp
 	src/ImGui/IconsFonts.cpp
 	src/ImGui/Renderer.cpp
 	src/ImGui/Util.cpp

@@ -1,7 +1,9 @@
 #include "Settings.h"
 
 #include "ImGui/IconsFonts.h"
+#include "Input.h"
 #include "PhotoMode/Hotkeys.h"
+#include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
 
 void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSimpleIniA&)>& a_func)
@@ -21,8 +23,7 @@ void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSim
 void Settings::LoadSettings() const
 {
 	SerializeINI(configPath, [](auto& ini) {
-		MANAGER(Screenshot)->LoadScreenshotIndex(ini);  // screenshot index
-		MANAGER(IconFont)->LoadSettings(ini);           // fonts, icons
+		MANAGER(IconFont)->LoadSettings(ini);  // fonts, icons
 	});
 
 	LoadMCMSettings();
@@ -30,17 +31,24 @@ void Settings::LoadSettings() const
 
 void Settings::LoadMCMSettings() const
 {
-	SerializeINI(defaultMCMPath, [](auto& ini) {
+	constexpr auto load_mcm_settings = [](auto& ini) {
 		MANAGER(Hotkeys)->LoadHotKeys(ini);
-		MANAGER(Screenshot)->LoadSettings(ini);
-	});
-	SerializeINI(userMCMPath, [](auto& ini) {
-		MANAGER(Hotkeys)->LoadHotKeys(ini);
-		MANAGER(Screenshot)->LoadSettings(ini);
-	});
+		MANAGER(Screenshot)->LoadMCMSettings(ini);
+		MANAGER(LoadScreen)->LoadMCMSettings(ini);
+		MANAGER(IconFont)->LoadMCMSettings(ini);  // button scheme
+		MANAGER(Input)->LoadMCMSettings(ini);     // key held duration
+	};
+
+	SerializeINI(defaultMCMPath, load_mcm_settings);
+	SerializeINI(userMCMPath, load_mcm_settings);
 }
 
 const wchar_t* Settings::GetConfigPath() const
 {
 	return configPath;
+}
+
+const wchar_t* Settings::GetDefaultMCMPath() const
+{
+	return defaultMCMPath;
 }

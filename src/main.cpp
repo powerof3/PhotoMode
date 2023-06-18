@@ -1,3 +1,4 @@
+#include "Hooks.h"
 #include "ImGui/Renderer.h"
 #include "Input.h"
 #include "Papyrus.h"
@@ -12,14 +13,14 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 	switch (a_msg->type) {
 	case SKSE::MessagingInterface::kPostLoad:
 		{
+			logger::info("{:*^30}", "HOOKS");
+
 			Settings::GetSingleton()->LoadSettings();
 
 			MANAGER(Screenshot)->LoadScreenshotTextures();
 			MANAGER(Translation)->BuildTranslationMap();
 
-			Screenshot::InstallHook();
-			LoadScreen::InstallHook();
-			PhotoMode::InstallHooks();
+			Hooks::Install();
 		}
 		break;
 	case SKSE::MessagingInterface::kInputLoaded:

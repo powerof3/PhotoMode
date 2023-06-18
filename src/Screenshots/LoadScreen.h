@@ -21,7 +21,7 @@ namespace LoadScreen
 	class Manager final : public ISingleton<Manager>
 	{
 	public:
-		void LoadSettings(const CSimpleIniA& a_ini);
+		void LoadMCMSettings(const CSimpleIniA& a_ini);
 		void InitLoadScreenObjects();
 
 		RE::TESObjectSTAT* LoadScreenshotModel();
@@ -53,6 +53,4 @@ namespace LoadScreen
 
 		} current;
 	};
-
-	void InstallHook();
 }

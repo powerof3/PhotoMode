@@ -1,5 +1,10 @@
 #pragma once
 
+namespace IconFont
+{
+	struct ImageData;
+}
+
 namespace PhotoMode::Hotkeys
 {
 	class Manager : public ISingleton<Manager>
@@ -12,9 +17,17 @@ namespace PhotoMode::Hotkeys
 
 		std::uint32_t ResetKey() const;
 		std::uint32_t TakePhotoKey() const;
-		std::uint32_t ToggleUIKey() const;
+		std::uint32_t ToggleMenusKey() const;
 		std::uint32_t NextTabKey() const;
 		std::uint32_t PreviousTabKey() const;
+
+		const IconFont::ImageData* ResetIcon() const;
+		const IconFont::ImageData* TakePhotoIcon() const;
+		const IconFont::ImageData* ToggleMenusIcon() const;
+		const IconFont::ImageData* NextTabIcon() const;
+		const IconFont::ImageData* PreviousTabIcon() const;
+
+		std::set<const IconFont::ImageData*> TogglePhotoModeIcons() const;
 
 	private:
 		struct Key
@@ -34,7 +47,7 @@ namespace PhotoMode::Hotkeys
 		{
 			void                           LoadKeys(const CSimpleIniA& a_ini);
 			const std::set<std::uint32_t>& GetKeys() const;
-			bool                           ProcessKeyPress(RE::InputEvent* const* a_event);
+			bool                           ProcessKeyPress(RE::InputEvent* const* a_event, std::function<void()> a_callback);
 
 		private:
 			struct KeyComboImpl
@@ -51,12 +64,12 @@ namespace PhotoMode::Hotkeys
 			KeyComboImpl gamePad;
 
 			bool triggered{ false };
-		} openPhotoModeCombo;
+		} togglePhotoMode;
 
 		Key nextTab;
 		Key previousTab;
 		Key takePhoto;
-		Key toggleUI;
+		Key toggleMenus;
 		Key reset;
 	};
 }

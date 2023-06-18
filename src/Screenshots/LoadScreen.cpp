@@ -4,7 +4,7 @@
 
 namespace LoadScreen
 {
-	void Manager::LoadSettings(const CSimpleIniA& a_ini)
+	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
 		fullscreenChance = a_ini.GetLongValue("LoadScreen", "iChanceFullScreenArt", fullscreenChance);
 		paintingChance = a_ini.GetLongValue("LoadScreen", "iChancePainting", paintingChance);
@@ -159,43 +159,5 @@ namespace LoadScreen
 				RE::free(newMaterial);
 			}
 		}
-	}
-
-	struct GetLoadScreenModel
-	{
-		static RE::TESModelTextureSwap* thunk([[maybe_unused]] RE::TESLoadScreen* a_loadScreen)
-		{
-			if (const auto screenshotModel = Manager::GetSingleton()->LoadScreenshotModel()) {
-				return screenshotModel;
-			}
-			return func(a_loadScreen);
-		}
-		static inline REL::Relocation<decltype(thunk)> func;
-	};
-
-	struct InitLoadScreen3D
-	{
-		static void thunk(RE::MistMenu* a_this, float a_scale, const RE::NiPoint3& a_rotateOffset, const RE::NiPoint3& a_translateOffset, const char* a_cameraShotPath)
-		{
-			if (auto transform = MANAGER(LoadScreen)->GetModelTransform()) {
-				func(a_this, transform->scale, transform->rotationalOffset, transform->translateOffset, MANAGER(LoadScreen)->GetCameraShotPath(a_cameraShotPath));
-
-				if (const auto canvas = a_this->loadScreenModel ? a_this->loadScreenModel->GetObjectByName("Canvas:0") : nullptr) {
-					MANAGER(LoadScreen)->ApplyScreenshotTexture(canvas->AsGeometry());
-				}
-			} else {
-				func(a_this, a_scale, a_rotateOffset, a_translateOffset, a_cameraShotPath);
-			}
-		}
-		static inline REL::Relocation<decltype(thunk)> func;
-	};
-
-	void InstallHook()
-	{
-		REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(51048, 51929), OFFSET(0x384, 0x27B) };
-		stl::write_thunk_call<GetLoadScreenModel>(target.address());
-
-		REL::Relocation<std::uintptr_t> target2{ RELOCATION_ID(51454, 52313), OFFSET(0x1D1, 0x1C3) };
-		stl::write_thunk_call<InitLoadScreen3D>(target2.address());
 	}
 }

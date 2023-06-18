@@ -7,6 +7,7 @@ public:
 	void LoadMCMSettings() const;
 
 	const wchar_t* GetConfigPath() const;
+	const wchar_t* GetDefaultMCMPath() const;
 
 private:
 	static void SerializeINI(const wchar_t* a_path, const std::function<void(CSimpleIniA&)>& a_func);
