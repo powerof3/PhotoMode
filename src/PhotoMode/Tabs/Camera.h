@@ -5,7 +5,7 @@ namespace PhotoMode
 	class Camera
 	{
 	public:
-		void GetOriginalState();
+	    void GetOriginalState();
 		void RevertState();
 
 		[[nodiscard]] float GetViewRoll() const { return currentViewRoll; }

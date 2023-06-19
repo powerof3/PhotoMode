@@ -3,10 +3,11 @@
 #include "ImGui/IconsFonts.h"
 #include "Input.h"
 #include "PhotoMode/Hotkeys.h"
+#include "PhotoMode/Manager.h"
 #include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
 
-void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSimpleIniA&)>& a_func)
+void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSimpleIniA&)> a_func)
 {
 	CSimpleIniA ini;
 	ini.SetUnicode();
@@ -33,22 +34,16 @@ void Settings::LoadMCMSettings() const
 {
 	constexpr auto load_mcm_settings = [](auto& ini) {
 		MANAGER(Hotkeys)->LoadHotKeys(ini);
+
 		MANAGER(Screenshot)->LoadMCMSettings(ini);
 		MANAGER(LoadScreen)->LoadMCMSettings(ini);
+
 		MANAGER(IconFont)->LoadMCMSettings(ini);  // button scheme
 		MANAGER(Input)->LoadMCMSettings(ini);     // key held duration
+
+		MANAGER(PhotoMode)->LoadMCMSettings(ini);
 	};
 
 	SerializeINI(defaultMCMPath, load_mcm_settings);
 	SerializeINI(userMCMPath, load_mcm_settings);
-}
-
-const wchar_t* Settings::GetConfigPath() const
-{
-	return configPath;
-}
-
-const wchar_t* Settings::GetDefaultMCMPath() const
-{
-	return defaultMCMPath;
 }

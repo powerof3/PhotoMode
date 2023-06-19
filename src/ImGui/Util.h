@@ -8,6 +8,8 @@ namespace ImGui
 
 	void AlignedImage(ImTextureID texID, const ImVec2& texture_size, const ImVec2& min, const ImVec2& max, const ImVec2& align);
 
+	void ExtendWindowPastBorder();
+
 	std::string LabelPrefix(const char* label);
 
 	void CenteredText(const char* label, bool vertical = false);

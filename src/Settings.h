@@ -6,11 +6,8 @@ public:
 	void LoadSettings() const;
 	void LoadMCMSettings() const;
 
-	const wchar_t* GetConfigPath() const;
-	const wchar_t* GetDefaultMCMPath() const;
-
 private:
-	static void SerializeINI(const wchar_t* a_path, const std::function<void(CSimpleIniA&)>& a_func);
+	static void SerializeINI(const wchar_t* a_path, const std::function<void(CSimpleIniA&)> a_func);
 
 	// members
 	const wchar_t* configPath{ L"Data/SKSE/Plugins/po3_PhotoMode.ini" };

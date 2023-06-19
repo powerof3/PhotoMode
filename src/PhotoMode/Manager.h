@@ -15,6 +15,7 @@ namespace PhotoMode
 	{
 	public:
 		static void Register();
+		void        LoadMCMSettings(const CSimpleIniA& a_ini);
 
 		static bool GetValid();
 		bool        IsActive() const;
@@ -81,7 +82,9 @@ namespace PhotoMode
 		RE::CameraState cameraState{ RE::CameraState::kThirdPerson };
 		bool            menusAlreadyHidden{ false };
 		bool            resetWindow{ true };
+		bool            resetAll{ false };
 
-		bool resetAll{ false };
+		float freeCameraSpeed{ 4.0f };
+		bool  freezeTimeOnStart{ true };
 	};
 }

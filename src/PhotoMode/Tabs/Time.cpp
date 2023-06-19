@@ -73,9 +73,13 @@ namespace PhotoMode
 			RE::Calendar::GetSingleton()->timeScale->value = originalState.timescale * currentTimescaleMult;
 		}
 
-		weathers.GetFormResultFromCombo([&](const auto& weather) {
-			RE::Sky::GetSingleton()->ForceWeather(weather, true);
-			weatherForced = true;
-		});
+		ImGui::BeginDisabled(RE::Sky::GetSingleton()->mode == RE::Sky::Mode::kInterior);
+		{
+			weathers.GetFormResultFromCombo([&](const auto& weather) {
+				RE::Sky::GetSingleton()->ForceWeather(weather, true);
+				weatherForced = true;
+			});
+		}
+		ImGui::EndDisabled();
 	}
 }

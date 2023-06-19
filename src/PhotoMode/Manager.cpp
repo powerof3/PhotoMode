@@ -14,7 +14,13 @@ namespace PhotoMode
 		logger::info("Registered for menu open/close event");
 	}
 
-	bool Manager::GetValid()
+    void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
+	{
+		freeCameraSpeed = a_ini.GetDoubleValue("Settings", "fFreeCameraTranslationSpeed", freeCameraSpeed);
+		freezeTimeOnStart = a_ini.GetBoolValue("Settings", "bFreezeTimeOnStart", freezeTimeOnStart);
+	}
+
+    bool Manager::GetValid()
 	{
 		static constexpr std::array badMenus{
 			RE::MainMenu::MENU_NAME,
@@ -75,6 +81,12 @@ namespace PhotoMode
 		// toggle freecam
 		if (cameraState != RE::CameraState::kFree) {
 			RE::PlayerCamera::GetSingleton()->ToggleFreeCameraMode(false);
+		}
+
+		// apply mcm settings
+		FreeCamera::translateSpeed = freeCameraSpeed;
+	    if (freezeTimeOnStart) {
+			RE::Main::GetSingleton()->freezeTime = true;
 		}
 
 		activated = true;
@@ -212,10 +224,9 @@ namespace PhotoMode
 
 		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
-			DrawControls();
-			DrawBar();
-
 			cameraTab.DrawGrid();
+		    DrawBar();
+			DrawControls();
 		}
 		ImGui::End();
 	}
@@ -238,7 +249,9 @@ namespace PhotoMode
 
 		ImGui::Begin("$PM_Title_Menu"_T, nullptr, windowFlags);
 		{
-			if (resetWindow) {
+			ImGui::ExtendWindowPastBorder();
+
+		    if (resetWindow) {
 				currentTab = kCamera;
 			}
 
@@ -327,10 +340,13 @@ namespace PhotoMode
 		const static auto offset = viewport->Size.y / 20.25f;
 
 		ImGui::SetNextWindowPos(ImVec2(center.x, viewport->Size.y - offset), ImGuiCond_Always, ImVec2(0.5, 0.5));
+		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x / 3.5f, offset), ImGuiCond_Always);
 
-		ImGui::BeginChild("##Bar", ImVec2(viewport->Size.x / 3.5f, offset), false, ImGuiWindowFlags_NoBringToFrontOnFocus);  // same offset as control window
+	    ImGui::Begin("##Bar", nullptr, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);  // same offset as control window
 		{
-			const static auto takePhotoLabel = "$PM_TAKEPHOTO"_T;
+			ImGui::ExtendWindowPastBorder();
+
+		    const static auto takePhotoLabel = "$PM_TAKEPHOTO"_T;
 			const static auto toggleMenusLabel = "$PM_TOGGLEMENUS"_T;
 			const auto        resetLabel = GetResetAll() ? "$PM_RESET_ALL"_T : "$PM_RESET"_T;
 			const static auto togglePMLabel = "$PM_EXIT"_T;
@@ -377,7 +393,7 @@ namespace PhotoMode
 
 			ImGui::ButtonIconWithLabel(togglePMLabel, togglePMIcons, true);
 		}
-		ImGui::EndChild();
+		ImGui::End();
 	}
 
 	EventResult Manager::ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*)

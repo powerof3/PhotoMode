@@ -52,17 +52,14 @@ namespace PhotoMode::Renderer
 				io.IniFilename = nullptr;
 
 				auto& style = ImGui::GetStyle();
-				style.FrameRounding = 4.0f;
-				style.GrabRounding = 4.0f;
 				style.WindowBorderSize = 3.0f;
-				style.ChildBorderSize = 0.0f;
+				style.TabRounding = 0.0f;
 
 				style.Colors[ImGuiCol_WindowBg] = { 0.0f, 0.0f, 0.0f, 0.62f };
 				style.Colors[ImGuiCol_ChildBg] = { 0.0f, 0.0f, 0.0f, 0.62f };
 
 				style.Colors[ImGuiCol_Border] = { 0.396f, 0.404f, 0.412f, 0.62f };
 				style.Colors[ImGuiCol_Separator] = { 0.396f, 0.404f, 0.412f, 0.62f };
-
 				style.Colors[ImGuiCol_TextDisabled] = { 0.604f, 0.604f, 0.6078f, 1.0f };
 
 				if (!ImGui_ImplWin32_Init(desc.OutputWindow)) {
