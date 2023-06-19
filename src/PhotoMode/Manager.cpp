@@ -14,13 +14,13 @@ namespace PhotoMode
 		logger::info("Registered for menu open/close event");
 	}
 
-    void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
+	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
 		freeCameraSpeed = a_ini.GetDoubleValue("Settings", "fFreeCameraTranslationSpeed", freeCameraSpeed);
 		freezeTimeOnStart = a_ini.GetBoolValue("Settings", "bFreezeTimeOnStart", freezeTimeOnStart);
 	}
 
-    bool Manager::GetValid()
+	bool Manager::GetValid()
 	{
 		static constexpr std::array badMenus{
 			RE::MainMenu::MENU_NAME,
@@ -85,7 +85,7 @@ namespace PhotoMode
 
 		// apply mcm settings
 		FreeCamera::translateSpeed = freeCameraSpeed;
-	    if (freezeTimeOnStart) {
+		if (freezeTimeOnStart) {
 			RE::Main::GetSingleton()->freezeTime = true;
 		}
 
@@ -225,7 +225,7 @@ namespace PhotoMode
 		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
 			cameraTab.DrawGrid();
-		    DrawBar();
+			DrawBar();
 			DrawControls();
 		}
 		ImGui::End();
@@ -251,7 +251,7 @@ namespace PhotoMode
 		{
 			ImGui::ExtendWindowPastBorder();
 
-		    if (resetWindow) {
+			if (resetWindow) {
 				currentTab = kCamera;
 			}
 
@@ -342,11 +342,11 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(ImVec2(center.x, viewport->Size.y - offset), ImGuiCond_Always, ImVec2(0.5, 0.5));
 		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x / 3.5f, offset), ImGuiCond_Always);
 
-	    ImGui::Begin("##Bar", nullptr, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);  // same offset as control window
+		ImGui::Begin("##Bar", nullptr, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);  // same offset as control window
 		{
 			ImGui::ExtendWindowPastBorder();
 
-		    const static auto takePhotoLabel = "$PM_TAKEPHOTO"_T;
+			const static auto takePhotoLabel = "$PM_TAKEPHOTO"_T;
 			const static auto toggleMenusLabel = "$PM_TOGGLEMENUS"_T;
 			const auto        resetLabel = GetResetAll() ? "$PM_RESET_ALL"_T : "$PM_RESET"_T;
 			const static auto togglePMLabel = "$PM_EXIT"_T;
