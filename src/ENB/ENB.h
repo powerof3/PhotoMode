@@ -49,7 +49,7 @@ namespace ENB
 		return handle != nullptr;
 	}
 
-    inline bool IsEnabled()
+	inline bool IsEnabled()
 	{
 		return IsInstalled() && GetParameter<bool>("enbseries.ini", "GLOBAL", "UseEffect");
 	}
