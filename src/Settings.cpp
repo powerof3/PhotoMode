@@ -12,7 +12,7 @@ void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSim
 	CSimpleIniA ini;
 	ini.SetUnicode();
 
-    if (const auto rc = ini.LoadFile(a_path); !a_generate && rc < SI_OK) {
+	if (const auto rc = ini.LoadFile(a_path); !a_generate && rc < SI_OK) {
 		return;
 	}
 
@@ -23,9 +23,11 @@ void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSim
 
 void Settings::LoadSettings() const
 {
-	SerializeINI(fontsPath, [](auto& ini) {
-		MANAGER(IconFont)->LoadSettings(ini);  // fonts, icons
-	}, true);
+	SerializeINI(
+		fontsPath, [](auto& ini) {
+			MANAGER(IconFont)->LoadSettings(ini);  // fonts, icons
+		},
+		true);
 
 	LoadMCMSettings();
 }
