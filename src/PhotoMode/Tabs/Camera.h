@@ -17,23 +17,23 @@ namespace PhotoMode
 
 	private:
 		// very, very basic support
-	    struct ENBDOF
+		struct ENBDOF
 		{
 			enum TYPE : std::uint32_t
 			{
-			    kNone,
+				kNone,
 				kEnable = 1 << 0,
 				kAll
 			};
 
-		    void Get();
+			void Get();
 			void SetParameter(std::uint32_t a_type) const;
 
 			// members
-		    bool enabled;
+			bool enabled;
 		};
 
-	    struct OriginalState
+		struct OriginalState
 		{
 			void Get();
 			void Revert(bool a_deactivate) const;

@@ -161,7 +161,7 @@ namespace PhotoMode
 			break;
 		}
 
-	    activated = false;
+		activated = false;
 	}
 
 	void Manager::ToggleActive()
@@ -228,15 +228,15 @@ namespace PhotoMode
 		}
 	}
 
-    void Manager::RevertENBParams()
+	void Manager::RevertENBParams()
 	{
 		if (revertENB) {
 			cameraTab.RevertENBParams();
-		    revertENB = false;
+			revertENB = false;
 		}
 	}
 
-    void Manager::Draw()
+	void Manager::Draw()
 	{
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
