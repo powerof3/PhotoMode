@@ -41,17 +41,6 @@ namespace PhotoMode
 
 	void Filters::Draw()
 	{
-		imods.GetFormResultFromCombo([&](const auto& imod) {
-			if (currentImod) {
-				RE::ImageSpaceModifierInstanceForm::Stop(currentImod);
-			}
-			RE::ImageSpaceModifierInstanceForm::Trigger(imod, 1.0, nullptr);
-			currentImod = imod;
-			imodPlayed = true;
-		});
-
-		ImGui::Dummy({ 0, 5 });
-
 		if (const auto& overrideData = RE::ImageSpaceManager::GetSingleton()->overrideBaseData) {
 			ImGui::Slider("$PM_Brightness"_T, &overrideData->cinematic.brightness, 0.0f, 3.0f);
 			ImGui::Slider("$PM_Saturation"_T, &overrideData->cinematic.saturation, 0.0f, 3.0f);
@@ -68,5 +57,14 @@ namespace PhotoMode
 		} else {
 			RE::ImageSpaceManager::GetSingleton()->overrideBaseData = &imageSpaceData;
 		}
+
+		imods.GetFormResultFromCombo([&](const auto& imod) {
+			if (currentImod) {
+				RE::ImageSpaceModifierInstanceForm::Stop(currentImod);
+			}
+			RE::ImageSpaceModifierInstanceForm::Trigger(imod, 1.0, nullptr);
+			currentImod = imod;
+			imodPlayed = true;
+		});
 	}
 }

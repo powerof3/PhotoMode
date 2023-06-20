@@ -17,11 +17,11 @@ namespace PhotoMode
 		static void Register();
 		void        LoadMCMSettings(const CSimpleIniA& a_ini);
 
-		static bool GetValid();
-		bool        IsActive() const;
-		void        Activate();
-		void        Deactivate();
-		void        ToggleActive();
+		static bool        GetValid();
+		[[nodiscard]] bool IsActive() const;
+		void               Activate();
+		void               Deactivate();
+		void               ToggleActive();
 
 		void Revert(bool a_deactivate = false);
 
@@ -34,6 +34,9 @@ namespace PhotoMode
 
 		void Draw();
 		bool OnFrameUpdate();
+
+		void UpdateENBParams();
+		void RevertENBParams();
 
 	private:
 		enum TAB_TYPE : std::int32_t
@@ -68,6 +71,7 @@ namespace PhotoMode
 
 		// members
 		bool activated{ false };
+		bool revertENB{ false };
 
 		std::int32_t previousTab{ kCamera };
 		std::int32_t currentTab{ kCamera };

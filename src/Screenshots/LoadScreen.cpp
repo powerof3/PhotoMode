@@ -1,6 +1,6 @@
 #include "LoadScreen.h"
 
-#include "Textures.h"
+#include "Graphics.h"
 
 namespace LoadScreen
 {

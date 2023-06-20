@@ -1,58 +1,81 @@
 #include "Camera.h"
 
+#include "ENB/ENB.h"
 #include "ImGui/Util.h"
 #include "Translation.h"
 
 namespace PhotoMode
 {
+	void Camera::ENBDOF::Get()
+	{
+		enabled = ENB::GetParameter<bool>("enbseries.ini", "EFFECT", "EnableDepthOfField");
+	}
+
+	void Camera::ENBDOF::SetParameter(std::uint32_t a_type) const
+	{
+		if ((a_type & kEnable) != 0) {
+			ENB::SetParameter(enabled, "enbseries.ini", "EFFECT", "EnableDepthOfField");
+		}
+	}
+
 	void Camera::OriginalState::Get()
 	{
 		fov = RE::PlayerCamera::GetSingleton()->worldFOV;
 		translateSpeed = FreeCamera::translateSpeed;
 
-		blurMultiplier = DOF::blurMultiplier;
-		nearDist = DOF::nearDist;
-		nearRange = DOF::nearRange;
-		farDist = DOF::farDist;
-		farRange = DOF::farRange;
+		vanillaDOF.blurMultiplier = DOF::blurMultiplier;
+		vanillaDOF.nearDist = DOF::nearDist;
+		vanillaDOF.nearRange = DOF::nearRange;
+		vanillaDOF.farDist = DOF::farDist;
+		vanillaDOF.farRange = DOF::farRange;
+
+		enbDOF.Get();
 	}
 
-	void Camera::OriginalState::Revert() const
+	void Camera::OriginalState::Revert(bool a_deactivate) const
 	{
 		RE::PlayerCamera::GetSingleton()->worldFOV = fov;
-		FreeCamera::translateSpeed = translateSpeed;
 
-		DOF::blurMultiplier = blurMultiplier;
-		DOF::nearDist = nearDist;
-		DOF::nearRange = nearRange;
-		DOF::farDist = farDist;
-		DOF::farRange = farRange;
+		DOF::blurMultiplier = vanillaDOF.blurMultiplier;
+		DOF::nearDist = vanillaDOF.nearDist;
+		DOF::nearRange = vanillaDOF.nearRange;
+		DOF::farDist = vanillaDOF.farDist;
+		DOF::farRange = vanillaDOF.farRange;
+
+		if (a_deactivate) {
+			FreeCamera::translateSpeed = translateSpeed;
+		}
 	}
 
 	void Camera::GetOriginalState()
 	{
+		revertENB = false;
 		originalState.Get();
 	}
 
-	void Camera::RevertState()
+	void Camera::RevertState(bool a_deactivate)
 	{
-		originalState.Revert();
+		originalState.Revert(a_deactivate);
 
 		// revert view roll
 		currentViewRoll = 0.0f;
 
 		// revert grid
-		gridType = GridType::kDisabled;
+		CameraGrid::gridType = CameraGrid::GridType::kDisabled;
 
 		// revert DOF
 		if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
 			static_cast<RE::ImageSpaceEffectDepthOfField*>(effect)->enabled = true;
 		}
+
+		if (ENB::IsInstalled()) {
+			revertENB = true;
+		}
 	}
 
 	void Camera::Draw()
 	{
-		ImGui::EnumSlider("$PM_Grid"_T, &gridType, gridTypes);
+		ImGui::EnumSlider("$PM_Grid"_T, &CameraGrid::gridType, CameraGrid::gridTypes);
 
 		ImGui::Slider("$PM_FieldOfView"_T, &RE::PlayerCamera::GetSingleton()->worldFOV, 5.0f, 150.0f);
 		ImGui::Slider("$PM_ViewRoll"_T, &currentViewRoll, -RE::NI_PI, RE::NI_PI);
@@ -60,7 +83,13 @@ namespace PhotoMode
 			&FreeCamera::translateSpeed,  // fFreeCameraTranslationSpeed:Camera
 			0.1f, 50.0f);
 
-		if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
+		if (ENB::IsEnabled()) {
+			lastDOF = curDOF;
+			curDOF.Get();
+
+			ImGui::OnOffToggle("$PM_DepthOfField"_T, &curDOF.enabled, "$PM_YES"_T, "$PM_NO"_T);
+
+		} else if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
 			const auto dofEffect = static_cast<RE::ImageSpaceEffectDepthOfField*>(effect);
 
 			ImGui::OnOffToggle("$PM_DepthOfField"_T, &dofEffect->enabled, "$PM_YES"_T, "$PM_NO"_T);
@@ -73,12 +102,29 @@ namespace PhotoMode
 					ImGui::Slider("$PM_DOF_Distance"_T, &DOF::nearDist, 0.0f, 1000.0f);
 					ImGui::Slider("$PM_DOF_Range"_T, &DOF::nearRange, 0.0f, 1000.0f);
 				}
+				ImGui::Unindent();
 			}
 			ImGui::EndDisabled();
 		}
 	}
 
-	void Camera::DrawGrid() const
+	void Camera::UpdateENBParams()
+	{
+		if (curDOF.enabled != lastDOF.enabled) {
+			curDOF.SetParameter(ENBDOF::kEnable);
+			lastDOF.enabled = curDOF.enabled;
+		}
+	}
+
+	void Camera::RevertENBParams()
+	{
+		if (revertENB) {
+			originalState.enbDOF.SetParameter(ENBDOF::kAll);
+			revertENB = false;
+		}
+	}
+
+	void CameraGrid::Draw()
 	{
 		if (gridType == kDisabled) {
 			return;

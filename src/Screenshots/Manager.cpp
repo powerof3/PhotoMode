@@ -1,6 +1,6 @@
 #include "Screenshots/Manager.h"
 
-#include "Textures.h"
+#include "Graphics.h"
 
 namespace Screenshot
 {

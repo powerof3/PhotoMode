@@ -5,6 +5,8 @@
 #include "ImGui/Util.h"
 #include "Screenshots/Manager.h"
 
+#include "ENB/ENB.h"
+
 namespace PhotoMode
 {
 	void Manager::Register()
@@ -98,7 +100,11 @@ namespace PhotoMode
 
 		// Camera
 		if (tabIndex == -1 || tabIndex == kCamera) {
-			cameraTab.RevertState();
+			cameraTab.RevertState(a_deactivate);
+			if (!a_deactivate) {
+				FreeCamera::translateSpeed = freeCameraSpeed;
+			}
+			revertENB = true;
 		}
 		// Time/Weather
 		if (tabIndex == -1 || tabIndex == kTime) {
@@ -155,7 +161,7 @@ namespace PhotoMode
 			break;
 		}
 
-		activated = false;
+	    activated = false;
 	}
 
 	void Manager::ToggleActive()
@@ -215,7 +221,22 @@ namespace PhotoMode
 		return true;
 	}
 
-	void Manager::Draw()
+	void Manager::UpdateENBParams()
+	{
+		if (IsActive()) {
+			cameraTab.UpdateENBParams();
+		}
+	}
+
+    void Manager::RevertENBParams()
+	{
+		if (revertENB) {
+			cameraTab.RevertENBParams();
+		    revertENB = false;
+		}
+	}
+
+    void Manager::Draw()
 	{
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -224,7 +245,8 @@ namespace PhotoMode
 
 		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
-			cameraTab.DrawGrid();
+			// render hierachy
+			CameraGrid::Draw();
 			DrawBar();
 			DrawControls();
 		}
@@ -299,7 +321,7 @@ namespace PhotoMode
 				ImGui::Spacing();
 
 				if (updateKeyboardFocus) {
-					ImGui::SetKeyboardFocusHere();
+					ImGui::SetKeyboardFocusHere(currentTab == TAB_TYPE::kFilters ? -1 : 0);
 					RE::PlaySound("UIJournalTabsSD");
 					updateKeyboardFocus = false;
 				}

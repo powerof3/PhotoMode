@@ -12,10 +12,10 @@ set(sources ${sources}
 	src/PhotoMode/Tabs/Filters.cpp
 	src/PhotoMode/Tabs/Player.cpp
 	src/PhotoMode/Tabs/Time.cpp
+	src/Screenshots/Graphics.cpp
 	src/Screenshots/LoadScreen.cpp
 	src/Screenshots/Manager.cpp
 	src/Settings.cpp
-	src/Textures.cpp
 	src/Translation.cpp
 	src/main.cpp
 )
