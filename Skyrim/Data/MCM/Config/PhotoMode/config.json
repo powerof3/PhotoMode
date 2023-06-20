@@ -67,8 +67,8 @@
           }
         },
         {
-          "id": "iToggleUIKey:Controls",
-          "text": "$PM_ToggleUI_Key_Text",
+          "id": "iToggleMenusKey:Controls",
+          "text": "$PM_ToggleMenus_Key_Text",
           "type": "keymap",
           "ignoreConflicts": true,
           "valueOptions": {
@@ -82,6 +82,22 @@
           "ignoreConflicts": true,
           "valueOptions": {
             "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "id": "fKeyHeldDuration:Controls",
+          "text": "$PM_KeyHeldDuration_Text",
+          "type": "slider",
+          "help": "$PM_KeyHeldDuration_Help",
+          "valueOptions": {
+            "min": 0.1,
+            "max": 2.0,
+            "step": 0.1,
+            "formatString": "{1} seconds",
+            "sourceType": "ModSettingFloat"
           }
         },
         {
@@ -142,8 +158,8 @@
           }
         },
         {
-          "id": "iToggleUIGamePad:Controls",
-          "text": "$PM_ToggleUI_Key_Text",
+          "id": "iToggleMenusGamePad:Controls",
+          "text": "$PM_ToggleMenus_Key_Text",
           "type": "keymap",
           "ignoreConflicts": true,
           "valueOptions": {
@@ -174,11 +190,49 @@
       ]
     },
     {
-      "pageDisplayName": "$PM_ScreenshotsPage",
+      "pageDisplayName": "$PM_SettingsPage",
       "cursorFillMode": "topToBottom",
       "content": [
         {
-          "id": "iMultiScreenshots:Screenshots",
+          "id": "fFreeCameraTranslationSpeed:Settings",
+          "text": "$PM_FreeCameraTranslationSpeed_Text",
+          "type": "slider",
+          "help": "$PM_FreeCameraTranslationSpeed_Help",
+          "valueOptions": {
+            "min": 0.1,
+            "max": 50.0,
+            "step": 0.1,
+            "formatString": "{1}",
+            "sourceType": "ModSettingFloat"
+          }
+        },
+        {
+          "id": "bFreezeTimeOnStart:Settings",
+          "text": "$PM_FreezeTimeOnStart_Text",
+          "type": "toggle",
+          "help": "$PM_FreezeTimeOnStart_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "type" : "empty"
+        },
+        {
+          "text": "$PM_ScreenshotsHeader",
+          "type": "header"
+        },
+        {
+          "id": "bAutoHideMenus:Screenshots",
+          "text": "$PM_AutoHideMenus_Text",
+          "type": "toggle",
+          "help": "$PM_AutoHideMenus_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "id": "bMultiScreenshots:Screenshots",
           "text": "$PM_MultiScreenshots_Text",
           "type": "toggle",
           "help": "$PM_MultiScreenshots_Help",
@@ -235,13 +289,12 @@
           "valueOptions": {
             "sourceType": "ModSettingBool"
           }
-        }
-      ]
-    },
-    {
-      "pageDisplayName": "$PM_LoadScreenPage",
-      "cursorFillMode": "topToBottom",
-      "content": [
+        },
+        {
+          "text": "$PM_LoadScreenHeader",
+          "type": "header",
+          "position": 1
+        },
         {
           "id": "bLoadScreenPics:Screenshots",
           "text": "$PM_LoadScreenPics_Text",

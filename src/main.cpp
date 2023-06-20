@@ -24,15 +24,15 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 			if (ENB::handle) {
 				ENB::handle->SetCallbackFunction([](ENBCallbackType a_calltype) {
 					switch (a_calltype) {
-                    case ENBCallbackType::ENBCallback_BeginFrame:
+					case ENBCallbackType::ENBCallback_BeginFrame:
 						MANAGER(PhotoMode)->UpdateENBParams();
-                        break;
+						break;
 					case ENBCallbackType::ENBCallback_EndFrame:
 						MANAGER(PhotoMode)->RevertENBParams();
 						break;
-                    default: 
+					default:
 						break;
-                    }
+					}
 				});
 				logger::info("Obtained ENB API");
 			} else {

@@ -7,12 +7,12 @@
 #include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
 
-void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSimpleIniA&)> a_func)
+void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSimpleIniA&)> a_func, bool a_generate)
 {
 	CSimpleIniA ini;
 	ini.SetUnicode();
 
-	if (const auto rc = ini.LoadFile(a_path); rc < SI_OK) {
+    if (const auto rc = ini.LoadFile(a_path); !a_generate && rc < SI_OK) {
 		return;
 	}
 
@@ -23,9 +23,9 @@ void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSim
 
 void Settings::LoadSettings() const
 {
-	SerializeINI(configPath, [](auto& ini) {
+	SerializeINI(fontsPath, [](auto& ini) {
 		MANAGER(IconFont)->LoadSettings(ini);  // fonts, icons
-	});
+	}, true);
 
 	LoadMCMSettings();
 }
