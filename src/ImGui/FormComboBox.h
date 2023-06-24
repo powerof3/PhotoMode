@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ImGui/Util.h"
+#include "ImGui/Widgets.h"
 
 namespace ImGui
 {
@@ -135,7 +135,10 @@ namespace ImGui
 			{
 				ImGui::SeparatorText(name.c_str());
 
-				ImGui::PushID(name.c_str());
+				ImGui::PushStyleColor(ImGuiCol_NavHighlight, IM_COL32(242, 242, 242, 158));
+				ImGui::PushStyleColor(ImGuiCol_Header, GetColorU32(ImGuiCol_TextDisabled));
+
+			    ImGui::PushID(name.c_str());
 				ImGui::PushMultiItemsWidths(2, ImGui::GetContentRegionAvail().x);
 
 				if (ImGui::ComboWithFilter("##mods", &index, modNames)) {
@@ -157,6 +160,7 @@ namespace ImGui
 
 				ImGui::PopItemWidth();
 				ImGui::PopID();
+				ImGui::PopStyleColor(2);
 			}
 			ImGui::EndGroup();
 

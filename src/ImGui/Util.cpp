@@ -1,23 +1,7 @@
 #include "Util.h"
 
-#include "IconsFonts.h"
-
 namespace ImGui
 {
-	// Source: https://gist.github.com/idbrii/5ddb2135ca122a0ec240ce046d9e6030
-	//
-	// Author: David Briscoe
-	//
-	// Modified ComboWithFilter with rapidFuzz
-	// Using dear imgui, v1.89 WIP
-	//
-	// Adds arrow/pgup/pgdn navigation, Enter to confirm, max_height_in_items, and
-	// fixed focus on open and avoids drawing past window edges.
-	//
-	// Licensed as CC0/public domain.
-	//
-	// Posted in issue: https://github.com/ocornut/imgui/issues/1658#issuecomment-1086193100
-
 	int IndexOfKey(const std::vector<std::pair<int, double>>& pair_list, const int key)
 	{
 		for (size_t i = 0; i < pair_list.size(); ++i) {
@@ -40,179 +24,18 @@ namespace ImGui
 		       (g.Style.WindowPadding.y * 2);
 	}
 
-	bool ComboWithFilter(const char* label, int* current_item, const std::vector<std::string>& items, int popup_max_height_in_items)
-	{
-		ImGuiContext& g = *GImGui;
-
-		ImGuiWindow* window = GetCurrentWindow();
-		if (window->SkipItems) {
-			return false;
-		}
-
-		const int items_count = static_cast<int>(items.size());
-
-		// Use imgui Items_ getters to support more input formats.
-		const char* preview_value = nullptr;
-		if (*current_item >= 0 && *current_item < items_count) {
-			preview_value = items[*current_item].c_str();
-		}
-
-		static int  focus_idx = -1;
-		static char pattern_buffer[MAX_PATH] = { 0 };
-
-		bool value_changed = false;
-
-		const ImGuiID id = window->GetID(label);
-		const ImGuiID popup_id = ImHashStr("##ComboPopup", 0, id);  // copied from BeginCombo
-		const bool    is_already_open = IsPopupOpen(popup_id, ImGuiPopupFlags_None);
-		const bool    is_filtering = is_already_open && pattern_buffer[0] != '\0';
-
-		int show_count = items_count;
-
-		std::vector<std::pair<int, double>> itemScoreVector;
-		if (is_filtering) {
-			// Filter before opening to ensure we show the correct size window.
-			// We won't get in here unless the popup is open.
-			for (int i = 0; i < items_count; i++) {
-				auto score = rapidfuzz::fuzz::partial_ratio(pattern_buffer, items[i].c_str());
-				if (score >= 70.0) {
-					itemScoreVector.push_back(std::make_pair(i, score));
-				}
-			}
-			std::ranges::sort(itemScoreVector, [](const auto& a, const auto& b) {
-				return (b.second < a.second);
-			});
-			const int current_score_idx = IndexOfKey(itemScoreVector, focus_idx);
-			if (current_score_idx < 0 && !itemScoreVector.empty()) {
-				focus_idx = itemScoreVector[0].first;
-			}
-			show_count = static_cast<int>(itemScoreVector.size());
-		}
-
-		// Define the height to ensure our size calculation is valid.
-		if (popup_max_height_in_items == -1) {
-			popup_max_height_in_items = 5;
-		}
-		popup_max_height_in_items = ImMin(popup_max_height_in_items, show_count);
-
-		if (!(g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSizeConstraint)) {
-			const int numItems = popup_max_height_in_items + 2;  // extra for search bar
-			SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX,
-														   CalcMaxPopupHeightFromItemCount(numItems)));
-		}
-
-		if (!BeginCombo(label, preview_value, ImGuiComboFlags_None)) {
-			return false;
-		}
-
-		if (!is_already_open) {
-			focus_idx = *current_item;
-			memset(pattern_buffer, 0, IM_ARRAYSIZE(pattern_buffer));
-		}
-
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, static_cast<ImVec4>(ImColor(240, 240, 240, 255)));
-		ImGui::PushStyleColor(ImGuiCol_Text, static_cast<ImVec4>(ImColor(0, 0, 0, 255)));
-		ImGui::PushStyleColor(ImGuiCol_NavHighlight, static_cast<ImVec4>(ImColor(0, 0, 0, 0)));
-		ImGui::PushItemWidth(-FLT_MIN);
-		// Filter input
-		if (!is_already_open) {
-			ImGui::SetKeyboardFocusHere();
-		}
-		InputText("##ComboWithFilter_inputText", pattern_buffer, MAX_PATH, ImGuiInputTextFlags_AutoSelectAll);
-
-		ImGui::PopStyleColor(3);
-
-		int move_delta = 0;
-		if (IsKeyPressed(ImGuiKey_UpArrow) || IsKeyPressed(ImGuiKey_GamepadDpadUp)) {
-			--move_delta;
-		} else if (IsKeyPressed(ImGuiKey_DownArrow) || IsKeyPressed(ImGuiKey_GamepadDpadDown)) {
-			++move_delta;
-		} else if (IsKeyPressed(ImGuiKey_PageUp)) {
-			move_delta -= popup_max_height_in_items;
-		} else if (IsKeyPressed(ImGuiKey_PageDown)) {
-			move_delta += popup_max_height_in_items;
-		}
-
-		if (move_delta != 0) {
-			if (is_filtering) {
-				int current_score_idx = IndexOfKey(itemScoreVector, focus_idx);
-				if (current_score_idx >= 0) {
-					const int count = static_cast<int>(itemScoreVector.size());
-					current_score_idx = ImClamp(current_score_idx + move_delta, 0, count - 1);
-					focus_idx = itemScoreVector[current_score_idx].first;
-				}
-			} else {
-				focus_idx = ImClamp(focus_idx + move_delta, 0, items_count - 1);
-			}
-			RE::PlaySound("UIMenuPrevNext");
-		}
-
-		// Copied from ListBoxHeader
-		// If popup_max_height_in_items == -1, default height is maximum 7.
-		const float height_in_items_f = (popup_max_height_in_items < 0 ? ImMin(items_count, 7) :
-                                                                         popup_max_height_in_items) +
-		                                0.25f;
-		ImVec2 size;
-		size.x = 0.0f;
-		size.y = GetTextLineHeightWithSpacing() * height_in_items_f + g.Style.FramePadding.y * 2.0f;
-
-		ImGui::PushStyleColor(ImGuiCol_NavHighlight, static_cast<ImVec4>(ImColor(0, 0, 0, 0)));
-		if (ImGui::BeginListBox("##ComboWithFilter_itemList", size)) {
-			for (int i = 0; i < show_count; i++) {
-				int idx = is_filtering ? itemScoreVector[i].first : i;
-				PushID(reinterpret_cast<void*>(static_cast<intptr_t>(idx)));
-				const bool  item_selected = (idx == focus_idx);
-				const char* item_text = items[idx].c_str();
-				if (Selectable(item_text, item_selected)) {
-					value_changed = true;
-					*current_item = idx;
-					CloseCurrentPopup();
-					RE::PlaySound("UIMenuFocus");
-				}
-
-				if (item_selected) {
-					SetItemDefaultFocus();
-					// SetItemDefaultFocus doesn't work so also check IsWindowAppearing.
-					if (move_delta != 0 || IsWindowAppearing()) {
-						SetScrollHereY();
-					}
-				}
-				PopID();
-			}
-			ImGui::EndListBox();
-
-			if (IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_NavGamepadActivate)) {
-				value_changed = true;
-				*current_item = focus_idx;
-				CloseCurrentPopup();
-				RE::PlaySound("UIMenuOK");
-			} else if (IsKeyPressed(ImGuiKey_Escape) || IsKeyPressed(ImGuiKey_NavGamepadCancel)) {
-				value_changed = false;
-				CloseCurrentPopup();
-				RE::PlaySound("UIMenuCancel");
-			}
-		}
-		ImGui::PopStyleColor();
-		ImGui::PopItemWidth();
-		ImGui::EndCombo();
-
-		if (value_changed) {
-			MarkItemEdited(g.LastItemData.ID);
-		}
-
-		return value_changed;
-	}
-
 	// https://github.com/ocornut/imgui/discussions/3862
 	void AlignForWidth(float width, float alignment)
 	{
-		float avail = ImGui::GetContentRegionAvail().x;
+		float avail = GetContentRegionAvail().x;
 		float off = (avail - width) * alignment;
-		if (off > 0.0f)
-			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+
+		if (off > 0.0f) {
+			SetCursorPosX(GetCursorPosX() + off);
+		}
 	}
 
-	void AlignedImage(ImTextureID texID, const ImVec2& texture_size, const ImVec2& min, const ImVec2& max, const ImVec2& align)
+	void AlignedImage(ImTextureID texID, const ImVec2& texture_size, const ImVec2& min, const ImVec2& max, const ImVec2& align, ImU32 colour)
 	{
 		const ImGuiWindow* window = GetCurrentWindow();
 		ImVec2             pos = min;
@@ -222,7 +45,7 @@ namespace ImGui
 		if (align.y > 0.0f)
 			pos.y = ImMax(pos.y, pos.y + (max.y - pos.y - texture_size.y) * align.y);
 
-		window->DrawList->AddImage(texID, pos, pos + texture_size);
+		window->DrawList->AddImage(texID, pos, pos + texture_size, ImVec2(0, 0), ImVec2(1, 1), colour);
 	}
 
 	void ExtendWindowPastBorder()
@@ -236,22 +59,27 @@ namespace ImGui
 		rootWindow->DrawList->AddRect(newWindowPos, newWindowPos + ImVec2(window->Size.x + 2 * borderSize, window->Size.y + 2 * borderSize), GetColorU32(ImGuiCol_WindowBg), 0.0f, 0, borderSize);
 	}
 
-	// https://github.com/libigl/libigl/issues/1300#issuecomment-1310174619
-	std::string LabelPrefix(const char* const label)
+	std::string LeftAlignedText(const char* label)
 	{
-		if (strlen(label) == 0) {
-			return label;
-		}
-
 		const float width = CalcItemWidth();
 		const float x = GetCursorPosX();
 
+		const auto newLabel = "##"s + label;
+
+		const auto hovered = GetFocusID() == GetCurrentWindow()->GetID(newLabel.c_str());
+		if (!hovered) {
+			PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TextDisabled));
+		}
 		Text(label);
+		if (!hovered) {
+			PopStyleColor();
+		}
+
 		SameLine();
 		SetCursorPosX(x + width * 0.5f + GetStyle().ItemInnerSpacing.x);
 		SetNextItemWidth(-1);
 
-		return "##"s + label;
+		return newLabel;
 	}
 
 	void CenteredText(const char* label, bool vertical)
@@ -268,190 +96,6 @@ namespace ImGui
 		ImGui::Text(label);
 	}
 
-	bool ImGui::CenteredTextWithArrows(const char* label, const char* centerText)
-	{
-		ImGuiWindow* window = GetCurrentWindow();
-		if (window->SkipItems)
-			return false;
-
-		ImGuiContext&     g = *GImGui;
-		const ImGuiStyle& style = g.Style;
-		const ImGuiID     id = window->GetID(label);
-		const float       w = CalcItemWidth();
-
-		const ImVec2 label_size = CalcTextSize(label, nullptr, true);
-		const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
-		const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
-
-		ItemSize(total_bb, style.FramePadding.y);
-		if (!ItemAdd(total_bb, id, &frame_bb, false))
-			return false;
-
-		RenderNavHighlight(frame_bb, id);
-
-		const bool isHovered = IsItemHovered();
-		if (!isHovered) {
-			PushStyleColor(ImGuiCol_Text, ImVec4{ 0.604f, 0.604f, 0.6078f, 1.0f });
-		}
-
-		PushFont(MANAGER(IconFont)->GetLargeFont());
-		RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText, nullptr, nullptr, ImVec2(0.5f, 0.5f));
-		PopFont();
-
-		if (!isHovered) {
-			PopStyleColor();
-		}
-
-		// Draw arrows
-		static auto leftArrow = MANAGER(IconFont)->GetStepperLeft();
-		static auto rightArrow = MANAGER(IconFont)->GetStepperRight();
-
-		AlignedImage(leftArrow->srView, leftArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(0, 0.5f));
-		AlignedImage(rightArrow->srView, rightArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(1.0, 0.5f));
-
-		if (label_size.x > 0.0f) {
-			RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
-		}
-
-		return isHovered;
-	}
-
-	bool OnOffToggle(const char* label, bool* a_toggle, const char* on, const char* off)
-	{
-		bool selected = false;
-
-		if (CenteredTextWithArrows(LabelPrefix(label).c_str(), *a_toggle ? on : off)) {
-			SetItemDefaultFocus();
-			if (IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter)) {
-				*a_toggle = !*a_toggle;
-				selected = true;
-			} else if (IsKeyPressed(ImGuiKey_LeftArrow)) {
-				*a_toggle = false;
-				selected = true;
-			} else if (IsKeyPressed(ImGuiKey_RightArrow)) {
-				*a_toggle = true;
-				selected = true;
-			}
-		}
-
-		if (selected) {
-			RE::PlaySound("UIMenuFocus");
-		}
-
-		return selected;
-	}
-
-	bool ThinSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags, float sliderThickness)
-	{
-		ImGuiWindow* window = GetCurrentWindow();
-		if (window->SkipItems)
-			return false;
-
-		ImGuiContext&     g = *GImGui;
-		const ImGuiStyle& style = g.Style;
-		const ImGuiID     id = window->GetID(label);
-		const float       w = CalcItemWidth();
-
-		const ImVec2 label_size = CalcTextSize(label, nullptr, true);
-		const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
-		const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
-
-		const bool temp_input_allowed = (flags & ImGuiSliderFlags_NoInput) == 0;
-		ItemSize(total_bb, style.FramePadding.y);
-		if (!ItemAdd(total_bb, id, &frame_bb, temp_input_allowed ? ImGuiItemFlags_Inputable : 0))
-			return false;
-
-		// Default format string when passing NULL
-		if (format == nullptr)
-			format = DataTypeGetInfo(data_type)->PrintFmt;
-
-		const bool hovered = ItemHoverable(frame_bb, id);
-		bool       temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
-		if (!temp_input_is_active) {
-			// Tabbing or CTRL-clicking on Slider turns it into an input box
-			const bool input_requested_by_tabbing = temp_input_allowed && (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_FocusedByTabbing) != 0;
-			const bool clicked = hovered && IsMouseClicked(0, id);
-			const bool make_active = (input_requested_by_tabbing || clicked || g.NavActivateId == id);
-			if (make_active && clicked)
-				SetKeyOwner(ImGuiKey_MouseLeft, id);
-			if (make_active && temp_input_allowed)
-				if (input_requested_by_tabbing || (clicked && g.IO.KeyCtrl) || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
-					temp_input_is_active = true;
-
-			if (make_active && !temp_input_is_active) {
-				SetActiveID(id, window);
-				SetFocusID(id, window);
-				FocusWindow(window);
-				g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
-			}
-		}
-
-		if (temp_input_is_active) {
-			// Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set
-			const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0;
-			return TempInputScalar(frame_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : nullptr, is_clamp_input ? p_max : nullptr);
-		}
-
-		// Draw frame
-		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
-                                                                                                  ImGuiCol_FrameBg);
-		const ImU32 frame_col_after = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered :
-                                                                                                                  ImGuiCol_FrameBg);
-		RenderNavHighlight(frame_bb, id);
-
-		// Slider behavior
-		ImRect     grab_bb;
-		const bool value_changed = SliderBehavior(frame_bb, id, data_type, p_data, p_min, p_max, format, flags, &grab_bb);
-		if (value_changed)
-			MarkItemEdited(id);
-
-		ImRect draw_bb = frame_bb;
-		if (sliderThickness != 1.0f) {
-			const auto shrink_amount = static_cast<float>(static_cast<int>((frame_bb.Max.y - frame_bb.Min.y) * 0.5f * (1.0f - sliderThickness)));
-			draw_bb.Min.y += shrink_amount;
-			draw_bb.Max.y -= shrink_amount;
-		}
-
-		// Render track
-		window->DrawList->AddRectFilled(draw_bb.Min, ImVec2(grab_bb.Min.x + (grab_bb.Max.x - grab_bb.Min.x) * 0.65f, draw_bb.Max.y), frame_col, style.FrameRounding, ImDrawCornerFlags_Left);
-		window->DrawList->AddRectFilled(ImVec2(grab_bb.Max.x - (grab_bb.Max.x - grab_bb.Min.x) * 0.35f, draw_bb.Min.y), draw_bb.Max, frame_col_after, style.FrameRounding, ImDrawCornerFlags_Right);
-
-		// Render grab
-		if (grab_bb.Max.x > grab_bb.Min.x)
-			window->DrawList->AddRectFilled(grab_bb.Min, grab_bb.Max, GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab), style.GrabRounding);
-
-		// Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
-		char        value_buf[64];
-		const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
-		if (g.LogEnabled)
-			LogSetNextTextDecoration("{", "}");
-		RenderTextClipped(frame_bb.Min, frame_bb.Max, value_buf, value_buf_end, nullptr, ImVec2(0.5f, 0.5f));
-
-		if (label_size.x > 0.0f)
-			RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
-
-		IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | (temp_input_allowed ? ImGuiItemStatusFlags_Inputable : 0));
-		return value_changed;
-	}
-
-	bool ThinSliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, ImGuiSliderFlags flags)
-	{
-		const auto result = ThinSliderScalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags, 0.5f);
-		if (result) {
-			RE::PlaySound("UIMenuPrevNext");
-		}
-		return result;
-	}
-
-	bool ThinSliderInt(const char* label, int* v, int v_min, int v_max, const char* format, ImGuiSliderFlags flags)
-	{
-		const auto result = ThinSliderScalar(label, ImGuiDataType_S32, v, &v_min, &v_max, format, flags, 0.5f);
-		if (result) {
-			RE::PlaySound("UIMenuPrevNext");
-		}
-		return result;
-	}
-
 	bool ActivateOnHover()
 	{
 		if (!IsItemActive() && IsItemFocused()) {
@@ -459,14 +103,5 @@ namespace ImGui
 			return true;
 		}
 		return false;
-	}
-
-	bool OpenTabOnHover(const char* a_label, const ImGuiTabItemFlags flags)
-	{
-		const bool selected = BeginTabItem(a_label, nullptr, flags);
-		if (!selected && ActivateOnHover()) {
-			RE::PlaySound("UIJournalTabsSD");
-		}
-		return selected;
 	}
 }

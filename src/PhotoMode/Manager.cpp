@@ -2,10 +2,8 @@
 
 #include "Hotkeys.h"
 #include "ImGui/IconsFonts.h"
-#include "ImGui/Util.h"
+#include "ImGui/Widgets.h"
 #include "Screenshots/Manager.h"
-
-#include "ENB/ENB.h"
 
 namespace PhotoMode
 {
@@ -22,7 +20,7 @@ namespace PhotoMode
 		freezeTimeOnStart = a_ini.GetBoolValue("Settings", "bFreezeTimeOnStart", freezeTimeOnStart);
 	}
 
-	bool Manager::GetValid()
+	bool Manager::IsValid()
 	{
 		static constexpr std::array badMenus{
 			RE::MainMenu::MENU_NAME,
@@ -54,6 +52,11 @@ namespace PhotoMode
 		return true;
 	}
 
+	bool Manager::ShouldBlockInput()
+	{
+		return RE::UI::GetSingleton()->IsMenuOpen(RE::Console::MENU_NAME);
+	}
+
 	bool Manager::IsActive() const
 	{
 		return activated;
@@ -77,7 +80,7 @@ namespace PhotoMode
 
 		menusAlreadyHidden = !RE::UI::GetSingleton()->IsShowingMenus();
 
-		//disable saving
+		// disable saving
 		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.set(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
 
 		// toggle freecam
@@ -141,14 +144,6 @@ namespace PhotoMode
 	{
 		Revert(true);
 
-		// reset controls
-		const auto controlMap = RE::ControlMap::GetSingleton();
-		controlMap->ToggleControls(controlFlags, true);
-		controlMap->ignoreKeyboardMouse = false;
-
-		// allow saving
-		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.reset(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
-
 		// reset camera
 		switch (cameraState) {
 		case RE::CameraState::kFirstPerson:
@@ -161,13 +156,21 @@ namespace PhotoMode
 			break;
 		}
 
+		// reset controls
+		allowTextInput = false;
+		RE::ControlMap::GetSingleton()->AllowTextInput(false);
+		RE::ControlMap::GetSingleton()->ToggleControls(controlFlags, true);
+
+		// allow saving
+		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.reset(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
+
 		activated = false;
 	}
 
 	void Manager::ToggleActive()
 	{
 		if (!IsActive()) {
-			if (GetValid() && !RE::UI::GetSingleton()->IsMenuOpen(RE::Console::MENU_NAME)) {
+			if (IsValid() && !ShouldBlockInput()) {
 				RE::PlaySound("UIMenuOK");
 				Activate();
 			}
@@ -179,7 +182,7 @@ namespace PhotoMode
 		}
 	}
 
-	bool Manager::GetResetAll() const
+    bool Manager::GetResetAll() const
 	{
 		return resetAll;
 	}
@@ -206,15 +209,22 @@ namespace PhotoMode
 
 	bool Manager::OnFrameUpdate()
 	{
-		if (!GetValid()) {
+		if (!IsValid()) {
 			Deactivate();
 			return false;
 		}
 
 		// disable controls
-		const auto controlMap = RE::ControlMap::GetSingleton();
-		controlMap->ignoreKeyboardMouse = ImGui::GetIO().WantTextInput;
-		controlMap->ToggleControls(controlFlags, false);
+		if (ImGui::GetIO().WantTextInput) {
+			if (!allowTextInput) {
+				allowTextInput = true;
+				RE::ControlMap::GetSingleton()->AllowTextInput(true);
+			}
+		} else if (allowTextInput) {
+			allowTextInput = false;
+			RE::ControlMap::GetSingleton()->AllowTextInput(false);
+		}
+		RE::ControlMap::GetSingleton()->ToggleControls(controlFlags, false);
 
 		timeTab.OnFrameUpdate();
 
@@ -321,7 +331,7 @@ namespace PhotoMode
 				ImGui::Spacing();
 
 				if (updateKeyboardFocus) {
-					ImGui::SetKeyboardFocusHere(currentTab == TAB_TYPE::kFilters ? -1 : 0);
+					ImGui::SetKeyboardFocusHere();
 					RE::PlaySound("UIJournalTabsSD");
 					updateKeyboardFocus = false;
 				}
@@ -362,9 +372,8 @@ namespace PhotoMode
 		const static auto offset = viewport->Size.y / 20.25f;
 
 		ImGui::SetNextWindowPos(ImVec2(center.x, viewport->Size.y - offset), ImGuiCond_Always, ImVec2(0.5, 0.5));
-		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x / 3.5f, offset), ImGuiCond_Always);
 
-		ImGui::Begin("##Bar", nullptr, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration);  // same offset as control window
+		ImGui::Begin("##Bar", nullptr, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize);  // same offset as control window
 		{
 			ImGui::ExtendWindowPastBorder();
 

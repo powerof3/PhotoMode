@@ -35,6 +35,8 @@ namespace IconFont
 
 		const ImageData* GetStepperLeft() const;
 		const ImageData* GetStepperRight() const;
+		const ImageData* GetCheckbox() const;
+		const ImageData* GetCheckboxFilled() const;
 
 		const ImageData*           GetIcon(std::uint32_t key);
 		std::set<const ImageData*> GetIcons(const std::set<std::uint32_t>& keys);
@@ -64,6 +66,8 @@ namespace IconFont
 
 		ImageData stepperLeft{ L"StepperLeft"sv };
 		ImageData stepperRight{ L"StepperRight"sv };
+		ImageData checkbox{ L"Checkbox"sv };
+		ImageData checkboxFilled{ L"Checkbox-Filled"sv };
 
 		ImageData unknownKey{ L"UnknownKey"sv };
 

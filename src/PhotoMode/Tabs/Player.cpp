@@ -149,7 +149,7 @@ namespace PhotoMode
 	{
 		static auto player = RE::PlayerCharacter::GetSingleton();
 
-		if (ImGui::OnOffToggle("$PM_ShowPlayer"_T, &currentState.visible, "$PM_YES"_T, "$PM_NO"_T)) {
+		if (ImGui::CheckBox("$PM_ShowPlayer"_T, &currentState.visible)) {
 			player->Get3D()->CullGeometry(!currentState.visible);
 		}
 
@@ -157,10 +157,11 @@ namespace PhotoMode
 
 		ImGui::BeginDisabled(!currentState.visible);
 		{
-			if (ImGui::BeginTabBar("Player#TopBar", ImGuiTabBarFlags_FittingPolicyResizeDown)) {
+			if (ImGui::BeginTabBarCustom("Player#TopBar", 0)) {
 				// ugly af, improve later
 				const float width = ImGui::GetContentRegionAvail().x / 4;
-				ImGui::SetNextItemWidth(width);
+
+			    ImGui::SetNextItemWidth(width);
 				if (ImGui::OpenTabOnHover("$PM_Expressions"_T)) {
 					using namespace MFG;
 
@@ -189,7 +190,8 @@ namespace PhotoMode
 					}
 					ImGui::EndTabItem();
 				}
-				ImGui::SetNextItemWidth(width);
+
+			    ImGui::SetNextItemWidth(width);
 				if (ImGui::OpenTabOnHover("$PM_Poses"_T)) {
 					idles.GetFormResultFromCombo([&](const auto& a_idle) {
 						if (idlePlayed) {
@@ -205,7 +207,8 @@ namespace PhotoMode
 					});
 					ImGui::EndTabItem();
 				}
-				ImGui::SetNextItemWidth(width);
+
+			    ImGui::SetNextItemWidth(width);
 				if (ImGui::OpenTabOnHover("$PM_Effects"_T)) {
 					effectShaders.GetFormResultFromCombo([&](const auto& a_effectShader) {
 						player->ApplyEffectShader(a_effectShader);
@@ -222,7 +225,8 @@ namespace PhotoMode
 					});
 					ImGui::EndTabItem();
 				}
-				ImGui::SetNextItemWidth(width);
+
+			    ImGui::SetNextItemWidth(width);
 				if (ImGui::OpenTabOnHover("$PM_Transforms"_T)) {
 					currentState.rotZ = RE::rad_to_deg(player->GetAngleZ());
 					if (ImGui::Slider("$PM_Rotation"_T, &currentState.rotZ, 0.0f, 360.0f)) {

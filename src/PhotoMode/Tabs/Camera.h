@@ -62,6 +62,7 @@ namespace PhotoMode
 		bool   revertENB{ false };
 
 		float currentViewRoll{};
+		float currentViewRollDegrees{};
 	};
 
 	namespace CameraGrid

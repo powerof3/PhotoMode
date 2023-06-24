@@ -2,7 +2,9 @@ set(sources ${sources}
 	src/Hooks.cpp
 	src/ImGui/IconsFonts.cpp
 	src/ImGui/Renderer.cpp
+	src/ImGui/Styles.cpp
 	src/ImGui/Util.cpp
+	src/ImGui/Widgets.cpp
 	src/Input.cpp
 	src/PCH.cpp
 	src/Papyrus.cpp

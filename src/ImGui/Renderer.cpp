@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "IconsFonts.h"
+#include "Styles.h"
 
 #include "PhotoMode/Manager.h"
 
@@ -48,19 +49,9 @@ namespace PhotoMode::Renderer
 
 				auto& io = ImGui::GetIO();
 				io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
-
 				io.IniFilename = nullptr;
 
-				auto& style = ImGui::GetStyle();
-				style.WindowBorderSize = 3.0f;
-				style.TabRounding = 0.0f;
-
-				style.Colors[ImGuiCol_WindowBg] = { 0.0f, 0.0f, 0.0f, 0.62f };
-				style.Colors[ImGuiCol_ChildBg] = { 0.0f, 0.0f, 0.0f, 0.62f };
-
-				style.Colors[ImGuiCol_Border] = { 0.396f, 0.404f, 0.412f, 0.62f };
-				style.Colors[ImGuiCol_Separator] = { 0.396f, 0.404f, 0.412f, 0.62f };
-				style.Colors[ImGuiCol_TextDisabled] = { 0.604f, 0.604f, 0.6078f, 1.0f };
+				ImGui::StyleVanilla();
 
 				if (!ImGui_ImplWin32_Init(desc.OutputWindow)) {
 					logger::error("ImGui initialization failed (Win32)");
@@ -102,7 +93,7 @@ namespace PhotoMode::Renderer
 				return;
 			}
 
-			const auto photoMode = PhotoMode::Manager::GetSingleton();
+			const auto photoMode = MANAGER(PhotoMode);
 
 			if (!photoMode->IsActive() || !photoMode->OnFrameUpdate()) {
 				return;
@@ -113,12 +104,12 @@ namespace PhotoMode::Renderer
 			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
+			{
+				// disable windowing
+				GImGui->NavWindowingTarget = nullptr;
 
-			// disable windowing
-			GImGui->NavWindowingTarget = nullptr;
-
-			photoMode->Draw();
-
+				photoMode->Draw();
+			}
 			ImGui::EndFrame();
 			ImGui::Render();
 			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

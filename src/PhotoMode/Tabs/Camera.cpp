@@ -1,7 +1,7 @@
 #include "Camera.h"
 
 #include "ENB/ENB.h"
-#include "ImGui/Util.h"
+#include "ImGui/Widgets.h"
 #include "Translation.h"
 
 namespace PhotoMode
@@ -29,7 +29,9 @@ namespace PhotoMode
 		vanillaDOF.farDist = DOF::farDist;
 		vanillaDOF.farRange = DOF::farRange;
 
-		enbDOF.Get();
+		if (ENB::IsInstalled()) {
+			enbDOF.Get();
+		}
 	}
 
 	void Camera::OriginalState::Revert(bool a_deactivate) const
@@ -78,8 +80,13 @@ namespace PhotoMode
 		ImGui::EnumSlider("$PM_Grid"_T, &CameraGrid::gridType, CameraGrid::gridTypes);
 
 		ImGui::Slider("$PM_FieldOfView"_T, &RE::PlayerCamera::GetSingleton()->worldFOV, 5.0f, 150.0f);
-		ImGui::Slider("$PM_ViewRoll"_T, &currentViewRoll, -RE::NI_PI, RE::NI_PI);
-		ImGui::Slider("$PM_TranslateSpeed"_T,
+
+		currentViewRollDegrees = RE::rad_to_deg(currentViewRoll);
+		if (ImGui::Slider("$PM_ViewRoll"_T, &currentViewRollDegrees, -90.0f, 90.0f)) {
+			currentViewRoll = RE::deg_to_rad(currentViewRollDegrees);
+		}
+
+	    ImGui::Slider("$PM_TranslateSpeed"_T,
 			&FreeCamera::translateSpeed,  // fFreeCameraTranslationSpeed:Camera
 			0.1f, 50.0f);
 
@@ -87,12 +94,12 @@ namespace PhotoMode
 			lastDOF = curDOF;
 			curDOF.Get();
 
-			ImGui::OnOffToggle("$PM_DepthOfField"_T, &curDOF.enabled, "$PM_YES"_T, "$PM_NO"_T);
+			ImGui::CheckBox("$PM_DepthOfField"_T, &curDOF.enabled);
 
 		} else if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
 			const auto dofEffect = static_cast<RE::ImageSpaceEffectDepthOfField*>(effect);
 
-			ImGui::OnOffToggle("$PM_DepthOfField"_T, &dofEffect->enabled, "$PM_YES"_T, "$PM_NO"_T);
+			ImGui::CheckBox("$PM_DepthOfField"_T, &dofEffect->enabled);
 
 			ImGui::BeginDisabled(!dofEffect->enabled);
 			{

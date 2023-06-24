@@ -400,7 +400,7 @@ namespace Input
 
 		for (auto event = *a_evn; event; event = event->next) {
 			if (!photoMode->IsActive()) {
-				// process multi-screenshots
+				// process vanilla multi-screenshots
 				if (const auto buttonEvent = event->AsButtonEvent()) {
 					if (buttonEvent->QUserEvent() == RE::UserEvents::GetSingleton()->screenshot) {
 						if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > keyHeldDuration) {
@@ -409,8 +409,7 @@ namespace Input
 					}
 				}
 			} else {
-				// skip input if console is open
-				if (RE::UI::GetSingleton()->IsMenuOpen(RE::Console::MENU_NAME)) {
+				if (photoMode->ShouldBlockInput()) {
 					return EventResult::kContinue;
 				}
 
@@ -441,14 +440,10 @@ namespace Input
 					}
 
 					if (!io.WantTextInput) {
-						if (hotKey == hotKeys->NextTabKey()) {
-							if (buttonEvent->IsDown()) {
-								photoMode->NavigateTab(false);
-							}
-						} else if (hotKey == hotKeys->PreviousTabKey()) {
-							if (buttonEvent->IsDown()) {
-								photoMode->NavigateTab(true);
-							}
+						if (hotKey == hotKeys->NextTabKey() && buttonEvent->IsDown()) {
+							photoMode->NavigateTab(false);
+						} else if (hotKey == hotKeys->PreviousTabKey() && buttonEvent->IsDown()) {
+							photoMode->NavigateTab(true);
 						} else if (hotKey == hotKeys->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
 								QueueScreenshot(false);
@@ -461,11 +456,9 @@ namespace Input
 							} else if (buttonEvent->HeldDuration() > keyHeldDuration) {
 								photoMode->DoResetAll();
 							}
-						} else if (hotKey == hotKeys->ToggleMenusKey()) {
-							if (buttonEvent->IsDown()) {
-								const auto UI = RE::UI::GetSingleton();
-								UI->ShowMenus(!UI->IsShowingMenus());
-							}
+						} else if (hotKey == hotKeys->ToggleMenusKey() && buttonEvent->IsDown()) {
+							const auto UI = RE::UI::GetSingleton();
+							UI->ShowMenus(!UI->IsShowingMenus());
 							RE::PlaySound("UIMenuFocus");
 						}
 					}

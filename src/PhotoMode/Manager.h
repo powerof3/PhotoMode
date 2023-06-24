@@ -17,7 +17,8 @@ namespace PhotoMode
 		static void Register();
 		void        LoadMCMSettings(const CSimpleIniA& a_ini);
 
-		static bool        GetValid();
+		static bool        IsValid();
+        static bool        ShouldBlockInput();
 		[[nodiscard]] bool IsActive() const;
 		void               Activate();
 		void               Deactivate();
@@ -84,9 +85,12 @@ namespace PhotoMode
 		bool updateKeyboardFocus{ false };
 
 		RE::CameraState cameraState{ RE::CameraState::kThirdPerson };
-		bool            menusAlreadyHidden{ false };
-		bool            resetWindow{ true };
-		bool            resetAll{ false };
+
+		bool resetWindow{ true };
+		bool resetAll{ false };
+
+		bool menusAlreadyHidden{ false };
+		bool allowTextInput{ false };
 
 		float freeCameraSpeed{ 4.0f };
 		bool  freezeTimeOnStart{ true };

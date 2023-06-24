@@ -1,6 +1,6 @@
 #include "Time.h"
 
-#include "ImGui/Util.h"
+#include "ImGui/Widgets.h"
 #include "Translation.h"
 
 namespace PhotoMode
@@ -61,7 +61,7 @@ namespace PhotoMode
 
 	void Time::Draw()
 	{
-		ImGui::OnOffToggle("$PM_FreezeTime"_T, &RE::Main::GetSingleton()->freezeTime, "$PM_YES"_T, "$PM_NO"_T);
+		ImGui::CheckBox("$PM_FreezeTime"_T, &RE::Main::GetSingleton()->freezeTime);
 		ImGui::Slider("$PM_GlobalTimeMult"_T, &RE::BSTimer::GetCurrentGlobalTimeMult(), 0.0f, 2.0f);
 
 		ImGui::Dummy({ 0, 5 });

@@ -9,7 +9,9 @@ set(headers ${headers}
 	src/ImGui/IconsFontAwesome6.h
 	src/ImGui/IconsFonts.h
 	src/ImGui/Renderer.h
+	src/ImGui/Styles.h
 	src/ImGui/Util.h
+	src/ImGui/Widgets.h
 	src/Input.h
 	src/PCH.h
 	src/Papyrus.h
