@@ -128,7 +128,7 @@ namespace ImGui
 		// Copied from ListBoxHeader
 		// If popup_max_height_in_items == -1, default height is maximum 7.
 		const float height_in_items_f = (popup_max_height_in_items < 0 ? ImMin(items_count, 7) :
-																		 popup_max_height_in_items) +
+                                                                         popup_max_height_in_items) +
 		                                0.25f;
 		ImVec2 size;
 		size.x = 0.0f;
@@ -234,7 +234,7 @@ namespace ImGui
 		static auto checkbox = MANAGER(IconFont)->GetCheckbox();
 		static auto checkboxFilled = MANAGER(IconFont)->GetCheckboxFilled();
 
-        const auto newLabel = LeftAlignedText(label);
+		const auto newLabel = LeftAlignedText(label);
 
 		AlignForWidth(checkbox->size.x);
 
@@ -242,7 +242,7 @@ namespace ImGui
 		PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
 		PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
 
-	    ImageButton(newLabel.c_str(), *a_toggle ? checkboxFilled->srView : checkbox->srView, checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
+		ImageButton(newLabel.c_str(), *a_toggle ? checkboxFilled->srView : checkbox->srView, checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
 			GetFocusID() == GetCurrentWindow()->GetID(newLabel.c_str()) ? ImVec4(1, 1, 1, 1) : GetStyle().Colors[ImGuiCol_TextDisabled]);
 
 		PopStyleColor(3);
@@ -320,7 +320,7 @@ namespace ImGui
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
-																								  ImGuiCol_FrameBg);
+                                                                                                  ImGuiCol_FrameBg);
 		//RenderNavHighlight(frame_bb, id);
 		RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
 		window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, g.ActiveId == id ? IM_COL32(255, 255, 255, 204) : IM_COL32(255, 255, 255, 62), g.Style.FrameRounding, 0, 1.5f);
@@ -416,7 +416,7 @@ namespace ImGui
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
-																								  ImGuiCol_FrameBg);
+                                                                                                  ImGuiCol_FrameBg);
 		// RenderNavHighlight(frame_bb, id);
 		// RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, g.Style.FrameRounding);
 
@@ -573,7 +573,7 @@ namespace ImGui
 		if (!wasActive)
 			ImGui::PushStyleColor(ImGuiCol_Text, GetStyle().Colors[ImGuiCol_TextDisabled]);
 
-        const bool isActive = ImGui::BeginTabItem(label, p_open, flags);
+		const bool isActive = ImGui::BeginTabItem(label, p_open, flags);
 
 		if (!wasActive)
 			ImGui::PopStyleColor();

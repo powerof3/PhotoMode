@@ -154,16 +154,16 @@ namespace IconFont
 		return &stepperRight;
 	}
 
-    const ImageData* Manager::GetCheckbox() const
+	const ImageData* Manager::GetCheckbox() const
 	{
 		return &checkbox;
 	}
-    const ImageData* Manager::GetCheckboxFilled() const
+	const ImageData* Manager::GetCheckboxFilled() const
 	{
 		return &checkboxFilled;
 	}
 
-    const ImageData* Manager::GetIcon(std::uint32_t key)
+	const ImageData* Manager::GetIcon(std::uint32_t key)
 	{
 		switch (key) {
 		case KEY::kUp:

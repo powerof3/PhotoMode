@@ -161,7 +161,7 @@ namespace PhotoMode
 				// ugly af, improve later
 				const float width = ImGui::GetContentRegionAvail().x / 4;
 
-			    ImGui::SetNextItemWidth(width);
+				ImGui::SetNextItemWidth(width);
 				if (ImGui::OpenTabOnHover("$PM_Expressions"_T)) {
 					using namespace MFG;
 
@@ -191,7 +191,7 @@ namespace PhotoMode
 					ImGui::EndTabItem();
 				}
 
-			    ImGui::SetNextItemWidth(width);
+				ImGui::SetNextItemWidth(width);
 				if (ImGui::OpenTabOnHover("$PM_Poses"_T)) {
 					idles.GetFormResultFromCombo([&](const auto& a_idle) {
 						if (idlePlayed) {
@@ -208,7 +208,7 @@ namespace PhotoMode
 					ImGui::EndTabItem();
 				}
 
-			    ImGui::SetNextItemWidth(width);
+				ImGui::SetNextItemWidth(width);
 				if (ImGui::OpenTabOnHover("$PM_Effects"_T)) {
 					effectShaders.GetFormResultFromCombo([&](const auto& a_effectShader) {
 						player->ApplyEffectShader(a_effectShader);
@@ -226,7 +226,7 @@ namespace PhotoMode
 					ImGui::EndTabItem();
 				}
 
-			    ImGui::SetNextItemWidth(width);
+				ImGui::SetNextItemWidth(width);
 				if (ImGui::OpenTabOnHover("$PM_Transforms"_T)) {
 					currentState.rotZ = RE::rad_to_deg(player->GetAngleZ());
 					if (ImGui::Slider("$PM_Rotation"_T, &currentState.rotZ, 0.0f, 360.0f)) {

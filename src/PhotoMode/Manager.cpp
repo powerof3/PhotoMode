@@ -182,7 +182,7 @@ namespace PhotoMode
 		}
 	}
 
-    bool Manager::GetResetAll() const
+	bool Manager::GetResetAll() const
 	{
 		return resetAll;
 	}

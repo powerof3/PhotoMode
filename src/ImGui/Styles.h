@@ -4,7 +4,7 @@ namespace ImGui
 {
 	inline ImGuiStyle vanillaStyle;
 
-    void DrawStyleEditor();
+	void DrawStyleEditor();
 
-    void StyleVanilla();
+	void StyleVanilla();
 }

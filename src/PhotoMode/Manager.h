@@ -18,7 +18,7 @@ namespace PhotoMode
 		void        LoadMCMSettings(const CSimpleIniA& a_ini);
 
 		static bool        IsValid();
-        static bool        ShouldBlockInput();
+		static bool        ShouldBlockInput();
 		[[nodiscard]] bool IsActive() const;
 		void               Activate();
 		void               Deactivate();

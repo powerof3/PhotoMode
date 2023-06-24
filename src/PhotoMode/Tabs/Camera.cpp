@@ -86,7 +86,7 @@ namespace PhotoMode
 			currentViewRoll = RE::deg_to_rad(currentViewRollDegrees);
 		}
 
-	    ImGui::Slider("$PM_TranslateSpeed"_T,
+		ImGui::Slider("$PM_TranslateSpeed"_T,
 			&FreeCamera::translateSpeed,  // fFreeCameraTranslationSpeed:Camera
 			0.1f, 50.0f);
 

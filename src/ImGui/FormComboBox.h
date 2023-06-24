@@ -138,7 +138,7 @@ namespace ImGui
 				ImGui::PushStyleColor(ImGuiCol_NavHighlight, IM_COL32(242, 242, 242, 158));
 				ImGui::PushStyleColor(ImGuiCol_Header, GetColorU32(ImGuiCol_TextDisabled));
 
-			    ImGui::PushID(name.c_str());
+				ImGui::PushID(name.c_str());
 				ImGui::PushMultiItemsWidths(2, ImGui::GetContentRegionAvail().x);
 
 				if (ImGui::ComboWithFilter("##mods", &index, modNames)) {
