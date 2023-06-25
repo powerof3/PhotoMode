@@ -167,6 +167,7 @@ namespace ImGui
 			} else if (IsKeyPressed(ImGuiKey_Escape) || IsKeyPressed(ImGuiKey_NavGamepadCancel)) {
 				value_changed = false;
 				CloseCurrentPopup();
+				RE::PlaySound("UIMenuCancel");
 			}
 		}
 		ImGui::PopStyleColor();
@@ -256,7 +257,7 @@ namespace ImGui
 		}
 
 		if (selected) {
-			RE::PlaySound("UIMenuPrevNext");
+			RE::PlaySound("UIMenuFocus");
 		}
 		return selected;
 	}

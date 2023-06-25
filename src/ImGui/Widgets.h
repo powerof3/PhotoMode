@@ -34,7 +34,7 @@ namespace ImGui
 			if (pressedLeft || pressedRight) {
 				value_changed = true;
 				*index = static_cast<E>(uIndex);
-				RE::PlaySound("UIMenuFocus");
+				RE::PlaySound("UIMenuPrevNext");
 			}
 		}
 
@@ -68,7 +68,7 @@ namespace ImGui
 			result = ImGui::DragIntEx(newLabel.c_str(), v, v_speed, v_min, v_max, format ? format : "%d", flags);
 		}
 		if (result) {
-			RE::PlaySound("UIMenuFocus");
+			RE::PlaySound("UIMenuPrevNext");
 		}
 		ActivateOnHover();
 
@@ -96,7 +96,7 @@ namespace ImGui
 			result = ImGui::ThinSliderInt(newLabel.c_str(), v, v_min, v_max, format ? format : "%d", flags);
 		}
 		if (result) {
-			RE::PlaySound("UIMenuFocus");
+			RE::PlaySound("UIMenuPrevNext");
 		}
 		ActivateOnHover();
 
