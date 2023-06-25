@@ -110,10 +110,10 @@ namespace ImGui
 		return false;
 	}
 
-    void UnfocusOnEscape()
+	void UnfocusOnEscape()
 	{
 		ImGuiContext& g = *GImGui;
-	    if (IsKeyDown(ImGuiKey_Escape)) {
+		if (IsKeyDown(ImGuiKey_Escape)) {
 			g.NavId = 0;
 			g.NavDisableHighlight = true;
 			SetWindowFocus(nullptr);

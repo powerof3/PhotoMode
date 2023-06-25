@@ -47,7 +47,7 @@ namespace PhotoMode::Hotkeys
 			void LoadKeys(const CSimpleIniA& a_ini);
 
 			bool                    IsInvalid() const;
-            std::set<std::uint32_t> GetKeys() const;
+			std::set<std::uint32_t> GetKeys() const;
 
 			bool ProcessKeyPress(RE::InputEvent* const* a_event, std::function<void()> a_callback);
 
