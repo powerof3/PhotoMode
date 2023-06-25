@@ -15,4 +15,6 @@ namespace ImGui
 	void CenteredText(const char* label, bool vertical = false);
 
 	bool ActivateOnHover();
+
+	void UnfocusOnEscape();
 }

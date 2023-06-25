@@ -98,10 +98,25 @@ namespace ImGui
 
 	bool ActivateOnHover()
 	{
-		if (!IsItemActive() && IsItemFocused()) {
-			ActivateItemByID(GetItemID());
-			return true;
+		if (!IsItemActive()) {
+			if (IsItemFocused()) {
+				ActivateItemByID(GetItemID());
+				return true;
+			}
+		} else {
+			UnfocusOnEscape();
 		}
+
 		return false;
+	}
+
+    void UnfocusOnEscape()
+	{
+		ImGuiContext& g = *GImGui;
+	    if (IsKeyDown(ImGuiKey_Escape)) {
+			g.NavId = 0;
+			g.NavDisableHighlight = true;
+			SetWindowFocus(nullptr);
+		}
 	}
 }

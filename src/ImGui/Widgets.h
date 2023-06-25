@@ -38,6 +38,10 @@ namespace ImGui
 			}
 		}
 
+		if (IsItemFocused()) {
+			UnfocusOnEscape();
+		}
+
 		return value_changed;
 	}
 

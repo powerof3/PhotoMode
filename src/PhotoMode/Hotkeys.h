@@ -12,8 +12,7 @@ namespace PhotoMode::Hotkeys
 	public:
 		void LoadHotKeys(const CSimpleIniA& a_ini);
 
-		const std::set<std::uint32_t>& TogglePhotoModeKeys() const;
-		void                           TogglePhotoMode(RE::InputEvent* const* a_event);
+		void TogglePhotoMode(RE::InputEvent* const* a_event);
 
 		std::uint32_t ResetKey() const;
 		std::uint32_t TakePhotoKey() const;
@@ -45,9 +44,12 @@ namespace PhotoMode::Hotkeys
 
 		struct KeyCombo
 		{
-			void                           LoadKeys(const CSimpleIniA& a_ini);
-			const std::set<std::uint32_t>& GetKeys() const;
-			bool                           ProcessKeyPress(RE::InputEvent* const* a_event, std::function<void()> a_callback);
+			void LoadKeys(const CSimpleIniA& a_ini);
+
+			bool                    IsInvalid() const;
+            std::set<std::uint32_t> GetKeys() const;
+
+			bool ProcessKeyPress(RE::InputEvent* const* a_event, std::function<void()> a_callback);
 
 		private:
 			struct KeyComboImpl

@@ -17,13 +17,12 @@ namespace PhotoMode::Hotkeys
 		previousTab.LoadKeys(a_ini, "iPreviousTab");
 	}
 
-	const std::set<std::uint32_t>& Manager::TogglePhotoModeKeys() const
-	{
-		return togglePhotoMode.GetKeys();
-	}
-
 	void Manager::TogglePhotoMode(RE::InputEvent* const* a_event)
 	{
+		if (togglePhotoMode.IsInvalid()) {
+			return;
+		}
+
 		togglePhotoMode.ProcessKeyPress(a_event, []() {
 			MANAGER(PhotoMode)->ToggleActive();
 		});
@@ -73,7 +72,12 @@ namespace PhotoMode::Hotkeys
 		gamePad.LoadKeys(a_ini, "iOpenPhotoModeGamePad");
 	}
 
-	const std::set<std::uint32_t>& Manager::KeyCombo::GetKeys() const
+	bool Manager::KeyCombo::IsInvalid() const
+	{
+		return keyboard.keys.empty() && gamePad.keys.empty();
+	}
+
+	std::set<std::uint32_t> Manager::KeyCombo::GetKeys() const
 	{
 		if (Input::GetInputType() == Input::TYPE::kKeyboard) {
 			return keyboard.keys;
@@ -104,7 +108,7 @@ namespace PhotoMode::Hotkeys
 			}
 		}
 
-		if (pressed == keyboard.keys || pressed == gamePad.keys) {
+		if (!pressed.empty() && (pressed == keyboard.keys || pressed == gamePad.keys)) {
 			if (!triggered) {
 				triggered = true;
 				a_callback();

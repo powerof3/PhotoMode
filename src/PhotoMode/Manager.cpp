@@ -358,6 +358,11 @@ namespace PhotoMode
 				default:
 					break;
 				}
+
+				if (ImGui::IsKeyReleased(ImGuiKey_Escape) && (!ImGui::IsAnyItemFocused() || !ImGui::IsWindowFocused())) {
+					Deactivate();
+					RE::PlaySound("UIMenuCancel");
+				}
 			}
 			ImGui::EndChild();
 		}

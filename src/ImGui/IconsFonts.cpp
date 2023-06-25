@@ -197,8 +197,12 @@ namespace IconFont
 	std::set<const ImageData*> Manager::GetIcons(const std::set<std::uint32_t>& keys)
 	{
 		std::set<const ImageData*> icons{};
-		for (auto& key : keys) {
-			icons.insert(GetIcon(key));
+		if (keys.empty()) {
+			icons.insert(&unknownKey);
+		} else {
+			for (auto& key : keys) {
+				icons.insert(GetIcon(key));
+			}
 		}
 		return icons;
 	}

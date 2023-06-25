@@ -52,7 +52,7 @@ void ImGui::StyleVanilla()
 	colors[ImGuiCol_TabUnfocused] = colors[ImGuiCol_Tab];
 	colors[ImGuiCol_TabUnfocusedActive] = colors[ImGuiCol_FrameBgHovered];
 
-	colors[ImGuiCol_NavHighlight] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+	colors[ImGuiCol_NavHighlight] = ImVec4();
 
 	vanillaStyle = style;
 }
