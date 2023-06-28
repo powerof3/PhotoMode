@@ -336,10 +336,10 @@ namespace PhotoMode
 						resetPlayerTabs = true;
 					}
 
-				    ImGui::SetKeyboardFocusHere();
+					ImGui::SetKeyboardFocusHere();
 					RE::PlaySound("UIJournalTabsSD");
 
-				    updateKeyboardFocus = false;
+					updateKeyboardFocus = false;
 				}
 
 				switch (currentTab) {
@@ -359,7 +359,7 @@ namespace PhotoMode
 					{
 						playerTab.Draw(resetPlayerTabs);
 
-				        if (resetPlayerTabs) {
+						if (resetPlayerTabs) {
 							resetPlayerTabs = false;
 						}
 					}
