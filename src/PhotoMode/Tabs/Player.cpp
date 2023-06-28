@@ -145,7 +145,7 @@ namespace PhotoMode
 		}
 	}
 
-	void Player::Draw()
+	void Player::Draw(bool a_resetTabs)
 	{
 		static auto player = RE::PlayerCharacter::GetSingleton();
 
@@ -161,8 +161,12 @@ namespace PhotoMode
 				// ugly af, improve later
 				const float width = ImGui::GetContentRegionAvail().x / 4;
 
+				if (a_resetTabs) {
+					ImGui::SetKeyboardFocusHere();
+				}
+
 				ImGui::SetNextItemWidth(width);
-				if (ImGui::OpenTabOnHover("$PM_Expressions"_T)) {
+				if (ImGui::OpenTabOnHover("$PM_Expressions"_T, a_resetTabs ? ImGuiTabItemFlags_SetSelected : 0)) {
 					using namespace MFG;
 
 					if (ImGui::EnumSlider("$PM_Expression"_T, &expressionData.modifier, expressions)) {

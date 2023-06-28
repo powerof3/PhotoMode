@@ -11,7 +11,7 @@ void ImGui::DrawStyleEditor()
 
 void ImGui::StyleVanilla()
 {
-	constexpr auto bg_alpha = 0.62f;
+	constexpr auto bg_alpha = 0.66f;
 	constexpr auto disabled_alpha = 0.30f;
 
 	constexpr auto background = ImVec4(0.0f, 0.0f, 0.0f, bg_alpha);
@@ -47,10 +47,10 @@ void ImGui::StyleVanilla()
 	colors[ImGuiCol_HeaderActive] = ImVec4(1.0f, 1.0f, 1.0f, 0.1f);
 
 	colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.2f, disabled_alpha);
-	colors[ImGuiCol_TabHovered] = colors[ImGuiCol_FrameBgHovered];
-	colors[ImGuiCol_TabActive] = colors[ImGuiCol_FrameBgHovered];
+	colors[ImGuiCol_TabHovered] = ImVec4(0.2f, 0.2f, 0.2f, 0.8f);
+	colors[ImGuiCol_TabActive] = colors[ImGuiCol_TabHovered];
 	colors[ImGuiCol_TabUnfocused] = colors[ImGuiCol_Tab];
-	colors[ImGuiCol_TabUnfocusedActive] = colors[ImGuiCol_FrameBgHovered];
+	colors[ImGuiCol_TabUnfocusedActive] = colors[ImGuiCol_TabHovered];
 
 	colors[ImGuiCol_NavHighlight] = ImVec4();
 

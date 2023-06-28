@@ -128,6 +128,7 @@ namespace PhotoMode
 				RE::UI::GetSingleton()->ShowMenus(true);
 			}
 			resetWindow = true;
+			resetPlayerTabs = true;
 		} else {
 			RE::PlaySound("UIMenuOK");
 
@@ -331,9 +332,14 @@ namespace PhotoMode
 				ImGui::Spacing();
 
 				if (updateKeyboardFocus) {
-					ImGui::SetKeyboardFocusHere();
+					if (currentTab == TAB_TYPE::kPlayer) {
+						resetPlayerTabs = true;
+					}
+
+				    ImGui::SetKeyboardFocusHere();
 					RE::PlaySound("UIJournalTabsSD");
-					updateKeyboardFocus = false;
+
+				    updateKeyboardFocus = false;
 				}
 
 				switch (currentTab) {
@@ -350,7 +356,13 @@ namespace PhotoMode
 					timeTab.Draw();
 					break;
 				case TAB_TYPE::kPlayer:
-					playerTab.Draw();
+					{
+						playerTab.Draw(resetPlayerTabs);
+
+				        if (resetPlayerTabs) {
+							resetPlayerTabs = false;
+						}
+					}
 					break;
 				case TAB_TYPE::kFilters:
 					filterTab.Draw();

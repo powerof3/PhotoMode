@@ -143,7 +143,7 @@ namespace Screenshot
 		return screenshots[RNG().Generate<std::size_t>(0, screenshots.size() - 1)];
 	}
 
-	std::string Manager::GetRandomPaintingShot()
+	std::string Manager::GetRandomPainting()
 	{
 		// fallback to screenshots
 		if (paintings.empty()) {

@@ -3,6 +3,7 @@
 #include "Input.h"
 #include "PhotoMode/Manager.h"
 #include "Screenshots/LoadScreen.h"
+#include "Screenshots/Manager.h"
 
 namespace PhotoMode
 {

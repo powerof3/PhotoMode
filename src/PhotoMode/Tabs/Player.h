@@ -98,7 +98,7 @@ namespace PhotoMode
 		void GetOriginalState();
 		void RevertState();
 
-		void Draw();
+		void Draw(bool a_resetTabs);
 
 	private:
 		struct State

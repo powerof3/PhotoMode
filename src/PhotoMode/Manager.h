@@ -87,6 +87,7 @@ namespace PhotoMode
 		RE::CameraState cameraState{ RE::CameraState::kThirdPerson };
 
 		bool resetWindow{ true };
+		bool resetPlayerTabs{ true };
 		bool resetAll{ false };
 
 		bool menusAlreadyHidden{ false };

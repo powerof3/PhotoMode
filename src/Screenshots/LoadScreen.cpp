@@ -1,6 +1,7 @@
 #include "LoadScreen.h"
 
 #include "Graphics.h"
+#include "Screenshots/Manager.h"
 
 namespace LoadScreen
 {
@@ -65,33 +66,28 @@ namespace LoadScreen
 		case Type::kFullScreen:
 			{
 				current.obj = fullscreenModel;
-				current.ssType = Screenshot::Type::kScreenshot;
 				current.texturePath = GetScreenshotTexture();
 
 				// skip if empty
 				if (current.texturePath.empty()) {
 					current.obj = nullptr;
-					current.ssType = Screenshot::Type::kNone;
 				}
 			}
 			break;
 		case Type::kPainting:
 			{
 				current.obj = paintingModels[RNG().Generate<std::size_t>(0, paintingModels.size() - 1)];  // Load random painting mesh
-				current.ssType = Screenshot::Type::kPainting;
 				current.texturePath = GetScreenshotTexture();
 
 				// skip if empty
 				if (current.texturePath.empty()) {
 					current.obj = nullptr;
-					current.ssType = Screenshot::Type::kNone;
 				}
 			}
 			break;
 		default:
 			{
 				current.obj = nullptr;
-				current.ssType = Screenshot::Type::kNone;
 				current.texturePath.clear();
 			}
 			break;
@@ -103,10 +99,10 @@ namespace LoadScreen
 	std::optional<Transform> Manager::GetModelTransform() const
 	{
 		switch (current.type) {
-		case Type::kPainting:
-			return paintingTransform;
 		case Type::kFullScreen:
 			return fullscreenTransform;
+		case Type::kPainting:
+			return paintingTransform;
 		default:
 			return std::nullopt;
 		}
@@ -114,11 +110,11 @@ namespace LoadScreen
 
 	std::string Manager::GetScreenshotTexture() const
 	{
-		switch (current.ssType) {
-		case Screenshot::Type::kScreenshot:
+		switch (current.type) {
+		case Type::kFullScreen:
 			return MANAGER(Screenshot)->GetRandomScreenshot();
-		case Screenshot::Type::kPainting:
-			return MANAGER(Screenshot)->GetRandomPaintingShot();
+		case Type::kPainting:
+			return MANAGER(Screenshot)->GetRandomPainting();
 		default:
 			return {};
 		}
@@ -126,11 +122,7 @@ namespace LoadScreen
 
 	const char* Manager::GetCameraShotPath(const char* a_path) const
 	{
-		if (current.ssType == Screenshot::Type::kScreenshot) {
-			return nullptr;
-		}
-
-		return a_path;
+		return current.type == Type::kFullScreen ? nullptr : a_path;
 	}
 
 	void Manager::ApplyScreenshotTexture(RE::BSGeometry* a_canvas) const

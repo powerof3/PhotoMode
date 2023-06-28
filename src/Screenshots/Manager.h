@@ -5,13 +5,6 @@ namespace Screenshot
 	inline std::string_view screenshotFolder{ "Data/Textures/Screenshots"sv };
 	inline std::string_view paintingFolder{ "Data/Textures/Screenshots/Paintings"sv };
 
-	enum class Type
-	{
-		kNone,
-		kScreenshot,
-		kPainting
-	};
-
 	struct Paths
 	{
 		Paths(std::uint32_t index);
@@ -33,7 +26,7 @@ namespace Screenshot
 
 		bool        CanDisplayScreenshot() const;
 		std::string GetRandomScreenshot();
-		std::string GetRandomPaintingShot();
+		std::string GetRandomPainting();
 
 		bool AllowMultiScreenshots() const;
 		bool CanAutoHideMenus() const;

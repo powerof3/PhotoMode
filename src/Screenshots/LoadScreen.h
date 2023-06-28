@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Screenshots/Manager.h"
-
 namespace LoadScreen
 {
 	enum class Type : std::uint32_t
@@ -40,15 +38,14 @@ namespace LoadScreen
 		std::int32_t paintingChance{ 50 };
 
 		std::vector<RE::TESObjectSTAT*> paintingModels{};
-		Transform                       paintingTransform{ 0.75f, RE::NiPoint3(0, 0, 0), RE::NiPoint3(0, 0, 0) };
+		Transform                       paintingTransform{ 0.6f, RE::NiPoint3(), RE::NiPoint3() };
 		RE::TESObjectSTAT*              fullscreenModel{};
-		Transform                       fullscreenTransform{ 2.0f, RE::NiPoint3(0, 0, 0), RE::NiPoint3(-45.0, 0, 0) };
+		Transform                       fullscreenTransform{ 2.0f, RE::NiPoint3(), RE::NiPoint3(-45.0, 0, 0) };
 
 		struct
 		{
 			RE::TESObjectSTAT* obj{};
 			Type               type{ Type::kNone };
-			Screenshot::Type   ssType{ Screenshot::Type::kNone };
 			std::string        texturePath{};
 
 		} current;
