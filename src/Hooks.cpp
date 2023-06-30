@@ -47,7 +47,7 @@ namespace Screenshot
 		{
 			bool skipVanillaScreenshot = false;
 
-		    if (MANAGER(Input)->IsScreenshotQueued()) {
+			if (MANAGER(Input)->IsScreenshotQueued()) {
 				skipVanillaScreenshot = MANAGER(Screenshot)->TakeScreenshot(a_texture_2d, a_path);
 			}
 
@@ -55,7 +55,7 @@ namespace Screenshot
 				func(a_texture_2d, a_path, a_format);
 			}
 
-		    // enable UI if hidden
+			// enable UI if hidden
 			MANAGER(Input)->OnScreenshotFinish();
 		}
 		static inline REL::Relocation<decltype(thunk)> func;

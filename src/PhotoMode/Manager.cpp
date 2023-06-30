@@ -463,7 +463,7 @@ namespace PhotoMode
 	}
 
 	bool Manager::SetupJournalMenu()
-    {
+	{
 		const auto UI = RE::UI::GetSingleton();
 		const auto menu = UI->GetMenu<RE::JournalMenu>(RE::JournalMenu::MENU_NAME);
 

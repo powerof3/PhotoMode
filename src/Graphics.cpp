@@ -27,7 +27,7 @@ namespace Texture
 		HRESULT hr = DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, *image);
 
 		if (SUCCEEDED(hr)) {
-		    if (auto renderer = RE::BSGraphics::Renderer::GetSingleton()) {
+			if (auto renderer = RE::BSGraphics::Renderer::GetSingleton()) {
 				if (a_resizeToScreenRes) {
 					auto height = renderer->data.renderWindows[0].windowHeight;
 					auto width = renderer->data.renderWindows[0].windowWidth;
@@ -39,7 +39,7 @@ namespace Texture
 					}
 				}
 
-		        ComPtr<ID3D11Resource> pTexture{};
+				ComPtr<ID3D11Resource> pTexture{};
 				hr = DirectX::CreateTexture(renderer->data.forwarder, image->GetImages(), 1, image->GetMetadata(), &pTexture);
 
 				if (SUCCEEDED(hr)) {
@@ -81,7 +81,7 @@ namespace Texture
 			return;
 		}
 
-	    const auto resultImage = a_outImage.GetImages();
+		const auto resultImage = a_outImage.GetImages();
 
 		const std::size_t width = baseImg->width;
 		const std::size_t height = baseImg->height;
@@ -94,7 +94,7 @@ namespace Texture
 				const std::uint8_t* overlayPixel = overlayImg->pixels + (y * overlayImg->rowPitch);
 
 				for (std::size_t x = 0; x < width; x++) {
-                    if (const float overlayAlpha = (overlayPixel[x * pixelSize + 3] / 255.0f) * intensity; overlayAlpha > 0.0f) {
+					if (const float overlayAlpha = (overlayPixel[x * pixelSize + 3] / 255.0f) * intensity; overlayAlpha > 0.0f) {
 						const float baseAlpha = 1.0f - overlayAlpha;
 
 						for (std::size_t i = 0; i < pixelSize - 1; i++) {
@@ -245,8 +245,8 @@ namespace Texture
 	{
 		// Save texture
 		const auto wPath = stl::utf8_to_utf16(a_path);
-		auto       hr = DirectX::SaveToWICFile(*a_inputImage.GetImage(0,0,0), DirectX::WIC_FLAGS_FORCE_SRGB,
-				  DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), wPath->c_str());
+		auto       hr = DirectX::SaveToWICFile(*a_inputImage.GetImage(0, 0, 0), DirectX::WIC_FLAGS_FORCE_SRGB,
+            DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), wPath->c_str());
 		if (FAILED(hr)) {
 			logger::info("Failed to save png");
 		}

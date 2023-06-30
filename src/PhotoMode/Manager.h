@@ -74,7 +74,7 @@ namespace PhotoMode
 
 		void        DrawControls();
 		void        DrawBar() const;
-        static bool SetupJournalMenu();
+		static bool SetupJournalMenu();
 
 		EventResult ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
 

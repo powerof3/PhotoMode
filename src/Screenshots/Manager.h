@@ -33,8 +33,8 @@ namespace Screenshot
 		bool CanAutoHideMenus() const;
 
 	private:
-	    void        AddScreenshotPaths(Paths& a_paths);
-		void        TakeScreenshotAsTexture(const DirectX::ScratchImage& a_ssImage, const DirectX::ScratchImage& a_paintingImage);
+		void AddScreenshotPaths(Paths& a_paths);
+		void TakeScreenshotAsTexture(const DirectX::ScratchImage& a_ssImage, const DirectX::ScratchImage& a_paintingImage);
 
 		// members
 		std::vector<std::string> screenshots{};
