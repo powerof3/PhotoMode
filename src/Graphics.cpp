@@ -38,8 +38,8 @@ namespace Texture
 						DirectX::ScratchImage tmpImage;
 						DirectX::Resize(*image->GetImage(0, 0, 0), width, height, DirectX::TEX_FILTER_CUBIC, tmpImage);
 
-						image.reset();	// is this needed
-					    image = std::make_shared<DirectX::ScratchImage>(std::move(tmpImage));
+						image.reset();  // is this needed
+						image = std::make_shared<DirectX::ScratchImage>(std::move(tmpImage));
 					}
 				}
 
