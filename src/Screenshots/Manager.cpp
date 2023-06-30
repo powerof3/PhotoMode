@@ -6,9 +6,8 @@
 namespace Screenshot
 {
 	Paths::Paths(std::uint32_t index) :
-		screenshot(fmt::format("{}/Screenshot_{}.dds", screenshotFolder, index)),
-		screenshotPNG(fmt::format("{}/Screenshot_{}.png", screenshotFolder, index)),
-		painting(fmt::format("{}/Screenshot_{}.dds", paintingFolder, index))
+		screenshot(fmt::format("{}/Screenshot{}.dds", screenshotFolder, index)),
+		painting(fmt::format("{}/Screenshot{}.dds", paintingFolder, index))
 	{}
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
@@ -50,7 +49,7 @@ namespace Screenshot
 		get_textures(screenshotFolder, screenshots);
 		get_textures(paintingFolder, paintings);
 
-		index = screenshots.size();  // current index + 1
+		index = RE::GetINISetting("iScreenShotIndex:Display")->GetSInt();
 
 		logger::info("\t{} screenshots", screenshots.size());
 		logger::info("\t{} paintings", paintings.size());

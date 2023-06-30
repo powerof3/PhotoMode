@@ -14,7 +14,7 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 	switch (a_msg->type) {
 	case SKSE::MessagingInterface::kPostLoad:
 		{
-			logger::info("{:*^30}", "HOOKS");
+			logger::info("{:*^30}", "POST LOAD");
 
 			Settings::GetSingleton()->LoadSettings();
 
@@ -39,13 +39,12 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 				logger::info("Unable to acquire ENB API");
 			}
 
-			MANAGER(Screenshot)->LoadScreenshotTextures();
 			MANAGER(Translation)->BuildTranslationMap();
 		}
 		break;
 	case SKSE::MessagingInterface::kInputLoaded:
 		{
-			logger::info("{:*^30}", "EVENTS");
+			logger::info("{:*^30}", "INPUT LOADED");
 
 			MANAGER(Input)->Register();
 			MANAGER(PhotoMode)->Register();
@@ -53,7 +52,10 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
 		{
+			logger::info("{:*^30}", "DATA LOADED");
+
 			MANAGER(LoadScreen)->InitLoadScreenObjects();
+			MANAGER(Screenshot)->LoadScreenshotTextures();
 			MANAGER(PhotoMode)->LoadOverlays();
 		}
 		break;

@@ -35,7 +35,7 @@ namespace LoadScreen
 			}
 
 			if (fullscreenModel = factory->Create(); fullscreenModel) {
-				fullscreenModel->SetModel("Meshes\\PhotoMode\\FullScreen01.nif");
+				fullscreenModel->SetModel(R"(Meshes\PhotoMode\FullScreen01.nif)");
 			}
 		}
 	}

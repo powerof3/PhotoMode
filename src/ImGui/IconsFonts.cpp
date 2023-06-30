@@ -7,7 +7,7 @@
 namespace IconFont
 {
 	IconData::IconData(std::wstring_view a_iconName) :
-		ImageData(LR"(Data\PhotoMode\Icons\)", a_iconName)
+		ImageData(LR"(Data\Interface\PhotoMode\Icons\)", a_iconName)
 	{}
 
 	bool IconData::Create(bool a_resizeToScreenRes)
@@ -34,7 +34,7 @@ namespace IconFont
 	void Manager::LoadSettings(CSimpleIniA& a_ini)
 	{
 		ini::get_value(a_ini, fontName, "Fonts", "Font", nullptr);
-		fontName = R"(Data\PhotoMode\Fonts\)" + fontName;
+		fontName = R"(Data\Interface\PhotoMode\Fonts\)" + fontName;
 
 		ini::get_value(a_ini, fontSize, "Fonts", "FontSize", nullptr);
 		ini::get_value(a_ini, largeFontSize, "Fonts", "LargeFontSize", nullptr);
@@ -108,7 +108,7 @@ namespace IconFont
 		icon_config.PixelSnapH = true;
 		icon_config.OversampleH = icon_config.OversampleV = 1;
 
-		io.Fonts->AddFontFromFileTTF(R"(Data\PhotoMode\Fonts\)" FONT_ICON_FILE_NAME_FAS, a_iconSize, &icon_config, a_ranges.Data);
+		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\PhotoMode\Fonts\)" FONT_ICON_FILE_NAME_FAS, a_iconSize, &icon_config, a_ranges.Data);
 
 		return font;
 	}

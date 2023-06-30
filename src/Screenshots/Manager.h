@@ -2,15 +2,14 @@
 
 namespace Screenshot
 {
-	inline std::string_view screenshotFolder{ "Data/Textures/Screenshots"sv };
-	inline std::string_view paintingFolder{ "Data/Textures/Screenshots/Paintings"sv };
+	inline std::string_view screenshotFolder{ "Data/Textures/PhotoMode/Screenshots"sv };
+	inline std::string_view paintingFolder{ "Data/Textures/PhotoMode/Screenshots/Paintings"sv };
 
 	struct Paths
 	{
 		Paths(std::uint32_t index);
 
 		std::string screenshot;
-		std::string screenshotPNG;
 		std::string painting;
 	};
 

@@ -6,7 +6,7 @@ namespace PhotoMode
 {
 	void Overlays::LoadOverlays()
 	{
-		const std::filesystem::path overlaysPath(R"(Data\PhotoMode\Overlays)");
+		const std::filesystem::path overlaysPath(R"(Data\Interface\PhotoMode\Overlays)");
 
 		if (!std::filesystem::exists(overlaysPath)) {
 			return;

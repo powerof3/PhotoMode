@@ -16,7 +16,9 @@ namespace Texture
 		if (srView) {
 			srView.Reset();
 		}
-		image.reset();
+		if (image) {
+			image.reset();
+		}
 	}
 
 	bool ImageData::Create(bool a_resizeToScreenRes)
@@ -34,8 +36,10 @@ namespace Texture
 
 					if (height != image->GetMetadata().height && height != image->GetMetadata().width) {
 						DirectX::ScratchImage tmpImage;
-						DirectX::Resize(*image->GetImage(0, 0, 0), width, height, DirectX::TEX_FILTER_DEFAULT, tmpImage);
-						*image = std::move(tmpImage);
+						DirectX::Resize(*image->GetImage(0, 0, 0), width, height, DirectX::TEX_FILTER_CUBIC, tmpImage);
+
+						image.reset();	// is this needed
+					    image = std::make_shared<DirectX::ScratchImage>(std::move(tmpImage));
 					}
 				}
 
