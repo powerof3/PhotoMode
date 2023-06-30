@@ -42,15 +42,15 @@ namespace LoadScreen
 
 	Type Manager::GetScreenshotModelType() const
 	{
-		if (Screenshot::Manager::GetSingleton()->CanDisplayScreenshot()) {
+		if (Screenshot::Manager::GetSingleton()->CanDisplayScreenshotInLoadScreen()) {
 			auto rng = RNG();
 
 			// process fullscreen art first
-			if (rng.Generate<std::int32_t>(0, 100) <= fullscreenChance) {
+			if (fullscreenChance > 0 && rng.Generate<std::int32_t>(0, 100) <= fullscreenChance) {
 				return Type::kFullScreen;
 			}
 
-			if (rng.Generate<std::int32_t>(0, 100) <= paintingChance) {
+			if (paintingChance > 0 && rng.Generate<std::int32_t>(0, 100) <= paintingChance) {
 				return Type::kPainting;
 			}
 		}

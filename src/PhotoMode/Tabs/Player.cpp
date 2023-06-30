@@ -1,7 +1,5 @@
 #include "Player.h"
 
-#include "Translation.h"
-
 namespace PhotoMode
 {
 	namespace MFG

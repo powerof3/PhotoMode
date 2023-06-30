@@ -1,18 +1,68 @@
 #include "Graphics.h"
 
-std::string Mesh::Sanitize(std::string& a_path)
-{
-	a_path = clib_util::string::tolower(a_path);
-
-	a_path = srell::regex_replace(a_path, srell::regex("/+|\\\\+"), "\\");
-	a_path = srell::regex_replace(a_path, srell::regex("^\\\\+"), "");
-	a_path = srell::regex_replace(a_path, srell::regex(R"(.*?[^\s]meshes\\|^meshes\\)", srell::regex::icase), "");
-
-	return a_path;
-}
-
 namespace Texture
 {
+	ImageData::ImageData(std::wstring_view a_path) :
+		path(a_path)
+	{}
+
+	ImageData::ImageData(std::wstring_view a_folder, std::wstring_view a_textureName)
+	{
+		path.append(a_folder).append(a_textureName).append(L".png");
+	}
+
+	ImageData::~ImageData()
+	{
+		if (srView) {
+			srView.Reset();
+		}
+		image.reset();
+	}
+
+	bool ImageData::Create(bool a_resizeToScreenRes)
+	{
+		bool result = false;
+
+		image = std::make_shared<DirectX::ScratchImage>();
+		HRESULT hr = DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, *image);
+
+		if (SUCCEEDED(hr)) {
+		    if (auto renderer = RE::BSGraphics::Renderer::GetSingleton()) {
+				if (a_resizeToScreenRes) {
+					auto height = renderer->data.renderWindows[0].windowHeight;
+					auto width = renderer->data.renderWindows[0].windowWidth;
+
+					if (height != image->GetMetadata().height && height != image->GetMetadata().width) {
+						DirectX::ScratchImage tmpImage;
+						DirectX::Resize(*image->GetImage(0, 0, 0), width, height, DirectX::TEX_FILTER_DEFAULT, tmpImage);
+						*image = std::move(tmpImage);
+					}
+				}
+
+		        ComPtr<ID3D11Resource> pTexture{};
+				hr = DirectX::CreateTexture(renderer->data.forwarder, image->GetImages(), 1, image->GetMetadata(), &pTexture);
+
+				if (SUCCEEDED(hr)) {
+					D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+					srvDesc.Format = image->GetMetadata().format;
+					srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+					srvDesc.Texture2D.MipLevels = 1;
+					srvDesc.Texture2D.MostDetailedMip = 0;
+
+					hr = renderer->data.forwarder->CreateShaderResourceView(pTexture.Get(), &srvDesc, &srView);
+					result = SUCCEEDED(hr);
+				}
+
+				size.x = static_cast<float>(image->GetMetadata().width);
+				size.y = static_cast<float>(image->GetMetadata().height);
+
+				pTexture.Reset();
+			}
+		}
+
+		return result;
+	}
+
 	std::string Sanitize(std::string& a_path)
 	{
 		a_path = clib_util::string::tolower(a_path);
@@ -24,14 +74,55 @@ namespace Texture
 		return a_path;
 	}
 
-	void CaptureTexture(const RE::BSGraphics::Renderer* a_this, DirectX::ScratchImage& a_inputImage)
+	void AlphaBlendImage(const DirectX::Image* baseImg, const DirectX::Image* overlayImg, DirectX::ScratchImage& a_outImage, float intensity)
 	{
-		const ComPtr<ID3D11Texture2D>     texture{ a_this->data.renderTargets[RE::RENDER_TARGET::kSCREENSHOT].texture };
-		const ComPtr<ID3D11Device>        device{ a_this->data.forwarder };
-		const ComPtr<ID3D11DeviceContext> deviceContext{ a_this->data.context };
+		auto hr = a_outImage.InitializeFromImage(*baseImg);
+		if (FAILED(hr)) {
+			return;
+		}
 
-		// Capture texture;
-		DirectX::CaptureTexture(device.Get(), deviceContext.Get(), texture.Get(), a_inputImage);
+	    const auto resultImage = a_outImage.GetImages();
+
+		const std::size_t width = baseImg->width;
+		const std::size_t height = baseImg->height;
+		const std::size_t pixelSize = DirectX::BitsPerPixel(baseImg->format) / 8;
+
+		auto processRows = [&](const std::size_t startRow, const std::size_t endRow) {
+			for (std::size_t y = startRow; y < endRow; y++) {
+				std::uint8_t*       resultPixel = resultImage->pixels + (y * resultImage->rowPitch);
+				const std::uint8_t* basePixel = baseImg->pixels + (y * baseImg->rowPitch);
+				const std::uint8_t* overlayPixel = overlayImg->pixels + (y * overlayImg->rowPitch);
+
+				for (std::size_t x = 0; x < width; x++) {
+                    if (const float overlayAlpha = (overlayPixel[x * pixelSize + 3] / 255.0f) * intensity; overlayAlpha > 0.0f) {
+						const float baseAlpha = 1.0f - overlayAlpha;
+
+						for (std::size_t i = 0; i < pixelSize - 1; i++) {
+							float blendedValue = (overlayPixel[x * pixelSize + i] * overlayAlpha) + (basePixel[x * pixelSize + i] * baseAlpha);
+							resultPixel[x * pixelSize + i] = static_cast<std::uint8_t>(std::round(std::min(blendedValue, 255.0f)));
+						}
+					}
+				}
+			}
+		};
+
+		const auto numThreads = std::thread::hardware_concurrency();
+
+		std::vector<std::jthread> threads;
+		threads.reserve(numThreads);
+
+		const std::size_t rowsPerThread = height / numThreads;
+
+		for (std::size_t i = 0; i < numThreads; ++i) {
+			std::size_t startRow = i * rowsPerThread;
+			std::size_t endRow = (i + 1) * rowsPerThread;
+
+			threads.emplace_back(std::jthread(processRows, startRow, endRow));
+		}
+
+		for (auto& thread : threads) {
+			thread.join();
+		}
 	}
 
 	// https://www.codeproject.com/Articles/471994/OilPaintEffect
@@ -118,9 +209,9 @@ namespace Texture
 			threads.emplace_back(std::jthread(processRows, startRow, endRow));
 		}
 
-		std::ranges::for_each(threads, [](std::jthread& t) {
-			t.join();
-		});
+		for (auto& thread : threads) {
+			thread.join();
+		}
 
 		return true;
 	}
@@ -140,7 +231,7 @@ namespace Texture
 		}
 	}
 
-	void SaveToDDS(const DirectX::ScratchImage& a_inputImage, const std::string& a_path)
+	void SaveToDDS(const DirectX::ScratchImage& a_inputImage, std::string_view a_path)
 	{
 		// Save texture
 		const auto wPath = stl::utf8_to_utf16(a_path);
@@ -149,4 +240,26 @@ namespace Texture
 			logger::info("Failed to save dds");
 		}
 	}
+
+	void SaveToPNG(const DirectX::ScratchImage& a_inputImage, std::string_view a_path)
+	{
+		// Save texture
+		const auto wPath = stl::utf8_to_utf16(a_path);
+		auto       hr = DirectX::SaveToWICFile(*a_inputImage.GetImage(0,0,0), DirectX::WIC_FLAGS_FORCE_SRGB,
+				  DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), wPath->c_str());
+		if (FAILED(hr)) {
+			logger::info("Failed to save png");
+		}
+	}
+}
+
+std::string Mesh::Sanitize(std::string& a_path)
+{
+	a_path = clib_util::string::tolower(a_path);
+
+	a_path = srell::regex_replace(a_path, srell::regex("/+|\\\\+"), "\\");
+	a_path = srell::regex_replace(a_path, srell::regex("^\\\\+"), "");
+	a_path = srell::regex_replace(a_path, srell::regex(R"(.*?[^\s]meshes\\|^meshes\\)", srell::regex::icase), "");
+
+	return a_path;
 }

@@ -2,7 +2,6 @@
 
 #include "ENB/ENB.h"
 #include "ImGui/Widgets.h"
-#include "Translation.h"
 
 namespace PhotoMode
 {

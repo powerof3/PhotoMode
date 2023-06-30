@@ -41,17 +41,21 @@ namespace PhotoMode
 
 namespace Screenshot
 {
-	struct TakeScreenshot
+	struct SaveD3D11TextureToFile
 	{
-		static void thunk(const char* a_screenshotPath, RE::BSGraphics::TextureFileFormat a_format)
+		static void thunk(ID3D11Texture2D* a_texture_2d, char const* a_path, RE::BSGraphics::TextureFileFormat a_format)
 		{
-			if (MANAGER(Input)->IsScreenshotQueued()) {
-				MANAGER(Screenshot)->TakeScreenshotAsTexture();
+			bool skipVanillaScreenshot = false;
+
+		    if (MANAGER(Input)->IsScreenshotQueued()) {
+				skipVanillaScreenshot = MANAGER(Screenshot)->TakeScreenshot(a_texture_2d, a_path);
 			}
 
-			func(a_screenshotPath, a_format);
+			if (!skipVanillaScreenshot) {
+				func(a_texture_2d, a_path, a_format);
+			}
 
-			// enable UI if hidden
+		    // enable UI if hidden
 			MANAGER(Input)->OnScreenshotFinish();
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
@@ -59,8 +63,8 @@ namespace Screenshot
 
 	void InstallHooks()
 	{
-		REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(35556, 36555), OFFSET(0x48E, 0x454) };  // Main::Swap
-		stl::write_thunk_call<TakeScreenshot>(target.address());
+		REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(75522, 77316), 0x60 };  // Main::Swap
+		stl::write_thunk_call<SaveD3D11TextureToFile>(target.address());
 	}
 }
 

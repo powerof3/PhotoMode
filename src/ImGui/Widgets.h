@@ -6,30 +6,32 @@ namespace ImGui
 {
 	bool ComboWithFilter(const char* label, int* current_item, const std::vector<std::string>& items, int popup_max_height_in_items = -1);
 
-	bool CenteredTextWithArrows(const char* label, const char* centerText);
+	bool CenteredTextWithArrows(const char* label, std::string_view centerText);
 
 	bool CheckBox(const char* label, bool* a_toggle);
 
-	template <class E, std::size_t N>
-	bool EnumSlider(const char* label, E* index, std::array<const char*, N> a_enum)
+	template <class E>
+	bool EnumSlider(const char* label, E* index, const std::ranges::common_range auto& a_enum, bool a_translate = true)
 	{
 		bool value_changed = false;
 
-		std::int32_t uIndex;
+		std::size_t uIndex;
 		if constexpr (std::is_enum_v<E>) {
 			uIndex = stl::to_underlying(*index);
 		} else {
 			uIndex = *index;
 		}
 
-		if (CenteredTextWithArrows(LeftAlignedText(label).c_str(), TRANSLATE(a_enum[uIndex]))) {
+		auto centeredText = a_translate ? TRANSLATE(a_enum[uIndex]) : a_enum[uIndex];
+
+		if (CenteredTextWithArrows(LeftAlignedText(label).c_str(), centeredText)) {
 			const bool pressedLeft = IsKeyPressed(ImGuiKey_LeftArrow) || IsKeyPressed(ImGuiKey_GamepadDpadLeft);
 			const bool pressedRight = IsKeyPressed(ImGuiKey_RightArrow) || IsKeyPressed(ImGuiKey_GamepadDpadRight);
 			if (pressedLeft) {
-				uIndex = (uIndex - 1 + N) % N;
+				uIndex = (uIndex - 1 + a_enum.size()) % a_enum.size();
 			}
 			if (pressedRight) {
-				uIndex = (uIndex + 1) % N;
+				uIndex = (uIndex + 1) % a_enum.size();
 			}
 			if (pressedLeft || pressedRight) {
 				value_changed = true;

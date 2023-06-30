@@ -10,6 +10,7 @@ namespace Screenshot
 		Paths(std::uint32_t index);
 
 		std::string screenshot;
+		std::string screenshotPNG;
 		std::string painting;
 	};
 
@@ -19,12 +20,12 @@ namespace Screenshot
 		void LoadMCMSettings(const CSimpleIniA& a_ini);
 		void LoadScreenshotTextures();
 
-		void TakeScreenshotAsTexture();
+		bool TakeScreenshot(ID3D11Texture2D* a_texture_2d, const char* a_path);
 
 		std::uint32_t GetIndex() const;
 		void          IncrementIndex();
 
-		bool        CanDisplayScreenshot() const;
+		bool        CanDisplayScreenshotInLoadScreen() const;
 		std::string GetRandomScreenshot();
 		std::string GetRandomPainting();
 
@@ -32,7 +33,8 @@ namespace Screenshot
 		bool CanAutoHideMenus() const;
 
 	private:
-		void AddScreenshotPaths(Paths& a_paths);
+	    void        AddScreenshotPaths(Paths& a_paths);
+		void        TakeScreenshotAsTexture(const DirectX::ScratchImage& a_ssImage, const DirectX::ScratchImage& a_paintingImage);
 
 		// members
 		std::vector<std::string> screenshots{};

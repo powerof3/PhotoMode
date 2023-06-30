@@ -1,11 +1,13 @@
 #include "Screenshots/Manager.h"
 
 #include "Graphics.h"
+#include "PhotoMode/Manager.h"
 
 namespace Screenshot
 {
 	Paths::Paths(std::uint32_t index) :
 		screenshot(fmt::format("{}/Screenshot_{}.dds", screenshotFolder, index)),
+		screenshotPNG(fmt::format("{}/Screenshot_{}.png", screenshotFolder, index)),
 		painting(fmt::format("{}/Screenshot_{}.dds", paintingFolder, index))
 	{}
 
@@ -81,42 +83,73 @@ namespace Screenshot
 		return autoHideMenus;
 	}
 
-	bool Manager::CanDisplayScreenshot() const
+	bool Manager::CanDisplayScreenshotInLoadScreen() const
 	{
 		return takeScreenshotAsDDS && (!screenshots.empty() || !paintings.empty());
 	}
 
-	void Manager::TakeScreenshotAsTexture()
+	bool Manager::TakeScreenshot(ID3D11Texture2D* a_texture_2d, const char* a_path)
+	{
+		const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
+		if (!renderer) {
+			return false;
+		}
+
+		bool skipVanillaScreenshot = false;
+
+		// capture screenshot
+		DirectX::ScratchImage inputImage;
+
+		const ComPtr<ID3D11Device>        device{ renderer->data.forwarder };
+		const ComPtr<ID3D11DeviceContext> deviceContext{ renderer->data.context };
+		DirectX::CaptureTexture(device.Get(), deviceContext.Get(), a_texture_2d, inputImage);
+
+		// apply overlay
+		if (const auto [overlay, alpha] = MANAGER(PhotoMode)->GetOverlay(); overlay) {
+			DirectX::ScratchImage overlayedImage;
+			Texture::AlphaBlendImage(inputImage.GetImages(), overlay->image->GetImages(), overlayedImage, alpha);
+
+			TakeScreenshotAsTexture(overlayedImage, inputImage);
+			Texture::SaveToPNG(overlayedImage, a_path);
+
+			overlayedImage.Release();
+
+			skipVanillaScreenshot = true;
+		} else {
+			TakeScreenshotAsTexture(inputImage, inputImage);
+		}
+
+		inputImage.Release();
+
+		return skipVanillaScreenshot;
+	}
+
+	void Manager::TakeScreenshotAsTexture(const DirectX::ScratchImage& a_ssImage, const DirectX::ScratchImage& a_paintingImage)
 	{
 		if (!takeScreenshotAsDDS) {
 			return;
 		}
 
+		Paths      ssPaths(GetIndex());
 		const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
-		if (!renderer) {
-			return;
-		}
-
-		Paths ssPaths(GetIndex());
-
-		// capture screenshot to be used for regular dds/painted dds
-		DirectX::ScratchImage inputImage;
-		Texture::CaptureTexture(renderer, inputImage);
 
 		// regular
 		if (compressTextures) {
 			DirectX::ScratchImage outputImage;
-			Texture::CompressTexture(renderer, inputImage, outputImage);
+
+			Texture::CompressTexture(renderer, a_ssImage, outputImage);
 			Texture::SaveToDDS(outputImage, ssPaths.screenshot);
+
 			outputImage.Release();
 		} else {
-			Texture::SaveToDDS(inputImage, ssPaths.screenshot);
+			Texture::SaveToDDS(a_ssImage, ssPaths.screenshot);
 		}
 
 		// painting
 		if (applyPaintFilter) {
 			DirectX::ScratchImage outputImage;
-			Texture::OilPaintingFilter(inputImage.GetImages(), paintFilter.radius, paintFilter.intensity, outputImage);
+			Texture::OilPaintingFilter(a_paintingImage.GetImages(), paintFilter.radius, paintFilter.intensity, outputImage);
+
 			if (compressTextures) {
 				DirectX::ScratchImage compressedImage;
 				Texture::CompressTexture(renderer, outputImage, compressedImage);  // NOLINT(readability-suspicious-call-argument)
@@ -125,10 +158,9 @@ namespace Screenshot
 			} else {
 				Texture::SaveToDDS(outputImage, ssPaths.painting);
 			}
+
 			outputImage.Release();
 		}
-
-		inputImage.Release();
 
 		IncrementIndex();
 		AddScreenshotPaths(ssPaths);
@@ -150,6 +182,6 @@ namespace Screenshot
 			return GetRandomScreenshot();
 		}
 
-		return paintings[RNG().Generate<std::size_t>(0, screenshots.size() - 1)];
+		return paintings[RNG().Generate<std::size_t>(0, paintings.size() - 1)];
 	}
 }

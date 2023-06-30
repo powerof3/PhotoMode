@@ -4,6 +4,7 @@
 
 #include "Tabs/Camera.h"
 #include "Tabs/Filters.h"
+#include "Tabs/Overlays.h"
 #include "Tabs/Player.h"
 #include "Tabs/Time.h"
 
@@ -39,13 +40,17 @@ namespace PhotoMode
 		void UpdateENBParams();
 		void RevertENBParams();
 
+		void                                  LoadOverlays();
+		std::pair<Texture::ImageData*, float> GetOverlay() const;
+
 	private:
 		enum TAB_TYPE : std::int32_t
 		{
 			kCamera,
 			kTime,
 			kPlayer,
-			kFilters
+			kFilters,
+			kOverlays
 		};
 
 		// kMenu | kActivate | kFighting | kJumping | kConsole | kSneaking
@@ -55,18 +60,21 @@ namespace PhotoMode
 			"$PM_Camera",
 			"$PM_TimeWeather",
 			"$PM_Player",
-			"$PM_Filters"
+			"$PM_Filters",
+			"$PM_Overlays"
 		};
 		static constexpr std::array tabIcons = {
 			ICON_FA_CAMERA,
 			ICON_FA_CLOCK,
 			ICON_FA_PERSON,
-			ICON_FA_CIRCLE_HALF_STROKE
+			ICON_FA_CIRCLE_HALF_STROKE,
+			ICON_FA_IMAGE
 		};
-		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters" };
+		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifOverlays" };
 
-		void DrawControls();
-		void DrawBar() const;
+		void        DrawControls();
+		void        DrawBar() const;
+        static bool SetupJournalMenu();
 
 		EventResult ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
 
@@ -77,10 +85,11 @@ namespace PhotoMode
 		std::int32_t previousTab{ kCamera };
 		std::int32_t currentTab{ kCamera };
 
-		Camera  cameraTab;
-		Time    timeTab;
-		Player  playerTab;
-		Filters filterTab;
+		Camera   cameraTab;
+		Time     timeTab;
+		Player   playerTab;
+		Filters  filterTab;
+		Overlays overlaysTab;
 
 		bool updateKeyboardFocus{ false };
 
@@ -91,6 +100,7 @@ namespace PhotoMode
 		bool resetAll{ false };
 
 		bool menusAlreadyHidden{ false };
+		bool openWithJournalMenu{ false };
 		bool allowTextInput{ false };
 
 		float freeCameraSpeed{ 4.0f };

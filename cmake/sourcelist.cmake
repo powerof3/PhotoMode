@@ -1,4 +1,5 @@
 set(sources ${sources}
+	src/Graphics.cpp
 	src/Hooks.cpp
 	src/ImGui/IconsFonts.cpp
 	src/ImGui/Renderer.cpp
@@ -12,9 +13,9 @@ set(sources ${sources}
 	src/PhotoMode/Manager.cpp
 	src/PhotoMode/Tabs/Camera.cpp
 	src/PhotoMode/Tabs/Filters.cpp
+	src/PhotoMode/Tabs/Overlays.cpp
 	src/PhotoMode/Tabs/Player.cpp
 	src/PhotoMode/Tabs/Time.cpp
-	src/Screenshots/Graphics.cpp
 	src/Screenshots/LoadScreen.cpp
 	src/Screenshots/Manager.cpp
 	src/Settings.cpp

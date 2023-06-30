@@ -128,7 +128,7 @@ namespace ImGui
 		// Copied from ListBoxHeader
 		// If popup_max_height_in_items == -1, default height is maximum 7.
 		const float height_in_items_f = (popup_max_height_in_items < 0 ? ImMin(items_count, 7) :
-                                                                         popup_max_height_in_items) +
+																		 popup_max_height_in_items) +
 		                                0.25f;
 		ImVec2 size;
 		size.x = 0.0f;
@@ -181,7 +181,7 @@ namespace ImGui
 		return value_changed;
 	}
 
-	bool ImGui::CenteredTextWithArrows(const char* label, const char* centerText)
+	bool ImGui::CenteredTextWithArrows(const char* label, std::string_view centerText)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
@@ -208,7 +208,7 @@ namespace ImGui
 		}
 
 		PushFont(MANAGER(IconFont)->GetLargeFont());
-		RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText, nullptr, nullptr, ImVec2(0.5f, 0.5f));
+		RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText.data(), nullptr, nullptr, ImVec2(0.5f, 0.5f));
 		PopFont();
 
 		if (!isHovered) {
@@ -221,8 +221,8 @@ namespace ImGui
 
 		const auto color = isHovered ? GetColorU32(ImGuiCol_Text) : GetColorU32(ImGuiCol_TextDisabled);
 
-		AlignedImage(leftArrow->srView, leftArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(0, 0.5f), color);
-		AlignedImage(rightArrow->srView, rightArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(1.0, 0.5f), color);
+		AlignedImage(leftArrow->srView.Get(), leftArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(0, 0.5f), color);
+		AlignedImage(rightArrow->srView.Get(), rightArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(1.0, 0.5f), color);
 
 		return isHovered;
 	}
@@ -242,7 +242,7 @@ namespace ImGui
 		PushStyleColor(ImGuiCol_ButtonActive, ImVec4());
 		PushStyleColor(ImGuiCol_ButtonHovered, ImVec4());
 
-		ImageButton(newLabel.c_str(), *a_toggle ? checkboxFilled->srView : checkbox->srView, checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
+		ImageButton(newLabel.c_str(), *a_toggle ? checkboxFilled->srView.Get() : checkbox->srView.Get(), checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
 			GetFocusID() == GetCurrentWindow()->GetID(newLabel.c_str()) ? ImVec4(1, 1, 1, 1) : GetStyle().Colors[ImGuiCol_TextDisabled]);
 
 		PopStyleColor(3);
@@ -324,7 +324,7 @@ namespace ImGui
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
-                                                                                                  ImGuiCol_FrameBg);
+																								  ImGuiCol_FrameBg);
 		//RenderNavHighlight(frame_bb, id);
 		RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
 		window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, g.ActiveId == id ? IM_COL32(255, 255, 255, 204) : IM_COL32(255, 255, 255, 62), g.Style.FrameRounding, 0, 1.5f);
@@ -420,7 +420,7 @@ namespace ImGui
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
-                                                                                                  ImGuiCol_FrameBg);
+																								  ImGuiCol_FrameBg);
 		// RenderNavHighlight(frame_bb, id);
 		// RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, g.Style.FrameRounding);
 

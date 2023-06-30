@@ -4,6 +4,7 @@ set(headers ${headers}
 	src/ENB/ENB.h
 	src/ENB/ENBSeriesAPI.h
 	src/ENB/ENBSeriesSDK.h
+	src/Graphics.h
 	src/Hooks.h
 	src/ImGui/FormComboBox.h
 	src/ImGui/IconsFontAwesome6.h
@@ -19,9 +20,9 @@ set(headers ${headers}
 	src/PhotoMode/Manager.h
 	src/PhotoMode/Tabs/Camera.h
 	src/PhotoMode/Tabs/Filters.h
+	src/PhotoMode/Tabs/Overlays.h
 	src/PhotoMode/Tabs/Player.h
 	src/PhotoMode/Tabs/Time.h
-	src/Screenshots/Graphics.h
 	src/Screenshots/LoadScreen.h
 	src/Screenshots/Manager.h
 	src/Settings.h

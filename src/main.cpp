@@ -52,7 +52,10 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 		}
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
-		MANAGER(LoadScreen)->InitLoadScreenObjects();
+		{
+			MANAGER(LoadScreen)->InitLoadScreenObjects();
+			MANAGER(PhotoMode)->LoadOverlays();
+		}
 		break;
 	default:
 		break;

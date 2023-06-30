@@ -121,6 +121,10 @@ namespace PhotoMode
 		if (tabIndex == -1 || tabIndex == kFilters) {
 			filterTab.RevertState(tabIndex == -1);
 		}
+		// Overlays
+		if (tabIndex == -1 || tabIndex == kOverlays) {
+			overlaysTab.RevertOverlays();
+		}
 
 		if (a_deactivate) {
 			// reset UI
@@ -247,6 +251,16 @@ namespace PhotoMode
 		}
 	}
 
+	void Manager::LoadOverlays()
+	{
+		overlaysTab.LoadOverlays();
+	}
+
+	std::pair<Texture::ImageData*, float> Manager::GetOverlay() const
+	{
+		return overlaysTab.GetCurrentOverlay();
+	}
+
 	void Manager::Draw()
 	{
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -257,6 +271,7 @@ namespace PhotoMode
 		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
 			// render hierachy
+			overlaysTab.DrawOverlays();
 			CameraGrid::Draw();
 			DrawBar();
 			DrawControls();
@@ -336,10 +351,10 @@ namespace PhotoMode
 						resetPlayerTabs = true;
 					}
 
-				    ImGui::SetKeyboardFocusHere();
+					ImGui::SetKeyboardFocusHere();
 					RE::PlaySound("UIJournalTabsSD");
 
-				    updateKeyboardFocus = false;
+					updateKeyboardFocus = false;
 				}
 
 				switch (currentTab) {
@@ -359,13 +374,16 @@ namespace PhotoMode
 					{
 						playerTab.Draw(resetPlayerTabs);
 
-				        if (resetPlayerTabs) {
+						if (resetPlayerTabs) {
 							resetPlayerTabs = false;
 						}
 					}
 					break;
 				case TAB_TYPE::kFilters:
 					filterTab.Draw();
+					break;
+				case TAB_TYPE::kOverlays:
+					overlaysTab.Draw();
 					break;
 				default:
 					break;
@@ -409,7 +427,7 @@ namespace PhotoMode
 
 			float width = 0.0f;
 
-			const auto calc_width = [&](const IconFont::ImageData* a_icon, const char* a_textLabel) {
+			const auto calc_width = [&](const IconFont::IconData* a_icon, const char* a_textLabel) {
 				width += a_icon->size.x;
 				width += style.ItemSpacing.x;
 				width += ImGui::CalcTextSize(a_textLabel).x;
@@ -430,7 +448,7 @@ namespace PhotoMode
 			ImGui::AlignForWidth(width);
 
 			// draw
-			constexpr auto draw_button = [](const IconFont::ImageData* a_icon, const char* a_textLabel) {
+			constexpr auto draw_button = [](const IconFont::IconData* a_icon, const char* a_textLabel) {
 				ImGui::ButtonIconWithLabel(a_textLabel, a_icon, true);
 				ImGui::SameLine();
 			};
@@ -444,6 +462,97 @@ namespace PhotoMode
 		ImGui::End();
 	}
 
+	bool Manager::SetupJournalMenu()
+    {
+		const auto UI = RE::UI::GetSingleton();
+		const auto menu = UI->GetMenu<RE::JournalMenu>(RE::JournalMenu::MENU_NAME);
+
+		if (const auto& view = menu ? menu->systemTab.view : RE::GPtr<RE::GFxMovieView>()) {
+			RE::GFxValue page;
+			if (!view->GetVariable(&page, "_root.QuestJournalFader.Menu_mc.SystemFader.Page_mc")) {
+				return false;
+			}
+
+			// in case someone packed the files into a BSA
+			static bool dearDiaryExists = RE::BSResourceNiBinaryStream(R"(interface\deardiary_dm\config.txt)").good() || RE::BSResourceNiBinaryStream(R"(interface\deardiary\config.txt)").good();
+
+			// Dear Diary SetShowMod function is broken af, need to do it manually
+			if (dearDiaryExists) {
+				RE::GFxValue categoryList;
+				if (page.GetMember("CategoryList", &categoryList)) {
+					RE::GFxValue entryList;
+					if (categoryList.GetMember("entryList", &entryList)) {
+						std::vector<std::string> elements;
+
+						entryList.VisitMembers([&](const char*, const RE::GFxValue& a_value) {
+							RE::GFxValue textVal;
+							a_value.GetMember("text", &textVal);
+							elements.push_back(textVal.GetString());
+						});
+
+						if (page.SetMember("_showModMenu", true)) {
+							auto index = std::ranges::contains(elements, "$QUICKSAVE") ? 3 : 2;
+							elements.insert(elements.begin() + index, "$PM_Title_Menu");
+
+							entryList.ClearElements();
+							for (auto& element : elements) {
+								RE::GFxValue entry;
+								view->CreateObject(&entry);
+								entry.SetMember("text", element.c_str());
+								entryList.PushBack(entry);
+							}
+
+							categoryList.Invoke("InvalidateData");
+
+							return true;
+						}
+
+						return false;
+					}
+				}
+
+			} else {
+				std::array<RE::GFxValue, 1> args;
+				args[0] = true;
+				if (!page.Invoke("SetShowMod", nullptr, args.data(), args.size())) {
+					return false;
+				}
+
+				RE::GFxValue categoryList;
+				if (page.GetMember("CategoryList", &categoryList)) {
+					RE::GFxValue entryList;
+					if (categoryList.GetMember("entryList", &entryList)) {
+						std::optional<std::uint32_t> modMenuIndex = std::nullopt;
+
+						std::uint32_t index = 0;
+						std::string   text;
+						entryList.VisitMembers([&](const char*, const RE::GFxValue& a_value) {
+							RE::GFxValue textVal;
+							a_value.GetMember("text", &textVal);
+							if (text = textVal.GetString(); text == "$MOD MANAGER") {
+								modMenuIndex = index;
+							}
+							index++;
+						});
+
+						if (modMenuIndex) {
+							RE::GFxValue entry;
+							view->CreateObject(&entry);
+							entry.SetMember("text", "$PM_Title_Menu");
+
+							entryList.SetElement(*modMenuIndex, entry);
+							categoryList.Invoke("InvalidateData");
+
+							return true;
+						}
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
 	EventResult Manager::ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*)
 	{
 		if (!a_evn || !a_evn->opening) {
@@ -453,35 +562,9 @@ namespace PhotoMode
 		const auto UI = RE::UI::GetSingleton();
 
 		if (a_evn->menuName == RE::JournalMenu::MENU_NAME) {
-			const auto menu = UI->GetMenu<RE::JournalMenu>(RE::JournalMenu::MENU_NAME);
-
-			if (const auto& view = menu ? menu->systemTab.view : RE::GPtr<RE::GFxMovieView>()) {
-				RE::GFxValue page;
-				if (!view->GetVariable(&page, "_root.QuestJournalFader.Menu_mc.SystemFader.Page_mc")) {
-					return EventResult::kContinue;
-				}
-
-				std::array<RE::GFxValue, 1> args;
-				args[0] = true;
-				if (!page.Invoke("SetShowMod", nullptr, args.data(), args.size())) {
-					return EventResult::kContinue;
-				}
-
-				RE::GFxValue categoryList;
-				if (page.GetMember("CategoryList", &categoryList)) {
-					RE::GFxValue entryList;
-					if (categoryList.GetMember("entryList", &entryList)) {
-						RE::GFxValue entry;
-						view->CreateObject(&entry);
-						entry.SetMember("text", TRANSLATE("$PM_Title_Menu"));
-
-						entryList.SetElement(3, entry);
-						categoryList.Invoke("InvalidateData");
-					}
-				}
-			}
+			openWithJournalMenu = SetupJournalMenu();
 		} else if (a_evn->menuName == RE::ModManagerMenu::MENU_NAME) {
-			if (UI->IsMenuOpen(RE::JournalMenu::MENU_NAME)) {
+			if (UI->IsMenuOpen(RE::JournalMenu::MENU_NAME) && openWithJournalMenu) {
 				const auto msgQueue = RE::UIMessageQueue::GetSingleton();
 
 				msgQueue->AddMessage(RE::ModManagerMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);

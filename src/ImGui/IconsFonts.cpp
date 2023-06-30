@@ -6,55 +6,27 @@
 
 namespace IconFont
 {
-	ImageData::ImageData(std::wstring_view a_iconName)
+	IconData::IconData(std::wstring_view a_iconName) :
+		ImageData(LR"(Data\PhotoMode\Icons\)", a_iconName)
+	{}
+
+	bool IconData::Create(bool a_resizeToScreenRes)
 	{
-		path.append(a_iconName).append(L".png");
-	}
+		const bool result = ImageData::Create(a_resizeToScreenRes);
 
-	ImageData::~ImageData()
-	{
-		if (srView) {
-			srView->Release();
-			srView = nullptr;
-		}
-	}
+		if (result) {
+			// 0.0004630f is 0.5/1080
+			// at 1080 render at half size
+			const auto windowHeight = RE::BSGraphics::Renderer::GetSingleton()->data.renderWindows[0].windowHeight;
 
-	bool ImageData::Init()
-	{
-		bool result = false;
+			size.x = size.x * (0.0004630f * windowHeight);
+			size.y = size.y * (0.0004630f * windowHeight);
 
-		DirectX::ScratchImage image;
-		HRESULT               hr = DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, image);
-
-		if (SUCCEEDED(hr)) {
-			if (auto renderer = RE::BSGraphics::Renderer::GetSingleton()) {
-				ID3D11Resource* pTexture{};
-				hr = DirectX::CreateTexture(renderer->data.forwarder, image.GetImages(), 1, image.GetMetadata(), &pTexture);
-
-				if (SUCCEEDED(hr)) {
-					D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-					srvDesc.Format = image.GetMetadata().format;
-					srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-					srvDesc.Texture2D.MipLevels = 1;
-					srvDesc.Texture2D.MostDetailedMip = 0;
-
-					hr = renderer->data.forwarder->CreateShaderResourceView(pTexture, &srvDesc, &srView);
-					result = SUCCEEDED(hr);
-				}
-
-				// 0.0004630f is 0.5/1080
-				// at 1080 render at half size
-
-				const auto windowHeight = renderer->data.renderWindows[0].windowHeight;
-
-				size.x = image.GetMetadata().width * (0.0004630f * windowHeight);
-				size.y = image.GetMetadata().height * (0.0004630f * windowHeight);
-
-				pTexture->Release();
+			// don't need this
+			if (image) {
+				image.reset();
 			}
 		}
-
-		image.Release();
 
 		return result;
 	}
@@ -62,7 +34,7 @@ namespace IconFont
 	void Manager::LoadSettings(CSimpleIniA& a_ini)
 	{
 		ini::get_value(a_ini, fontName, "Fonts", "Font", nullptr);
-		fontName = R"(Data\Interface\PhotoMode\Fonts\)" + fontName;
+		fontName = R"(Data\PhotoMode\Fonts\)" + fontName;
 
 		ini::get_value(a_ini, fontSize, "Fonts", "FontSize", nullptr);
 		ini::get_value(a_ini, largeFontSize, "Fonts", "LargeFontSize", nullptr);
@@ -78,26 +50,26 @@ namespace IconFont
 
 	void Manager::LoadIcons()
 	{
-		unknownKey.Init();
+		unknownKey.Create();
 
-		upKey.Init();
-		downKey.Init();
-		leftKey.Init();
-		rightKey.Init();
+		upKey.Create();
+		downKey.Create();
+		leftKey.Create();
+		rightKey.Create();
 
-		std::for_each(keyboard.begin(), keyboard.end(), [](auto& imageData) {
-			imageData.second.Init();
+		std::for_each(keyboard.begin(), keyboard.end(), [](auto& IconData) {
+			IconData.second.Create();
 		});
-		std::for_each(gamePad.begin(), gamePad.end(), [](auto& imageData) {
-			auto& [xbox, ps4] = imageData.second;
-			xbox.Init();
-			ps4.Init();
+		std::for_each(gamePad.begin(), gamePad.end(), [](auto& IconData) {
+			auto& [xbox, ps4] = IconData.second;
+			xbox.Create();
+			ps4.Create();
 		});
 
-		stepperLeft.Init();
-		stepperRight.Init();
-		checkbox.Init();
-		checkboxFilled.Init();
+		stepperLeft.Create();
+		stepperRight.Create();
+		checkbox.Create();
+		checkboxFilled.Create();
 	}
 
 	void Manager::LoadFonts()
@@ -115,6 +87,7 @@ namespace IconFont
 		builder.AddChar(0xf017);  // CLOCK
 		builder.AddChar(0xf183);  // PERSON
 		builder.AddChar(0xf042);  // CONTRAST
+		builder.AddChar(0xf03e);  // IMAGE
 		builder.BuildRanges(&ranges);
 
 		auto& io = ImGui::GetIO();
@@ -135,7 +108,7 @@ namespace IconFont
 		icon_config.PixelSnapH = true;
 		icon_config.OversampleH = icon_config.OversampleV = 1;
 
-		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\PhotoMode\Fonts\)" FONT_ICON_FILE_NAME_FAS, a_iconSize, &icon_config, a_ranges.Data);
+		io.Fonts->AddFontFromFileTTF(R"(Data\PhotoMode\Fonts\)" FONT_ICON_FILE_NAME_FAS, a_iconSize, &icon_config, a_ranges.Data);
 
 		return font;
 	}
@@ -145,25 +118,25 @@ namespace IconFont
 		return largeFont;
 	}
 
-	const ImageData* Manager::GetStepperLeft() const
+	const IconData* Manager::GetStepperLeft() const
 	{
 		return &stepperLeft;
 	}
-	const ImageData* Manager::GetStepperRight() const
+	const IconData* Manager::GetStepperRight() const
 	{
 		return &stepperRight;
 	}
 
-	const ImageData* Manager::GetCheckbox() const
+	const IconData* Manager::GetCheckbox() const
 	{
 		return &checkbox;
 	}
-	const ImageData* Manager::GetCheckboxFilled() const
+	const IconData* Manager::GetCheckboxFilled() const
 	{
 		return &checkboxFilled;
 	}
 
-	const ImageData* Manager::GetIcon(std::uint32_t key)
+	const IconData* Manager::GetIcon(std::uint32_t key)
 	{
 		switch (key) {
 		case KEY::kUp:
@@ -194,9 +167,9 @@ namespace IconFont
 		}
 	}
 
-	std::set<const ImageData*> Manager::GetIcons(const std::set<std::uint32_t>& keys)
+	std::set<const IconData*> Manager::GetIcons(const std::set<std::uint32_t>& keys)
 	{
-		std::set<const ImageData*> icons{};
+		std::set<const IconData*> icons{};
 		if (keys.empty()) {
 			icons.insert(&unknownKey);
 		} else {
@@ -207,7 +180,7 @@ namespace IconFont
 		return icons;
 	}
 
-	const ImageData* Manager::GetGamePadIcon(const GamepadIcon& a_icons) const
+	const IconData* Manager::GetGamePadIcon(const GamepadIcon& a_icons) const
 	{
 		switch (buttonScheme) {
 		case BUTTON_SCHEME::kAutoDetect:
@@ -224,42 +197,42 @@ namespace IconFont
 
 ImVec2 ImGui::ButtonIcon(std::uint32_t a_key)
 {
-	const auto imageData = MANAGER(IconFont)->GetIcon(a_key);
-	return ButtonIcon(imageData, false);
+	const auto IconData = MANAGER(IconFont)->GetIcon(a_key);
+	return ButtonIcon(IconData, false);
 }
 
-ImVec2 ImGui::ButtonIcon(const IconFont::ImageData* a_imageData, bool a_centerIcon)
+ImVec2 ImGui::ButtonIcon(const IconFont::IconData* a_IconData, bool a_centerIcon)
 {
 	if (a_centerIcon) {
 		const float height = ImGui::GetWindowSize().y;
-		ImGui::SetCursorPosY((height - a_imageData->size.y) / 2);
+		ImGui::SetCursorPosY((height - a_IconData->size.y) / 2);
 	}
-	ImGui::Image(a_imageData->srView, a_imageData->size);
+	ImGui::Image(a_IconData->srView.Get(), a_IconData->size);
 
-	return a_imageData->size;
+	return a_IconData->size;
 }
 
-void ImGui::ButtonIcon(const std::set<const IconFont::ImageData*>& a_imageData, bool a_centerIcon)
+void ImGui::ButtonIcon(const std::set<const IconFont::IconData*>& a_IconData, bool a_centerIcon)
 {
 	BeginGroup();
-	for (auto& imageData : a_imageData) {
+	for (auto& IconData : a_IconData) {
 		auto       pos = ImGui::GetCursorPos();
-		const auto size = ImGui::ButtonIcon(imageData, a_centerIcon);
+		const auto size = ImGui::ButtonIcon(IconData, a_centerIcon);
 		ImGui::SetCursorPos({ pos.x + size.x, pos.y });
 	}
 	EndGroup();
 }
 
-void ImGui::ButtonIconWithLabel(const char* a_text, const IconFont::ImageData* a_imageData, bool a_centerIcon)
+void ImGui::ButtonIconWithLabel(const char* a_text, const IconFont::IconData* a_IconData, bool a_centerIcon)
 {
-	ImGui::ButtonIcon(a_imageData, a_centerIcon);
+	ImGui::ButtonIcon(a_IconData, a_centerIcon);
 	ImGui::SameLine();
 	ImGui::CenteredText(a_text, true);
 }
 
-void ImGui::ButtonIconWithLabel(const char* a_text, const std::set<const IconFont::ImageData*>& a_imageData, bool a_centerIcon)
+void ImGui::ButtonIconWithLabel(const char* a_text, const std::set<const IconFont::IconData*>& a_IconData, bool a_centerIcon)
 {
-	ImGui::ButtonIcon(a_imageData, a_centerIcon);
+	ImGui::ButtonIcon(a_IconData, a_centerIcon);
 	ImGui::SameLine();
 	ImGui::CenteredText(a_text, true);
 }

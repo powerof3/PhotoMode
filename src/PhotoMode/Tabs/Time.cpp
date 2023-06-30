@@ -1,7 +1,6 @@
 #include "Time.h"
 
 #include "ImGui/Widgets.h"
-#include "Translation.h"
 
 namespace PhotoMode
 {

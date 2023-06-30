@@ -1,7 +1,5 @@
 #include "Filters.h"
 
-#include "Translation.h"
-
 namespace PhotoMode
 {
 	void Filters::GetOriginalState()

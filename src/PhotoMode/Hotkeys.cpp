@@ -145,32 +145,32 @@ namespace PhotoMode::Hotkeys
 		return previousTab.GetKey();
 	}
 
-	const IconFont::ImageData* Manager::ResetIcon() const
+	const IconFont::IconData* Manager::ResetIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(reset.GetKey());
 	}
 
-	const IconFont::ImageData* Manager::TakePhotoIcon() const
+	const IconFont::IconData* Manager::TakePhotoIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(takePhoto.GetKey());
 	}
 
-	const IconFont::ImageData* Manager::ToggleMenusIcon() const
+	const IconFont::IconData* Manager::ToggleMenusIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(toggleMenus.GetKey());
 	}
 
-	const IconFont::ImageData* Manager::NextTabIcon() const
+	const IconFont::IconData* Manager::NextTabIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(nextTab.GetKey());
 	}
 
-	const IconFont::ImageData* Manager::PreviousTabIcon() const
+	const IconFont::IconData* Manager::PreviousTabIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(previousTab.GetKey());
 	}
 
-	std::set<const IconFont::ImageData*> Manager::TogglePhotoModeIcons() const
+	std::set<const IconFont::IconData*> Manager::TogglePhotoModeIcons() const
 	{
 		return MANAGER(IconFont)->GetIcons(togglePhotoMode.GetKeys());
 	}

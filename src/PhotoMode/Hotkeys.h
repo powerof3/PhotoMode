@@ -2,7 +2,7 @@
 
 namespace IconFont
 {
-	struct ImageData;
+	struct IconData;
 }
 
 namespace PhotoMode::Hotkeys
@@ -20,13 +20,13 @@ namespace PhotoMode::Hotkeys
 		std::uint32_t NextTabKey() const;
 		std::uint32_t PreviousTabKey() const;
 
-		const IconFont::ImageData* ResetIcon() const;
-		const IconFont::ImageData* TakePhotoIcon() const;
-		const IconFont::ImageData* ToggleMenusIcon() const;
-		const IconFont::ImageData* NextTabIcon() const;
-		const IconFont::ImageData* PreviousTabIcon() const;
+		const IconFont::IconData* ResetIcon() const;
+		const IconFont::IconData* TakePhotoIcon() const;
+		const IconFont::IconData* ToggleMenusIcon() const;
+		const IconFont::IconData* NextTabIcon() const;
+		const IconFont::IconData* PreviousTabIcon() const;
 
-		std::set<const IconFont::ImageData*> TogglePhotoModeIcons() const;
+		std::set<const IconFont::IconData*> TogglePhotoModeIcons() const;
 
 	private:
 		struct Key
