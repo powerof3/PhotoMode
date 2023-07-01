@@ -490,32 +490,38 @@ namespace PhotoMode
 							elements.push_back(textVal.GetString());
 						});
 
-						if (page.SetMember("_showModMenu", true)) {
-							auto index = std::ranges::contains(elements, "$QUICKSAVE") ? 3 : 2;
-							elements.insert(elements.begin() + index, "$PM_Title_Menu");
-
-							entryList.ClearElements();
-							for (auto& element : elements) {
-								RE::GFxValue entry;
-								view->CreateObject(&entry);
-								entry.SetMember("text", element.c_str());
-								entryList.PushBack(entry);
-							}
-
-							categoryList.Invoke("InvalidateData");
-
-							return true;
+						RE::GFxValue showModMenu;
+						if (page.GetMember("_showModMenu", &showModMenu) && showModMenu.GetBool() == false) {
+							page.SetMember("_showModMenu", true);
+						} else {
+							std::erase(elements, "$MOD MANAGER");
 						}
 
-						return false;
+						auto index = std::ranges::contains(elements, "$QUICKSAVE") ? 3 : 2;
+						elements.insert(elements.begin() + index, "$PM_Title_Menu");
+
+						entryList.ClearElements();
+						for (auto& element : elements) {
+							RE::GFxValue entry;
+							view->CreateObject(&entry);
+							entry.SetMember("text", element.c_str());
+							entryList.PushBack(entry);
+						}
+
+						categoryList.Invoke("InvalidateData");
+
+						return true;
 					}
 				}
 
 			} else {
-				std::array<RE::GFxValue, 1> args;
-				args[0] = true;
-				if (!page.Invoke("SetShowMod", nullptr, args.data(), args.size())) {
-					return false;
+				RE::GFxValue showModMenu;
+				if (page.GetMember("_showModMenu", &showModMenu) && showModMenu.GetBool() == false) {
+					std::array<RE::GFxValue, 1> args;
+					args[0] = true;
+					if (!page.Invoke("SetShowMod", nullptr, args.data(), args.size())) {
+						return false;
+					}
 				}
 
 				RE::GFxValue categoryList;
