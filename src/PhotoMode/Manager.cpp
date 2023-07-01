@@ -180,7 +180,7 @@ namespace PhotoMode
 				Activate();
 			}
 		} else {
-			if (!ImGui::GetIO().WantTextInput) {
+			if (!ImGui::GetIO().WantTextInput && !ShouldBlockInput()) {
 				Deactivate();
 				RE::PlaySound("UIMenuCancel");
 			}
