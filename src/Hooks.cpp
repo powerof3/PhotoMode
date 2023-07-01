@@ -22,7 +22,9 @@ namespace PhotoMode
 		static bool thunk(RE::TESIdleForm* a_this, const char* a_str)
 		{
 			if (!clib_util::string::is_empty(a_str)) {
-				idles.AddForm(a_str, a_this);
+				if (const std::string str(a_str); !str.starts_with("pa_")) {	// paired anims
+					idles.AddForm(a_str, a_this);
+				}
 			}
 			return func(a_this, a_str);
 		}

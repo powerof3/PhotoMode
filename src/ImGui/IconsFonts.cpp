@@ -17,7 +17,8 @@ namespace IconFont
 		if (result) {
 			// 0.0004630f is 0.5/1080
 			// at 1080 render at half size
-			const auto windowHeight = RE::BSGraphics::Renderer::GetSingleton()->data.renderWindows[0].windowHeight;
+
+		    const auto windowHeight = RE::BSGraphics::Renderer::GetSingleton()->data.renderWindows[0].windowHeight;
 
 			size.x = size.x * (0.0004630f * windowHeight);
 			size.y = size.y * (0.0004630f * windowHeight);

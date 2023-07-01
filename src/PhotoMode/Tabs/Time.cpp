@@ -39,7 +39,7 @@ namespace PhotoMode
 		currentTimescaleMult = 1.0f;
 
 		// revert weather
-		weathers.ResetIndex();
+		weathers.Reset();
 		if (weatherForced) {
 			const auto sky = RE::Sky::GetSingleton();
 			sky->ReleaseWeatherOverride();

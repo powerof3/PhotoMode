@@ -115,15 +115,15 @@ namespace PhotoMode
 		MFG::RevertAllModifiers();
 
 		// revert idles
-		idles.ResetIndex();
+		idles.Reset();
 		if (idlePlayed) {
 			RevertIdle();
 			idlePlayed = false;
 		}
 
 		// revert effects
-		effectShaders.ResetIndex();
-		effectVFX.ResetIndex();
+		effectShaders.Reset();
+		effectVFX.Reset();
 
 		if (vfxPlayed || effectsPlayed) {
 			const auto player = RE::PlayerCharacter::GetSingleton();

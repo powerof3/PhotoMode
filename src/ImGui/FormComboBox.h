@@ -19,6 +19,12 @@ namespace ImGui
 		}
 		void UpdateValidForms()
 		{
+			if (valid) {
+				return;
+			}
+
+			SetValid(true);
+
 			if constexpr (std::is_same_v<T, RE::TESIdleForm>) {
 				const auto player = RE::PlayerCharacter::GetSingleton();
 
@@ -43,9 +49,14 @@ namespace ImGui
 				index = 0;
 			}
 		}
+		void SetValid(bool a_valid)
+		{
+			valid = a_valid;
+		}
 
 		T* GetComboWithFilterResult()
 		{
+			UpdateValidForms();
 			if (ImGui::ComboWithFilter("##forms", &index, edids)) {
 				// avoid losing focus
 				ImGui::SetKeyboardFocusHere(-1);
@@ -59,6 +70,7 @@ namespace ImGui
 		StringMap<T*>            edidForms{};
 		std::vector<std::string> edids{};
 		std::int32_t             index{};
+		bool                     valid{ false };
 	};
 
 	// modName, forms
@@ -111,14 +123,15 @@ namespace ImGui
 				}
 			}
 
-			ResetIndex();
+			Reset();
 		}
-		void ResetIndex()
+		void Reset()
 		{
 			curMod = allMods;
 			index = 0;
 			for (auto& [modName, formData] : modNameForms) {
 				formData.ResetIndex();
+				formData.SetValid(false);
 			}
 		}
 
@@ -149,8 +162,6 @@ namespace ImGui
 					} else {
 						curMod = modNames[index];
 					}
-					modNameForms[curMod].UpdateValidForms();
-					ImGui::SetKeyboardFocusHere();
 				}
 
 				ImGui::PopItemWidth();

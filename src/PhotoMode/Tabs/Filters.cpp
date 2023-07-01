@@ -27,7 +27,7 @@ namespace PhotoMode
 		}
 
 		// reset imod
-		imods.ResetIndex();
+		imods.Reset();
 		if (imodPlayed) {
 			if (currentImod) {
 				RE::ImageSpaceModifierInstanceForm::Stop(currentImod);
