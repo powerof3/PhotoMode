@@ -129,7 +129,7 @@ namespace Screenshot
 
 			skipVanillaScreenshot = true;
 		} else {
-		    TakeScreenshotAsTexture(inputImage, inputImage);
+			TakeScreenshotAsTexture(inputImage, inputImage);
 		}
 
 		inputImage.Release();
