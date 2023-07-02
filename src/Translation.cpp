@@ -25,7 +25,7 @@ namespace Translation
 			return false;
 		}
 
-		std::wfstream filestream(a_path);
+		std::wfstream filestream(a_path, std::wfstream::in | std::wfstream::binary);
 		if (!filestream.good()) {
 			return false;
 		} else {

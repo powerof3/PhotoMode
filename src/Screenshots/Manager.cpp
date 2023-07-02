@@ -89,7 +89,12 @@ namespace Screenshot
 
 	bool Manager::TakeScreenshot(ID3D11Texture2D* a_texture_2d, const char* a_path)
 	{
-		const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
+		constexpr auto GetStaticRendererData = []() {
+			REL::Relocation<RE::BSGraphics::RendererData**> singleton{ RELOCATION_ID(524728, 411347) };
+			return *singleton;
+		};
+
+		const auto renderer = GetStaticRendererData();
 		if (!renderer) {
 			return false;
 		}
@@ -99,8 +104,8 @@ namespace Screenshot
 		// capture screenshot
 		DirectX::ScratchImage inputImage;
 
-		const ComPtr<ID3D11Device>        device{ renderer->data.forwarder };
-		const ComPtr<ID3D11DeviceContext> deviceContext{ renderer->data.context };
+		const ComPtr<ID3D11Device>        device{ renderer->forwarder };
+		const ComPtr<ID3D11DeviceContext> deviceContext{ renderer->context };
 		DirectX::CaptureTexture(device.Get(), deviceContext.Get(), a_texture_2d, inputImage);
 
 		// apply overlay
