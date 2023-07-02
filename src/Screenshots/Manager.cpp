@@ -105,13 +105,22 @@ namespace Screenshot
 
 		// apply overlay
 		if (const auto [overlay, alpha] = MANAGER(PhotoMode)->GetOverlay(); overlay) {
-			DirectX::ScratchImage overlayedImage;
-			Texture::AlphaBlendImage(inputImage.GetImages(), overlay->image->GetImages(), overlayedImage, alpha);
+			DirectX::ScratchImage overlayImage;
+			DirectX::ScratchImage blendedImage;
 
-			TakeScreenshotAsTexture(overlayedImage, inputImage);
-			Texture::SaveToPNG(overlayedImage, a_path);
+			// Convert PNG B8G8R8 format to R8G8B8
+			DirectX::Convert(overlay->image->GetImages(), 1,
+				overlay->image->GetMetadata(),
+				inputImage.GetMetadata().format, DirectX::TEX_FILTER_DEFAULT, DirectX::TEX_THRESHOLD_DEFAULT,
+				overlayImage);
 
-			overlayedImage.Release();
+			Texture::AlphaBlendImage(inputImage.GetImages(), overlayImage.GetImages(), blendedImage, alpha);
+
+			TakeScreenshotAsTexture(blendedImage, inputImage);
+			Texture::SaveToPNG(blendedImage, a_path);
+
+			overlayImage.Release();
+			blendedImage.Release();
 
 			skipVanillaScreenshot = true;
 		} else {

@@ -38,8 +38,6 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 			} else {
 				logger::info("Unable to acquire ENB API");
 			}
-
-			MANAGER(Translation)->BuildTranslationMap();
 		}
 		break;
 	case SKSE::MessagingInterface::kInputLoaded:
@@ -53,6 +51,8 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 	case SKSE::MessagingInterface::kDataLoaded:
 		{
 			logger::info("{:*^30}", "DATA LOADED");
+
+			MANAGER(Translation)->BuildTranslationMap();
 
 			MANAGER(LoadScreen)->InitLoadScreenObjects();
 			MANAGER(Screenshot)->LoadScreenshotTextures();
