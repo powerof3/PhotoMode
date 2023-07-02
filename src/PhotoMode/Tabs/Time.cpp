@@ -61,7 +61,7 @@ namespace PhotoMode
 	void Time::Draw()
 	{
 		ImGui::CheckBox("$PM_FreezeTime"_T, &RE::Main::GetSingleton()->freezeTime);
-		ImGui::Slider("$PM_GlobalTimeMult"_T, &RE::BSTimer::GetCurrentGlobalTimeMult(), 0.0f, 2.0f);
+		ImGui::Slider("$PM_GlobalTimeMult"_T, &RE::BSTimer::GetCurrentGlobalTimeMult(), 0.1f, 2.0f);
 
 		ImGui::Dummy({ 0, 5 });
 
