@@ -85,7 +85,7 @@ namespace Texture
 			return;
 		}
 
-	    const auto resultImage = a_outImage.GetImages();
+		const auto resultImage = a_outImage.GetImages();
 
 		const std::size_t width = a_baseImg->width;
 		const std::size_t height = a_baseImg->height;
