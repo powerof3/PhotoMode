@@ -193,7 +193,7 @@ namespace PhotoMode
 		// reset variables
 		hiddenUI = false;
 
-	    noItemsFocused = false;
+		noItemsFocused = false;
 		restoreLastFocusID = false;
 		lastFocusedID = 0;
 
