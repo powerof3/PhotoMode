@@ -252,7 +252,7 @@ namespace Texture
 		// Save texture
 		const auto wPath = stl::utf8_to_utf16(a_path);
 		auto       hr = DirectX::SaveToWICFile(*a_inputImage.GetImage(0, 0, 0), DirectX::WIC_FLAGS_FORCE_SRGB,
-				  DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), wPath->c_str());
+            DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), wPath->c_str());
 		if (FAILED(hr)) {
 			logger::info("Failed to save png");
 		}

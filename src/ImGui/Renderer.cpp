@@ -117,16 +117,16 @@ namespace ImGui::Renderer
 		static inline REL::Relocation<decltype(thunk)> func;
 	};
 
-    float GetResolutionScale()
-    {
+	float GetResolutionScale()
+	{
 		return DisplayTweaks::borderlessUpscale ? DisplayTweaks::resolutionScale : 1.0f;
-    }
+	}
 
-    void LoadSettings(const CSimpleIniA& a_ini)
-    {
-        DisplayTweaks::resolutionScale = a_ini.GetDoubleValue("Render", "ResolutionScale", DisplayTweaks::resolutionScale);
+	void LoadSettings(const CSimpleIniA& a_ini)
+	{
+		DisplayTweaks::resolutionScale = a_ini.GetDoubleValue("Render", "ResolutionScale", DisplayTweaks::resolutionScale);
 		DisplayTweaks::borderlessUpscale = a_ini.GetBoolValue("Render", "BorderlessUpscale", DisplayTweaks::borderlessUpscale);
-    }
+	}
 
 	void Install()
 	{
