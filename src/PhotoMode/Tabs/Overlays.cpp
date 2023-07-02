@@ -41,7 +41,7 @@ namespace PhotoMode
 		if (hasOverlays) {
 			for (auto& [folder, files] : overlays) {
 				for (auto& [path, overlay] : files) {
-					overlay.Create(true);
+					overlay.Load(true);
 				}
 			}
 

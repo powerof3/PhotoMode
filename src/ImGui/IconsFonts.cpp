@@ -2,6 +2,7 @@
 
 #include "IconsFontAwesome6.h"
 #include "Input.h"
+#include "Renderer.h"
 #include "Util.h"
 
 namespace IconFont
@@ -10,9 +11,9 @@ namespace IconFont
 		ImageData(LR"(Data\Interface\PhotoMode\Icons\)", a_iconName)
 	{}
 
-	bool IconData::Create(bool a_resizeToScreenRes)
+	bool IconData::Load(bool a_resizeToScreenRes)
 	{
-		const bool result = ImageData::Create(a_resizeToScreenRes);
+		const bool result = ImageData::Load(a_resizeToScreenRes);
 
 		if (result) {
 			// 0.0004630f is 0.5/1080
@@ -37,11 +38,13 @@ namespace IconFont
 		ini::get_value(a_ini, fontName, "Fonts", "Font", nullptr);
 		fontName = R"(Data\Interface\PhotoMode\Fonts\)" + fontName;
 
-		ini::get_value(a_ini, fontSize, "Fonts", "FontSize", nullptr);
-		ini::get_value(a_ini, largeFontSize, "Fonts", "LargeFontSize", nullptr);
+		const auto resolutionScale = ImGui::Renderer::GetResolutionScale();
 
-		ini::get_value(a_ini, iconSize, "Fonts", "IconSize", nullptr);
-		ini::get_value(a_ini, largeIconSize, "Fonts", "LargeIconSize", nullptr);
+		fontSize = static_cast<float>(a_ini.GetLongValue("Fonts", "FontSize", fontSize)) * resolutionScale;
+		largeFontSize = static_cast<float>(a_ini.GetLongValue("Fonts", "LargeFontSize", fontSize)) * resolutionScale;
+
+		iconSize = static_cast<float>(a_ini.GetLongValue("Fonts", "IconSize", fontSize)) * resolutionScale;
+		largeIconSize = static_cast<float>(a_ini.GetLongValue("Fonts", "LargeIconSize", fontSize)) * resolutionScale;
 	}
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
@@ -51,26 +54,26 @@ namespace IconFont
 
 	void Manager::LoadIcons()
 	{
-		unknownKey.Create();
+		unknownKey.Load();
 
-		upKey.Create();
-		downKey.Create();
-		leftKey.Create();
-		rightKey.Create();
+		upKey.Load();
+		downKey.Load();
+		leftKey.Load();
+		rightKey.Load();
 
 		std::for_each(keyboard.begin(), keyboard.end(), [](auto& IconData) {
-			IconData.second.Create();
+			IconData.second.Load();
 		});
 		std::for_each(gamePad.begin(), gamePad.end(), [](auto& IconData) {
 			auto& [xbox, ps4] = IconData.second;
-			xbox.Create();
-			ps4.Create();
+			xbox.Load();
+			ps4.Load();
 		});
 
-		stepperLeft.Create();
-		stepperRight.Create();
-		checkbox.Create();
-		checkboxFilled.Create();
+		stepperLeft.Load();
+		stepperRight.Load();
+		checkbox.Load();
+		checkboxFilled.Load();
 	}
 
 	void Manager::LoadFonts()
@@ -92,13 +95,14 @@ namespace IconFont
 		builder.BuildRanges(&ranges);
 
 		auto& io = ImGui::GetIO();
-		io.FontDefault = LoadFontIconPair(static_cast<float>(fontSize), static_cast<float>(iconSize), ranges);
-		largeFont = LoadFontIconPair(static_cast<float>(largeFontSize), static_cast<float>(largeIconSize), ranges);
+
+		io.FontDefault = LoadFontIconSet(fontSize, iconSize, ranges);
+		largeFont = LoadFontIconSet(largeFontSize, largeIconSize, ranges);
 
 		io.Fonts->Build();
 	}
 
-	ImFont* Manager::LoadFontIconPair(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const
+	ImFont* Manager::LoadFontIconSet(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const
 	{
 		const auto& io = ImGui::GetIO();
 

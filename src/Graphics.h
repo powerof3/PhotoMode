@@ -10,7 +10,7 @@ namespace Texture
 
 		virtual ~ImageData();
 
-		virtual bool Create(bool a_resizeToScreenRes);
+		virtual bool Load(bool a_resizeToScreenRes);
 
 		// members
 		std::wstring                           path{};

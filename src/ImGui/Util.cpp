@@ -1,5 +1,7 @@
 #include "Util.h"
 
+#include "Renderer.h"
+
 namespace ImGui
 {
 	int IndexOfKey(const std::vector<std::pair<int, double>>& pair_list, const int key)
@@ -118,5 +120,23 @@ namespace ImGui
 			g.NavDisableHighlight = true;
 			SetWindowFocus(nullptr);
 		}
+	}
+
+	ImVec2 GetNativeViewportPos()
+	{
+		return GetMainViewport()->Pos * Renderer::GetResolutionScale();
+	}
+
+	ImVec2 GetNativeViewportSize()
+	{
+		return GetMainViewport()->Size * Renderer::GetResolutionScale();
+	}
+
+	ImVec2 GetNativeViewportCenter()
+	{
+		const auto Pos = GetNativeViewportPos();
+		const auto Size = GetNativeViewportSize();
+
+		return { Pos.x + Size.x * 0.5f, Pos.y + Size.y * 0.5f };
 	}
 }

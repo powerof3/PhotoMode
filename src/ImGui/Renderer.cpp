@@ -4,7 +4,7 @@
 
 #include "PhotoMode/Manager.h"
 
-namespace PhotoMode::Renderer
+namespace ImGui::Renderer
 {
 	struct WndProc
 	{
@@ -117,7 +117,18 @@ namespace PhotoMode::Renderer
 		static inline REL::Relocation<decltype(thunk)> func;
 	};
 
-	void InstallHook()
+    float GetResolutionScale()
+    {
+		return DisplayTweaks::borderlessUpscale ? DisplayTweaks::resolutionScale : 1.0f;
+    }
+
+    void LoadSettings(const CSimpleIniA& a_ini)
+    {
+        DisplayTweaks::resolutionScale = a_ini.GetDoubleValue("Render", "ResolutionScale", DisplayTweaks::resolutionScale);
+		DisplayTweaks::borderlessUpscale = a_ini.GetBoolValue("Render", "BorderlessUpscale", DisplayTweaks::borderlessUpscale);
+    }
+
+	void Install()
 	{
 		REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(75595, 77226), OFFSET(0x9, 0x275) };  // BSGraphics::InitD3D
 		stl::write_thunk_call<CreateD3DAndSwapChain>(target.address());

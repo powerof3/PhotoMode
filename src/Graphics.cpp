@@ -1,5 +1,7 @@
 #include "Graphics.h"
 
+#include "ImGui/Renderer.h"
+
 namespace Texture
 {
 	ImageData::ImageData(std::wstring_view a_path) :
@@ -21,7 +23,7 @@ namespace Texture
 		}
 	}
 
-	bool ImageData::Create(bool a_resizeToScreenRes)
+	bool ImageData::Load(bool a_resizeToScreenRes)
 	{
 		bool result = false;
 
@@ -31,8 +33,8 @@ namespace Texture
 		if (SUCCEEDED(hr)) {
 			if (auto renderer = RE::BSGraphics::Renderer::GetSingleton()) {
 				if (a_resizeToScreenRes) {
-					auto height = renderer->data.renderWindows[0].windowHeight;
-					auto width = renderer->data.renderWindows[0].windowWidth;
+					auto height = renderer->data.renderWindows[0].windowHeight * ImGui::Renderer::GetResolutionScale();
+					auto width = renderer->data.renderWindows[0].windowWidth * ImGui::Renderer::GetResolutionScale();
 
 					if (height != image->GetMetadata().height && height != image->GetMetadata().width) {
 						DirectX::ScratchImage tmpImage;
@@ -250,7 +252,7 @@ namespace Texture
 		// Save texture
 		const auto wPath = stl::utf8_to_utf16(a_path);
 		auto       hr = DirectX::SaveToWICFile(*a_inputImage.GetImage(0, 0, 0), DirectX::WIC_FLAGS_FORCE_SRGB,
-            DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), wPath->c_str());
+				  DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), wPath->c_str());
 		if (FAILED(hr)) {
 			logger::info("Failed to save png");
 		}

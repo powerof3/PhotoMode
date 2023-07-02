@@ -293,10 +293,8 @@ namespace PhotoMode
 
 	void Manager::Draw()
 	{
-		const ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
+		ImGui::SetNextWindowPos(ImGui::GetNativeViewportPos());
+		ImGui::SetNextWindowSize(ImGui::GetNativeViewportSize());
 
 		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		{
@@ -309,7 +307,7 @@ namespace PhotoMode
 				DrawControls();
 			}
 
-			if (ImGui::IsKeyReleased(ImGuiKey_Escape)) {
+			if (ImGui::IsKeyReleased(ImGuiKey_Escape) || ImGui::IsKeyReleased(ImGuiKey_NavGamepadCancel)) {
 				if (IsHidden() || noItemsFocused) {
 					Deactivate();
 					RE::PlaySound("UIMenuCancel");
@@ -321,17 +319,16 @@ namespace PhotoMode
 
 	void Manager::DrawControls()
 	{
-		const auto viewport = ImGui::GetMainViewport();
 		const auto io = ImGui::GetIO();
-		const auto styling = ImGui::GetStyle();
 
-		const static auto center = viewport->GetCenter();
+		const static auto center = ImGui::GetNativeViewportCenter();
+		const static auto size = ImGui::GetNativeViewportSize();
 
-		const static auto third_width = viewport->Size.x / 3;
-		const static auto third_height = viewport->Size.y / 3;
+		const static auto third_width = size.x / 3;
+		const static auto third_height = size.y / 3;
 
 		ImGui::SetNextWindowPos(ImVec2(center.x + third_width, center.y + third_height * 0.8f), ImGuiCond_Always, ImVec2(0.5, 0.5));
-		ImGui::SetNextWindowSize(ImVec2(viewport->Size.x / 3.25f, viewport->Size.y / 3.125f));
+		ImGui::SetNextWindowSize(ImVec2(size.x / 3.25f, size.y / 3.125f));
 
 		constexpr auto windowFlags = ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoDecoration;
 
@@ -349,7 +346,7 @@ namespace PhotoMode
 				const auto buttonSize = ImGui::ButtonIcon(MANAGER(Hotkeys)->PreviousTabKey());
 				ImGui::SameLine();
 
-				const float tabWidth = (ImGui::GetContentRegionAvail().x - (buttonSize.x + styling.ItemSpacing.x * tabs.size())) / tabs.size();
+				const float tabWidth = (ImGui::GetContentRegionAvail().x - (buttonSize.x + ImGui::GetStyle().ItemSpacing.x * tabs.size())) / tabs.size();
 
 				ImGui::PushItemFlag(ImGuiItemFlags_NoNav, true);
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -443,12 +440,12 @@ namespace PhotoMode
 
 	void Manager::DrawBar() const
 	{
-		const auto viewport = ImGui::GetMainViewport();
+		const static auto center = ImGui::GetNativeViewportCenter();
+		const static auto size = ImGui::GetNativeViewportSize();
 
-		const static auto center = viewport->GetCenter();
-		const static auto offset = viewport->Size.y / 20.25f;
+		const static auto offset = size.y / 20.25f;
 
-		ImGui::SetNextWindowPos(ImVec2(center.x, viewport->Size.y - offset), ImGuiCond_Always, ImVec2(0.5, 0.5));
+		ImGui::SetNextWindowPos(ImVec2(center.x, size.y - offset), ImGuiCond_Always, ImVec2(0.5, 0.5));
 
 		ImGui::Begin("##Bar", nullptr, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize);  // same offset as control window
 		{

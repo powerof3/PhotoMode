@@ -11,7 +11,7 @@ namespace IconFont
 
 		~IconData() override = default;
 
-		bool Create(bool a_resizeToScreenRes = false) override;
+		bool Load(bool a_resizeToScreenRes = false) override;
 	};
 
 	class Manager final : public ISingleton<Manager>
@@ -49,16 +49,16 @@ namespace IconFont
 			kPS4
 		};
 
-		ImFont* LoadFontIconPair(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const;
+		ImFont* LoadFontIconSet(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const;
 
 		// members
 		bool loadedFonts{ false };
 
-		std::string   fontName{ "Jost-Medium.ttf" };
-		std::uint32_t fontSize{ 24 };
-		std::uint32_t iconSize{ 20 };
-		std::uint32_t largeFontSize{ 28 };
-		std::uint32_t largeIconSize{ 24 };
+		std::string fontName{ "Jost-Regular.ttf" };
+		float       fontSize{ 26 };
+		float       iconSize{ 20 };
+		float       largeFontSize{ 30 };
+		float       largeIconSize{ 24 };
 
 		ImFont* largeFont{ nullptr };
 

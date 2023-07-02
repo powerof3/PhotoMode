@@ -16,8 +16,6 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 		{
 			logger::info("{:*^30}", "POST LOAD");
 
-			Settings::GetSingleton()->LoadSettings();
-
 			Hooks::Install();
 
 			ENB::handle = static_cast<ENB_API::ENBSDKALT1001*>(RequestENBAPI(ENB_API::SDKVersion::V1001));
@@ -127,7 +125,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 	SKSE::Init(a_skse);
 
-	PhotoMode::Renderer::InstallHook();
+	Settings::GetSingleton()->LoadSettings();
+	ImGui::Renderer::Install();
 
 	const auto messaging = SKSE::GetMessagingInterface();
 	messaging->RegisterListener("SKSE", OnInit);

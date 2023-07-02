@@ -1,5 +1,7 @@
 #include "Styles.h"
 
+#include "Renderer.h"
+
 void ImGui::DrawStyleEditor()
 {
 	ImGui::Begin("Style Editor", nullptr, 0);
@@ -53,6 +55,8 @@ void ImGui::StyleVanilla()
 	colors[ImGuiCol_TabUnfocusedActive] = colors[ImGuiCol_TabHovered];
 
 	colors[ImGuiCol_NavHighlight] = ImVec4();
+
+	style.ScaleAllSizes(Renderer::GetResolutionScale());
 
 	vanillaStyle = style;
 }

@@ -17,4 +17,8 @@ namespace ImGui
 	bool ActivateOnHover();
 
 	void UnfocusOnEscape();
+
+	ImVec2 GetNativeViewportSize();
+	ImVec2 GetNativeViewportPos();
+	ImVec2 GetNativeViewportCenter();
 }

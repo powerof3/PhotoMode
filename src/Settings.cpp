@@ -1,6 +1,7 @@
 #include "Settings.h"
 
 #include "ImGui/IconsFonts.h"
+#include "ImGui/Renderer.h"
 #include "Input.h"
 #include "PhotoMode/Hotkeys.h"
 #include "PhotoMode/Manager.h"
@@ -21,8 +22,18 @@ void Settings::SerializeINI(const wchar_t* a_path, const std::function<void(CSim
 	(void)ini.SaveFile(a_path);
 }
 
+void Settings::SerializeINI(const wchar_t* a_defaultPath, const wchar_t* a_userPath, std::function<void(CSimpleIniA&)> a_func)
+{
+	SerializeINI(a_defaultPath, a_func);
+	SerializeINI(a_userPath, a_func);
+}
+
 void Settings::LoadSettings() const
 {
+	SerializeINI(defaultDisplayTweaksPath, userDisplayTweaksPath, [](auto& ini) {
+		ImGui::Renderer::LoadSettings(ini);  // display tweaks scaling
+	});
+
 	SerializeINI(
 		fontsPath, [](auto& ini) {
 			MANAGER(IconFont)->LoadSettings(ini);  // fonts, icons
@@ -46,6 +57,5 @@ void Settings::LoadMCMSettings() const
 		MANAGER(PhotoMode)->LoadMCMSettings(ini);
 	};
 
-	SerializeINI(defaultMCMPath, load_mcm_settings);
-	SerializeINI(userMCMPath, load_mcm_settings);
+	SerializeINI(defaultMCMPath, userMCMPath, load_mcm_settings);
 }
