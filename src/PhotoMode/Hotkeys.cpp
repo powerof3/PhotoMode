@@ -174,4 +174,5 @@ namespace PhotoMode::Hotkeys
 	{
 		return MANAGER(IconFont)->GetIcons(togglePhotoMode.GetKeys());
 	}
+
 }

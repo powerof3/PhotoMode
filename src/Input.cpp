@@ -463,7 +463,7 @@ namespace Input
 						}
 					}
 
-					if (!photoMode->IsHidden() || key == KEY::kEscape) {
+					if (!photoMode->IsHidden() || (hotKey == KEY::kEscape || hotKey == SKSE::InputMap::kGamepadButtonOffset_B)) {
 						SendKeyEvent(key, buttonEvent->IsPressed());
 					}
 				}

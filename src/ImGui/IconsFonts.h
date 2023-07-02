@@ -188,7 +188,7 @@ namespace IconFont
 			{ SKSE::InputMap::kGamepadButtonOffset_X, { IconData(L"360_X"sv), IconData(L"PS3_X"sv) } },
 			{ SKSE::InputMap::kGamepadButtonOffset_Y, { IconData(L"360_Y"sv), IconData(L"PS3_Y"sv) } },
 			{ SKSE::InputMap::kGamepadButtonOffset_LT, { IconData(L"360_LT"sv), IconData(L"PS3_LT"sv) } },
-			{ SKSE::InputMap::kGamepadButtonOffset_LT, { IconData(L"360_RT"sv), IconData(L"PS3_RT"sv) } },
+			{ SKSE::InputMap::kGamepadButtonOffset_RT, { IconData(L"360_RT"sv), IconData(L"PS3_RT"sv) } },
 		};
 
 		BUTTON_SCHEME buttonScheme{ BUTTON_SCHEME::kAutoDetect };

@@ -13,7 +13,7 @@ namespace PhotoMode
 					RE::BSFaceGenManager::GetSingleton()->isReset = true;
 				} else {
 					faceData->exprOverride = false;
-					faceData->SetExpressionOverride(modifier - 1, strength);
+					faceData->SetExpressionOverride(modifier - 1, static_cast<float>(strength / 100.0f));
 					faceData->exprOverride = true;
 				}
 			}
@@ -170,12 +170,19 @@ namespace PhotoMode
 					if (ImGui::EnumSlider("$PM_Expression"_T, &expressionData.modifier, expressions)) {
 						expressionData.ApplyExpression(player);
 					}
+					ImGui::Indent();
+					{
+					    if (ImGui::Slider("$PM_Intensity"_T, &expressionData.strength, 0, 100)) {
+							expressionData.ApplyExpression(player);
+						}
+					}
+					ImGui::Unindent();
 
 					ImGui::Spacing();
 
 					if (ImGui::TreeNode("$PM_Phoneme"_T)) {
 						for (std::uint32_t i = 0; i < phonemes.size(); i++) {
-							if (ImGui::DragOnHover(phonemes[i], &phonemeData[i].strength)) {
+							if (ImGui::Slider(phonemes[i], &phonemeData[i].strength, 0, 100)) {
 								phonemeData[i].ApplyPhenome(i, player);
 							}
 						}
@@ -184,7 +191,7 @@ namespace PhotoMode
 
 					if (ImGui::TreeNode("$PM_Modifier"_T)) {
 						for (std::uint32_t i = 0; i < modifiers.size(); i++) {
-							if (ImGui::DragOnHover(modifiers[i], &modifierData[i].strength)) {
+							if (ImGui::Slider(modifiers[i], &modifierData[i].strength, 0, 100)) {
 								modifierData[i].ApplyModifier(i, player);
 							}
 						}
