@@ -172,7 +172,7 @@ namespace PhotoMode
 					}
 					ImGui::Indent();
 					{
-					    if (ImGui::Slider("$PM_Intensity"_T, &expressionData.strength, 0, 100)) {
+						if (ImGui::Slider("$PM_Intensity"_T, &expressionData.strength, 0, 100)) {
 							expressionData.ApplyExpression(player);
 						}
 					}

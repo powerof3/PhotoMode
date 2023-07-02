@@ -89,7 +89,7 @@ namespace Screenshot
 
 	bool Manager::TakeScreenshot(ID3D11Texture2D* a_texture_2d, const char* a_path)
 	{
-	    constexpr auto GetStaticRendererData = []() {
+		constexpr auto GetStaticRendererData = []() {
 			REL::Relocation<RE::BSGraphics::RendererData**> singleton{ RELOCATION_ID(524728, 411347) };
 			return *singleton;
 		};
