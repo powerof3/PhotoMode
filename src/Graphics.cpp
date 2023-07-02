@@ -26,7 +26,7 @@ namespace Texture
 		bool result = false;
 
 		image = std::make_shared<DirectX::ScratchImage>();
-		HRESULT hr = DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_NONE, nullptr, *image);
+		HRESULT hr = DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, *image);
 
 		if (SUCCEEDED(hr)) {
 			if (auto renderer = RE::BSGraphics::Renderer::GetSingleton()) {

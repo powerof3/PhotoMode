@@ -30,6 +30,9 @@ namespace PhotoMode
 		bool GetResetAll() const;
 		void DoResetAll();
 
+		[[nodiscard]] bool IsHidden() const;
+		void               ToggleUI();
+
 		void NavigateTab(bool a_left);
 
 		[[nodiscard]] float GetViewRoll(float a_fallback) const;
@@ -80,6 +83,7 @@ namespace PhotoMode
 
 		// members
 		bool activated{ false };
+		bool hiddenUI{ false };
 		bool revertENB{ false };
 
 		std::int32_t previousTab{ kCamera };
@@ -102,6 +106,10 @@ namespace PhotoMode
 		bool menusAlreadyHidden{ false };
 		bool openWithJournalMenu{ false };
 		bool allowTextInput{ false };
+
+		bool    noItemsFocused{ false };
+		ImGuiID lastFocusedID{ 0 };
+		bool    restoreLastFocusID{ false };
 
 		float freeCameraSpeed{ 4.0f };
 		bool  freezeTimeOnStart{ true };

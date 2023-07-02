@@ -440,30 +440,32 @@ namespace Input
 					}
 
 					if (!io.WantTextInput) {
-						if (hotKey == hotKeys->NextTabKey() && buttonEvent->IsDown()) {
-							photoMode->NavigateTab(false);
-						} else if (hotKey == hotKeys->PreviousTabKey() && buttonEvent->IsDown()) {
-							photoMode->NavigateTab(true);
+						if (hotKey == hotKeys->ToggleMenusKey() && buttonEvent->IsDown()) {
+							photoMode->ToggleUI();
 						} else if (hotKey == hotKeys->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
 								QueueScreenshot(false);
 							} else if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > keyHeldDuration) {
 								QueueScreenshot(true);
 							}
-						} else if (hotKey == hotKeys->ResetKey()) {
-							if (buttonEvent->IsUp()) {
-								photoMode->Revert(false);
-							} else if (buttonEvent->HeldDuration() > keyHeldDuration) {
-								photoMode->DoResetAll();
+						} else if (!photoMode->IsHidden()) {
+							if (hotKey == hotKeys->NextTabKey() && buttonEvent->IsDown()) {
+								photoMode->NavigateTab(false);
+							} else if (hotKey == hotKeys->PreviousTabKey() && buttonEvent->IsDown()) {
+								photoMode->NavigateTab(true);
+							} else if (hotKey == hotKeys->ResetKey()) {
+								if (buttonEvent->IsUp()) {
+									photoMode->Revert(false);
+								} else if (buttonEvent->HeldDuration() > keyHeldDuration) {
+									photoMode->DoResetAll();
+								}
 							}
-						} else if (hotKey == hotKeys->ToggleMenusKey() && buttonEvent->IsDown()) {
-							const auto UI = RE::UI::GetSingleton();
-							UI->ShowMenus(!UI->IsShowingMenus());
-							RE::PlaySound("UIMenuFocus");
 						}
 					}
 
-					SendKeyEvent(key, buttonEvent->IsPressed());
+					if (!photoMode->IsHidden() || key == KEY::kEscape) {
+						SendKeyEvent(key, buttonEvent->IsPressed());
+					}
 				}
 			}
 		}

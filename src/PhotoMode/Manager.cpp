@@ -62,6 +62,24 @@ namespace PhotoMode
 		return activated;
 	}
 
+	bool Manager::IsHidden() const
+	{
+		return hiddenUI;
+	}
+
+	void Manager::ToggleUI()
+	{
+		hiddenUI = !hiddenUI;
+
+		const auto UI = RE::UI::GetSingleton();
+		UI->ShowMenus(!UI->IsShowingMenus());
+		RE::PlaySound("UIMenuFocus");
+
+		if (!hiddenUI) {
+			restoreLastFocusID = true;
+		}
+	}
+
 	void Manager::Activate()
 	{
 		cameraTab.GetOriginalState();
@@ -79,6 +97,9 @@ namespace PhotoMode
 		}
 
 		menusAlreadyHidden = !RE::UI::GetSingleton()->IsShowingMenus();
+		if (menusAlreadyHidden) {
+			hiddenUI = true;
+		}
 
 		// disable saving
 		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.set(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
@@ -128,7 +149,7 @@ namespace PhotoMode
 
 		if (a_deactivate) {
 			// reset UI
-			if (!menusAlreadyHidden && !RE::UI::GetSingleton()->IsShowingMenus()) {
+			if ((!menusAlreadyHidden || hiddenUI) && !RE::UI::GetSingleton()->IsShowingMenus()) {
 				RE::UI::GetSingleton()->ShowMenus(true);
 			}
 			resetWindow = true;
@@ -168,6 +189,15 @@ namespace PhotoMode
 
 		// allow saving
 		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.reset(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
+
+		// reset variables
+		hiddenUI = false;
+
+	    noItemsFocused = false;
+		restoreLastFocusID = false;
+		lastFocusedID = 0;
+
+		updateKeyboardFocus = false;
 
 		activated = false;
 	}
@@ -272,9 +302,19 @@ namespace PhotoMode
 		{
 			// render hierachy
 			overlaysTab.DrawOverlays();
-			CameraGrid::Draw();
-			DrawBar();
-			DrawControls();
+
+			if (!IsHidden()) {
+				CameraGrid::Draw();
+				DrawBar();
+				DrawControls();
+			}
+
+			if (ImGui::IsKeyReleased(ImGuiKey_Escape)) {
+				if (IsHidden() || noItemsFocused) {
+					Deactivate();
+					RE::PlaySound("UIMenuCancel");
+				}
+			}
 		}
 		ImGui::End();
 	}
@@ -346,7 +386,11 @@ namespace PhotoMode
 			{
 				ImGui::Spacing();
 
-				if (updateKeyboardFocus) {
+				if (restoreLastFocusID) {
+					ImGui::SetFocusID(lastFocusedID, ImGui::GetCurrentWindow());
+
+					restoreLastFocusID = false;
+				} else if (updateKeyboardFocus) {
 					if (currentTab == TAB_TYPE::kPlayer) {
 						resetPlayerTabs = true;
 					}
@@ -389,10 +433,8 @@ namespace PhotoMode
 					break;
 				}
 
-				if (ImGui::IsKeyReleased(ImGuiKey_Escape) && (!ImGui::IsAnyItemFocused() || !ImGui::IsWindowFocused())) {
-					Deactivate();
-					RE::PlaySound("UIMenuCancel");
-				}
+				noItemsFocused = !ImGui::IsAnyItemFocused() || !ImGui::IsWindowFocused();
+				lastFocusedID = ImGui::GetFocusID();
 			}
 			ImGui::EndChild();
 		}
