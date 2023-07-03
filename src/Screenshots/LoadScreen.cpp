@@ -143,7 +143,7 @@ namespace LoadScreen
 			return;
 		}
 
-	    if (const auto newMaterial = RE::BSLightingShaderMaterial::CreateMaterial(RE::BSShaderMaterial::Feature::kDefault)) {
+		if (const auto newMaterial = RE::BSLightingShaderMaterial::CreateMaterial(RE::BSShaderMaterial::Feature::kDefault)) {
 			newMaterial->CopyMembers(material);
 			newMaterial->ClearTextures();
 
