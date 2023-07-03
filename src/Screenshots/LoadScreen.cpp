@@ -127,29 +127,39 @@ namespace LoadScreen
 
 	void Manager::ApplyScreenshotTexture(RE::BSGeometry* a_canvas) const
 	{
+		if (!a_canvas) {
+			return;
+		}
+
 		const auto effect = a_canvas->properties[RE::BSGeometry::States::kEffect];
+		if (!effect) {
+			return;
+		}
+
 		const auto lightingShader = netimmerse_cast<RE::BSLightingShaderProperty*>(effect.get());
-		const auto material = lightingShader ? static_cast<RE::BSLightingShaderMaterialBase*>(lightingShader->material) : nullptr;
+		const auto material = lightingShader ? static_cast<RE::BSLightingShaderMaterial*>(lightingShader->material) : nullptr;
 
-		if (lightingShader && material) {
-			if (const auto newMaterial = static_cast<RE::BSLightingShaderMaterialBase*>(material->Create()); newMaterial) {
-				newMaterial->CopyMembers(material);
-				newMaterial->ClearTextures();
+		if (!lightingShader || !material) {
+			return;
+		}
 
-				if (const auto newTextureSet = RE::BSShaderTextureSet::Create(); newTextureSet) {
-					newTextureSet->SetTexturePath(RE::BSTextureSet::Texture::kDiffuse, current.texturePath.c_str());
-					newTextureSet->SetTexturePath(RE::BSTextureSet::Texture::kNormal, material->textureSet->GetTexturePath(RE::BSTextureSet::Texture::kNormal));
-					newMaterial->OnLoadTextureSet(0, newTextureSet);
-				}
+	    if (const auto newMaterial = RE::BSLightingShaderMaterial::CreateMaterial(RE::BSShaderMaterial::Feature::kDefault)) {
+			newMaterial->CopyMembers(material);
+			newMaterial->ClearTextures();
 
-				lightingShader->SetMaterial(newMaterial, true);
-
-				lightingShader->SetupGeometry(a_canvas);
-				lightingShader->FinishSetupGeometry(a_canvas);
-
-				newMaterial->~BSLightingShaderMaterialBase();
-				RE::free(newMaterial);
+			if (const auto newTextureSet = RE::BSShaderTextureSet::Create()) {
+				newTextureSet->SetTexturePath(RE::BSTextureSet::Texture::kDiffuse, current.texturePath.c_str());
+				newTextureSet->SetTexturePath(RE::BSTextureSet::Texture::kNormal, R"(textures\photomode\paintings\canvaslandscape_n.dds)");
+				newMaterial->OnLoadTextureSet(0, newTextureSet);
 			}
+
+			lightingShader->SetMaterial(newMaterial, true);
+
+			lightingShader->SetupGeometry(a_canvas);
+			lightingShader->FinishSetupGeometry(a_canvas);
+
+			newMaterial->~BSLightingShaderMaterialBase();
+			RE::free(newMaterial);
 		}
 	}
 }

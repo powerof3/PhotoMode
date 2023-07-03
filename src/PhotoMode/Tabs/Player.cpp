@@ -44,6 +44,7 @@ namespace PhotoMode
 			}
 
 			expressionData.modifier = 0;
+			expressionData.strength = 0;
 
 			for (std::uint32_t i = 0; i < phonemes.size(); i++) {
 				phonemeData[i].strength = 0;
@@ -168,13 +169,17 @@ namespace PhotoMode
 					using namespace MFG;
 
 					if (ImGui::EnumSlider("$PM_Expression"_T, &expressionData.modifier, expressions)) {
-						expressionData.ApplyExpression(player);
+						expressionData.strength = 0;
 					}
 					ImGui::Indent();
 					{
-						if (ImGui::Slider("$PM_Intensity"_T, &expressionData.strength, 0, 100)) {
-							expressionData.ApplyExpression(player);
+						ImGui::BeginDisabled(expressionData.modifier == 0);
+						{
+							if (ImGui::Slider("$PM_Intensity"_T, &expressionData.strength, 0, 100)) {
+								expressionData.ApplyExpression(player);
+							}
 						}
+						ImGui::EndDisabled();
 					}
 					ImGui::Unindent();
 

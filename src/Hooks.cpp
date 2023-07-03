@@ -90,7 +90,6 @@ namespace LoadScreen
 		{
 			if (auto transform = MANAGER(LoadScreen)->GetModelTransform()) {
 				func(a_this, transform->scale, transform->rotationalOffset, transform->translateOffset, MANAGER(LoadScreen)->GetCameraShotPath(a_cameraShotPath));
-
 				if (const auto canvas = a_this->loadScreenModel ? a_this->loadScreenModel->GetObjectByName("Canvas:0") : nullptr) {
 					MANAGER(LoadScreen)->ApplyScreenshotTexture(canvas->AsGeometry());
 				}
