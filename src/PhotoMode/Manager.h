@@ -56,8 +56,8 @@ namespace PhotoMode
 			kOverlays
 		};
 
-		// kMenu | kActivate | kFighting | kJumping | kConsole | kSneaking
-		static constexpr auto controlFlags = static_cast<RE::ControlMap::UEFlag>(1244);
+		// kMenu | kActivate | kJumping
+		static constexpr auto controlFlags = static_cast<RE::ControlMap::UEFlag>(1036);
 
 		static constexpr std::array tabs = {
 			"$PM_Camera",
@@ -75,6 +75,7 @@ namespace PhotoMode
 		};
 		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifOverlays" };
 
+		static void TogglePlayerControls(bool a_enable);
 		void        DrawControls();
 		void        DrawBar() const;
 		static bool SetupJournalMenu();
@@ -97,7 +98,7 @@ namespace PhotoMode
 
 		bool updateKeyboardFocus{ false };
 
-		RE::CameraState cameraState{ RE::CameraState::kThirdPerson };
+		RE::CameraState originalcameraState{ RE::CameraState::kThirdPerson };
 
 		bool resetWindow{ true };
 		bool resetPlayerTabs{ true };

@@ -88,13 +88,7 @@ namespace PhotoMode
 		filterTab.GetOriginalState();
 
 		const auto pcCamera = RE::PlayerCamera::GetSingleton();
-		if (pcCamera->IsInFirstPerson()) {
-			cameraState = RE::CameraState::kFirstPerson;
-		} else if (pcCamera->IsInFreeCameraMode()) {
-			cameraState = RE::CameraState::kFree;
-		} else {
-			cameraState = RE::CameraState::kThirdPerson;
-		}
+		originalcameraState = pcCamera->currentState ? pcCamera->currentState->id : RE::CameraState::kThirdPerson;
 
 		menusAlreadyHidden = !RE::UI::GetSingleton()->IsShowingMenus();
 		if (menusAlreadyHidden) {
@@ -105,9 +99,13 @@ namespace PhotoMode
 		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.set(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
 
 		// toggle freecam
-		if (cameraState != RE::CameraState::kFree) {
-			RE::PlayerCamera::GetSingleton()->ToggleFreeCameraMode(false);
+		if (originalcameraState != RE::CameraState::kFree) {
+			pcCamera->ToggleFreeCameraMode(false);
+			RE::ControlMap::GetSingleton()->PushInputContext(RE::ControlMap::InputContextID::kTFCMode);
 		}
+
+		// disable controls
+		TogglePlayerControls(false);
 
 		// apply mcm settings
 		FreeCamera::translateSpeed = freeCameraSpeed;
@@ -116,6 +114,87 @@ namespace PhotoMode
 		}
 
 		activated = true;
+	}
+
+	void Manager::TogglePlayerControls(bool a_enable)
+	{
+		RE::ControlMap::GetSingleton()->ToggleControls(controlFlags, a_enable);
+
+		if (const auto pcControls = RE::PlayerControls::GetSingleton()) {
+			pcControls->readyWeaponHandler->SetInputEventHandlingEnabled(a_enable);
+			pcControls->sneakHandler->SetInputEventHandlingEnabled(a_enable);
+			pcControls->autoMoveHandler->SetInputEventHandlingEnabled(a_enable);
+			pcControls->shoutHandler->SetInputEventHandlingEnabled(a_enable);
+		}
+	}
+
+	bool Manager::OnFrameUpdate()
+	{
+		if (!IsValid()) {
+			Deactivate();
+			return false;
+		}
+
+		// disable controls
+		if (ImGui::GetIO().WantTextInput) {
+			if (!allowTextInput) {
+				allowTextInput = true;
+				RE::ControlMap::GetSingleton()->AllowTextInput(true);
+			}
+		} else if (allowTextInput) {
+			allowTextInput = false;
+			RE::ControlMap::GetSingleton()->AllowTextInput(false);
+		}
+		TogglePlayerControls(false);
+
+		timeTab.OnFrameUpdate();
+
+		return true;
+	}
+
+	void Manager::Deactivate()
+	{
+		Revert(true);
+
+		// reset camera
+		if (originalcameraState != RE::CameraState::kFree) {
+			RE::PlayerCamera::GetSingleton()->ToggleFreeCameraMode(false);
+			RE::ControlMap::GetSingleton()->PopInputContext(RE::ControlMap::InputContextID::kTFCMode);
+		}
+
+		// reset controls
+		allowTextInput = false;
+		RE::ControlMap::GetSingleton()->AllowTextInput(false);
+		TogglePlayerControls(true);
+
+		// allow saving
+		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.reset(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
+
+		// reset variables
+		hiddenUI = false;
+
+		noItemsFocused = false;
+		restoreLastFocusID = false;
+		lastFocusedID = 0;
+
+		updateKeyboardFocus = false;
+
+		activated = false;
+	}
+
+	void Manager::ToggleActive()
+	{
+		if (!IsActive()) {
+			if (IsValid() && !ShouldBlockInput()) {
+				RE::PlaySound("UIMenuOK");
+				Activate();
+			}
+		} else {
+			if (!ImGui::GetIO().WantTextInput && !ShouldBlockInput()) {
+				Deactivate();
+				RE::PlaySound("UIMenuCancel");
+			}
+		}
 	}
 
 	void Manager::Revert(bool a_deactivate)
@@ -166,57 +245,6 @@ namespace PhotoMode
 		}
 	}
 
-	void Manager::Deactivate()
-	{
-		Revert(true);
-
-		// reset camera
-		switch (cameraState) {
-		case RE::CameraState::kFirstPerson:
-			RE::PlayerCamera::GetSingleton()->ForceFirstPerson();
-			break;
-		case RE::CameraState::kThirdPerson:
-			RE::PlayerCamera::GetSingleton()->ForceThirdPerson();
-			break;
-		default:
-			break;
-		}
-
-		// reset controls
-		allowTextInput = false;
-		RE::ControlMap::GetSingleton()->AllowTextInput(false);
-		RE::ControlMap::GetSingleton()->ToggleControls(controlFlags, true);
-
-		// allow saving
-		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.reset(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
-
-		// reset variables
-		hiddenUI = false;
-
-		noItemsFocused = false;
-		restoreLastFocusID = false;
-		lastFocusedID = 0;
-
-		updateKeyboardFocus = false;
-
-		activated = false;
-	}
-
-	void Manager::ToggleActive()
-	{
-		if (!IsActive()) {
-			if (IsValid() && !ShouldBlockInput()) {
-				RE::PlaySound("UIMenuOK");
-				Activate();
-			}
-		} else {
-			if (!ImGui::GetIO().WantTextInput && !ShouldBlockInput()) {
-				Deactivate();
-				RE::PlaySound("UIMenuCancel");
-			}
-		}
-	}
-
 	bool Manager::GetResetAll() const
 	{
 		return resetAll;
@@ -240,30 +268,6 @@ namespace PhotoMode
 	float Manager::GetViewRoll(const float a_fallback) const
 	{
 		return IsActive() ? cameraTab.GetViewRoll() : a_fallback;
-	}
-
-	bool Manager::OnFrameUpdate()
-	{
-		if (!IsValid()) {
-			Deactivate();
-			return false;
-		}
-
-		// disable controls
-		if (ImGui::GetIO().WantTextInput) {
-			if (!allowTextInput) {
-				allowTextInput = true;
-				RE::ControlMap::GetSingleton()->AllowTextInput(true);
-			}
-		} else if (allowTextInput) {
-			allowTextInput = false;
-			RE::ControlMap::GetSingleton()->AllowTextInput(false);
-		}
-		RE::ControlMap::GetSingleton()->ToggleControls(controlFlags, false);
-
-		timeTab.OnFrameUpdate();
-
-		return true;
 	}
 
 	void Manager::UpdateENBParams()
