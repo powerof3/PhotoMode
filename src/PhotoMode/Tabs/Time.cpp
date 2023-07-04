@@ -66,7 +66,7 @@ namespace PhotoMode
 		currentGlobalTimeMult = RE::BSTimer::QGlobalTimeMultiplier();
 		if (ImGui::Slider("$PM_GlobalTimeMult"_T, &currentGlobalTimeMult, 0.01f, 2.0f)) {
 			RE::BSTimer::GetSingleton()->SetGlobalTimeMultiplier(currentGlobalTimeMult, true);
-	    }
+		}
 
 		ImGui::Dummy({ 0, 5 });
 
