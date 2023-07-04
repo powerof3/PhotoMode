@@ -187,7 +187,7 @@ namespace PhotoMode
 
 					if (ImGui::TreeNode("$PM_Phoneme"_T)) {
 						for (std::uint32_t i = 0; i < phonemes.size(); i++) {
-							if (ImGui::Slider(phonemes[i], &phonemeData[i].strength, 0, 100)) {
+							if (ImGui::Slider(TRANSLATE(phonemes[i]), &phonemeData[i].strength, 0, 100)) {
 								phonemeData[i].ApplyPhenome(i, player);
 							}
 						}
@@ -196,7 +196,7 @@ namespace PhotoMode
 
 					if (ImGui::TreeNode("$PM_Modifier"_T)) {
 						for (std::uint32_t i = 0; i < modifiers.size(); i++) {
-							if (ImGui::Slider(modifiers[i], &modifierData[i].strength, 0, 100)) {
+							if (ImGui::Slider(TRANSLATE(modifiers[i]), &modifierData[i].strength, 0, 100)) {
 								modifierData[i].ApplyModifier(i, player);
 							}
 						}
@@ -215,8 +215,9 @@ namespace PhotoMode
 							}
 						}
 						if (const auto currentProcess = player->currentProcess) {
-							currentProcess->PlayIdle(player, a_idle, nullptr);
-							idlePlayed = true;
+							if (currentProcess->PlayIdle(player, a_idle, nullptr)) {
+								idlePlayed = true;
+							}
 						}
 					});
 					ImGui::EndTabItem();
