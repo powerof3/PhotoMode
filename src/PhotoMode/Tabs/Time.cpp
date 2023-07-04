@@ -7,7 +7,7 @@ namespace PhotoMode
 	void Time::OriginalState::Get()
 	{
 		freezeTime = RE::Main::GetSingleton()->freezeTime;
-		globalTimeMult = RE::BSTimer::GetCurrentGlobalTimeMult();
+		globalTimeMult = RE::BSTimer::QGlobalTimeMultiplier();
 
 		const auto calendar = RE::Calendar::GetSingleton();
 		timescale = calendar->GetTimescale();
@@ -17,7 +17,7 @@ namespace PhotoMode
 	void Time::OriginalState::Revert() const
 	{
 		RE::Main::GetSingleton()->freezeTime = freezeTime;
-		RE::BSTimer::GetCurrentGlobalTimeMult() = globalTimeMult;
+		RE::BSTimer::GetSingleton()->SetGlobalTimeMultiplier(globalTimeMult, true);
 
 		const auto calendar = RE::Calendar::GetSingleton();
 		calendar->timeScale->value = timescale;
@@ -35,8 +35,9 @@ namespace PhotoMode
 	{
 		originalState.Revert();
 
-		// revert timescale mult
+		// is this needed when value is updated every frame?
 		currentTimescaleMult = 1.0f;
+		currentGlobalTimeMult = 1.0f;
 
 		// revert weather
 		weathers.Reset();
@@ -61,7 +62,11 @@ namespace PhotoMode
 	void Time::Draw()
 	{
 		ImGui::CheckBox("$PM_FreezeTime"_T, &RE::Main::GetSingleton()->freezeTime);
-		ImGui::Slider("$PM_GlobalTimeMult"_T, &RE::BSTimer::GetCurrentGlobalTimeMult(), 0.1f, 2.0f);
+
+		currentGlobalTimeMult = RE::BSTimer::QGlobalTimeMultiplier();
+		if (ImGui::Slider("$PM_GlobalTimeMult"_T, &currentGlobalTimeMult, 0.01f, 2.0f)) {
+			RE::BSTimer::GetSingleton()->SetGlobalTimeMultiplier(currentGlobalTimeMult, true);
+	    }
 
 		ImGui::Dummy({ 0, 5 });
 

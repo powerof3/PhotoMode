@@ -30,7 +30,9 @@ namespace PhotoMode
 
 		// members
 		OriginalState originalState{};
-		float         currentTimescaleMult{};
+
+		float currentGlobalTimeMult{};
+		float currentTimescaleMult{};
 
 		RE::TESWeather* originalWeather{ nullptr };
 		bool            weatherForced{ false };
