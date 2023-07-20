@@ -14,11 +14,12 @@ namespace PhotoMode::Hotkeys
 
 		void TogglePhotoMode(RE::InputEvent* const* a_event);
 
-		std::uint32_t ResetKey() const;
-		std::uint32_t TakePhotoKey() const;
-		std::uint32_t ToggleMenusKey() const;
-		std::uint32_t NextTabKey() const;
-		std::uint32_t PreviousTabKey() const;
+		std::uint32_t        ResetKey() const;
+		std::uint32_t        TakePhotoKey() const;
+		std::uint32_t        ToggleMenusKey() const;
+		std::uint32_t        NextTabKey() const;
+		std::uint32_t        PreviousTabKey() const;
+        static std::uint32_t EscapeKey();
 
 		const IconFont::IconData* ResetIcon() const;
 		const IconFont::IconData* TakePhotoIcon() const;

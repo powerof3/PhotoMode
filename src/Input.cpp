@@ -387,7 +387,10 @@ namespace Input
 
 	EventResult Manager::ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*)
 	{
-		if (!a_evn || !RE::PlayerCharacter::GetSingleton()->Is3DLoaded() || !RE::Main::GetSingleton()->gameActive) {
+		if (!a_evn ||
+			!RE::PlayerCharacter::GetSingleton()->Is3DLoaded() ||
+			!RE::Main::GetSingleton()->gameActive ||
+			RE::Main::GetSingleton()->wnd != reinterpret_cast<SKSE::WinAPI::HWND>(GetForegroundWindow())) {
 			return EventResult::kContinue;
 		}
 
@@ -398,41 +401,39 @@ namespace Input
 
 		hotKeys->TogglePhotoMode(a_evn);
 
-		for (auto event = *a_evn; event; event = event->next) {
-			if (!photoMode->IsActive()) {
-				// process vanilla multi-screenshots
-				if (const auto buttonEvent = event->AsButtonEvent()) {
-					if (buttonEvent->QUserEvent() == RE::UserEvents::GetSingleton()->screenshot) {
-						if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > keyHeldDuration) {
-							RE::MenuControls::GetSingleton()->QueueScreenshot();
-						}
-					}
-				}
-			} else {
-				if (photoMode->ShouldBlockInput()) {
-					return EventResult::kContinue;
-				}
+		if (photoMode->IsActive()) {
+			if (photoMode->ShouldBlockInput()) {
+				return EventResult::kContinue;
+			}
 
+		    for (auto event = *a_evn; event; event = event->next) {
 				// process inputs
 				if (const auto charEvent = event->AsCharEvent()) {
 					io.AddInputCharacter(charEvent->keycode);
 				} else if (const auto buttonEvent = event->AsButtonEvent()) {
 					const auto key = buttonEvent->GetIDCode();
+					const auto device = event->GetDevice();
 					auto       hotKey = key;
 
 					// get input type
-					switch (event->GetDevice()) {
+					switch (device) {
 					case RE::INPUT_DEVICE::kKeyboard:
 						inputType = TYPE::kKeyboard;
 						break;
+					case RE::INPUT_DEVICE::kMouse:
+						{
+							hotKey += SKSE::InputMap::kMacro_MouseButtonOffset;
+							inputType = TYPE::kKeyboard;
+						}
+						break;
 					case RE::INPUT_DEVICE::kGamepad:
 						{
+							hotKey = SKSE::InputMap::GamepadMaskToKeycode(hotKey);
 							if (RE::ControlMap::GetSingleton()->GetGamePadType() == RE::PC_GAMEPAD_TYPE::kOrbis) {
 								inputType = TYPE::kGamepadOrbis;
 							} else {
 								inputType = TYPE::kGamepadDirectX;
 							}
-							hotKey = SKSE::InputMap::GamepadMaskToKeycode(hotKey);
 						}
 						break;
 					default:
@@ -463,7 +464,7 @@ namespace Input
 						}
 					}
 
-					if (!photoMode->IsHidden() || (hotKey == KEY::kEscape || hotKey == SKSE::InputMap::kGamepadButtonOffset_B)) {
+					if (device != RE::INPUT_DEVICE::kMouse && (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey())) {
 						SendKeyEvent(key, buttonEvent->IsPressed());
 					}
 				}

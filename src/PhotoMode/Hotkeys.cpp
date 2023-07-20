@@ -99,8 +99,12 @@ namespace PhotoMode::Hotkeys
 				switch (button->GetDevice()) {
 				case RE::INPUT_DEVICE::kKeyboard:
 					break;
+				case RE::INPUT_DEVICE::kMouse:
+					key += SKSE::InputMap::kMacro_MouseButtonOffset;
+					break;
 				case RE::INPUT_DEVICE::kGamepad:
 					key = SKSE::InputMap::GamepadMaskToKeycode(key);
+					break;
 				default:
 					continue;
 				}
@@ -145,7 +149,15 @@ namespace PhotoMode::Hotkeys
 		return previousTab.GetKey();
 	}
 
-	const IconFont::IconData* Manager::ResetIcon() const
+    std::uint32_t Manager::EscapeKey()
+    {
+		if (Input::GetInputType() == Input::TYPE::kKeyboard) {
+			return KEY::kEscape;
+		}
+		return SKSE::InputMap::kGamepadButtonOffset_B;
+	}
+
+    const IconFont::IconData* Manager::ResetIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(reset.GetKey());
 	}

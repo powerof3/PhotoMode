@@ -69,6 +69,9 @@ namespace IconFont
 			xbox.Load();
 			ps4.Load();
 		});
+		std::for_each(mouse.begin(), mouse.end(), [](auto& IconData) {
+			IconData.second.Load();
+		});
 
 		stepperLeft.Load();
 		stepperRight.Load();
@@ -159,7 +162,11 @@ namespace IconFont
 		default:
 			{
 				if (Input::GetInputType() == Input::TYPE::kKeyboard) {
-					if (const auto it = keyboard.find(static_cast<KEY>(key)); it != keyboard.end()) {
+					if (key >= SKSE::InputMap::kMacro_MouseButtonOffset) {
+						if (const auto it = mouse.find(key); it != mouse.end()) {
+							return &it->second;
+						}
+					} else if (const auto it = keyboard.find(static_cast<KEY>(key)); it != keyboard.end()) {
 						return &it->second;
 					}
 				} else {

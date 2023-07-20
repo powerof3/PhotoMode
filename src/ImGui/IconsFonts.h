@@ -191,6 +191,17 @@ namespace IconFont
 			{ SKSE::InputMap::kGamepadButtonOffset_RT, { IconData(L"360_RT"sv), IconData(L"PS3_RT"sv) } },
 		};
 
+		Map<std::uint32_t, IconData> mouse{
+			{ 256 + MOUSE::kLeftButton, IconData(L"Mouse1"sv) },
+			{ 256 + +MOUSE::kRightButton, IconData(L"Mouse2"sv) },
+			{ 256 + +MOUSE::kMiddleButton, IconData(L"Mouse3"sv) },
+			{ 256 + +MOUSE::kButton3, IconData(L"Mouse4"sv) },
+			{ 256 + +MOUSE::kButton4, IconData(L"Mouse5 "sv) },
+			{ 256 + +MOUSE::kButton5, IconData(L"Mouse6"sv) },
+			{ 256 + +MOUSE::kButton6, IconData(L"Mouse7"sv) },
+			{ 256 + +MOUSE::kButton7, IconData(L"Mouse8"sv) },
+		};
+
 		BUTTON_SCHEME buttonScheme{ BUTTON_SCHEME::kAutoDetect };
 	};
 }

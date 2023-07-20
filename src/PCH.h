@@ -46,9 +46,11 @@ using namespace clib_util::singleton;
 
 using RNG = clib_util::RNG;
 using EventResult = RE::BSEventNotifyControl;
+
 using KEY = RE::BSWin32KeyboardDevice::Key;
 using GAMEPAD_DIRECTX = RE::BSWin32GamepadDevice::Key;
 using GAMEPAD_ORBIS = RE::BSPCOrbisGamepadDevice::Key;
+using MOUSE = RE::BSWin32MouseDevice::Key;
 
 template <class T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
