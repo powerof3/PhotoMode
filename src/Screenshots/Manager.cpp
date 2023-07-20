@@ -34,15 +34,30 @@ namespace Screenshot
 				return;
 			}
 
-			const auto iterator = std::filesystem::directory_iterator(a_folder);
+			std::vector<std::string> badTextures{};
 
-			for (const auto& entry : iterator) {
+		    for (const auto& entry : std::filesystem::directory_iterator(a_folder)) {
 				if (entry.exists()) {
 					if (const auto& path = entry.path(); !path.empty() && path.extension() == ".dds") {
 						auto pathStr = entry.path().string();
+
+						DirectX::TexMetadata  info;
+						GetMetadataFromDDSFile(stl::utf8_to_utf16(pathStr)->c_str(), DirectX::DDS_FLAGS_NONE, info);
+						logger::info("{}x{}", info.width, info.height);
+
+						if (info.width % 4 != 0 || info.height % 4 != 0) {
+							badTextures.push_back(pathStr);
+						    continue;
+						}
+
 						a_textures.push_back(Texture::Sanitize(pathStr));
 					}
 				}
+			}
+
+			for (auto& badTexture : badTextures) {
+				logger::info("\tDeleting invalid texture ({})", badTexture);
+			    std::filesystem::remove(badTexture);
 			}
 		};
 
@@ -139,7 +154,7 @@ namespace Screenshot
 
 	void Manager::TakeScreenshotAsTexture(const DirectX::ScratchImage& a_ssImage, const DirectX::ScratchImage& a_paintingImage)
 	{
-		if (!takeScreenshotAsDDS) {
+		if (!takeScreenshotAsDDS || a_ssImage.GetMetadata().width % 4 != 0 || a_ssImage.GetMetadata().height % 4 != 0) {
 			return;
 		}
 
