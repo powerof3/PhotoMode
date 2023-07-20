@@ -43,7 +43,6 @@ namespace Screenshot
 
 						DirectX::TexMetadata  info;
 						GetMetadataFromDDSFile(stl::utf8_to_utf16(pathStr)->c_str(), DirectX::DDS_FLAGS_NONE, info);
-						logger::info("{}x{}", info.width, info.height);
 
 						if (info.width % 4 != 0 || info.height % 4 != 0) {
 							badTextures.push_back(pathStr);

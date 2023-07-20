@@ -28,9 +28,9 @@ namespace PhotoMode
 		vanillaDOF.farDist = DOF::farDist;
 		vanillaDOF.farRange = DOF::farRange;
 
-		if (ENB::IsInstalled()) {
+		/*if (ENB::IsInstalled()) {
 			enbDOF.Get();
-		}
+		}*/
 	}
 
 	void Camera::OriginalState::Revert(bool a_deactivate) const
@@ -50,7 +50,7 @@ namespace PhotoMode
 
 	void Camera::GetOriginalState()
 	{
-		revertENB = false;
+		// revertENB = false;
 		originalState.Get();
 	}
 
@@ -69,9 +69,9 @@ namespace PhotoMode
 			static_cast<RE::ImageSpaceEffectDepthOfField*>(effect)->enabled = true;
 		}
 
-		if (ENB::IsInstalled()) {
+		/*if (ENB::IsInstalled()) {
 			revertENB = true;
-		}
+		}*/
 	}
 
 	void Camera::Draw()
@@ -89,13 +89,17 @@ namespace PhotoMode
 			&FreeCamera::translateSpeed,  // fFreeCameraTranslationSpeed:Camera
 			0.1f, 50.0f);
 
-		if (ENB::IsEnabled()) {
+		/*if (ENB::IsEnabled()) {
 			lastDOF = curDOF;
 			curDOF.Get();
 
 			ImGui::CheckBox("$PM_DepthOfField"_T, &curDOF.enabled);
 
-		} else if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
+		else */
+
+		const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField];
+
+		if (effect && !ENB::IsEnabled()) {
 			const auto dofEffect = static_cast<RE::ImageSpaceEffectDepthOfField*>(effect);
 
 			ImGui::CheckBox("$PM_DepthOfField"_T, &dofEffect->enabled);

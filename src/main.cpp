@@ -20,7 +20,7 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 
 			ENB::handle = static_cast<ENB_API::ENBSDKALT1001*>(RequestENBAPI(ENB_API::SDKVersion::V1001));
 			if (ENB::handle) {
-				ENB::handle->SetCallbackFunction([](ENBCallbackType a_calltype) {
+				/*ENB::handle->SetCallbackFunction([](ENBCallbackType a_calltype) {
 					switch (a_calltype) {
 					case ENBCallbackType::ENBCallback_BeginFrame:
 						MANAGER(PhotoMode)->UpdateENBParams();
@@ -31,7 +31,7 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 					default:
 						break;
 					}
-				});
+				});*/
 				logger::info("Obtained ENB API");
 			} else {
 				logger::info("Unable to acquire ENB API");
