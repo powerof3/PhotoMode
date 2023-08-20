@@ -12,9 +12,9 @@ set(sources ${sources}
 	src/PhotoMode/Hotkeys.cpp
 	src/PhotoMode/Manager.cpp
 	src/PhotoMode/Tabs/Camera.cpp
+	src/PhotoMode/Tabs/Character.cpp
 	src/PhotoMode/Tabs/Filters.cpp
 	src/PhotoMode/Tabs/Overlays.cpp
-	src/PhotoMode/Tabs/Player.cpp
 	src/PhotoMode/Tabs/Time.cpp
 	src/Screenshots/LoadScreen.cpp
 	src/Screenshots/Manager.cpp

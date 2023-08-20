@@ -4,6 +4,8 @@
 
 namespace PhotoMode
 {
+	inline RE::TESIdleForm* resetRootIdle{ nullptr };
+
 	namespace MFG
 	{
 		inline constexpr std::array expressions{
@@ -26,7 +28,6 @@ namespace PhotoMode
 			"$PM_CombatAnger",
 			"$PM_CombatShout"
 		};
-
 		inline constexpr std::array phonemes{
 			"$PM_Aah",
 			"$PM_BigAah",
@@ -45,7 +46,6 @@ namespace PhotoMode
 			"$PM_Th",
 			"$PM_W"
 		};
-
 		inline constexpr std::array modifiers{
 			"$PM_BlinkLeft",
 			"$PM_BlinkRight",
@@ -66,46 +66,50 @@ namespace PhotoMode
 			"$PM_HeadYaw"
 		};
 
-		struct Expression
+		class Data
 		{
-			void ApplyExpression(RE::Actor* a_actor) const;
+		public:
+			void Revert(RE::Actor* a_actor);
 
-			std::int32_t modifier{ 0 };  // 0 is NONE
-			std::int32_t strength{ 0 };
+			// members
+			struct Expression
+			{
+				void ApplyExpression(RE::Actor* a_actor) const;
+
+				std::int32_t modifier{ 0 };  // 0 is NONE
+				std::int32_t strength{ 0 };
+			};
+			struct Modifier
+			{
+				void ApplyPhenome(std::uint32_t idx, RE::Actor* a_actor) const;
+				void ApplyModifier(std::uint32_t idx, RE::Actor* a_actor) const;
+
+				std::int32_t strength{ 0 };
+			};
+
+			Expression expressionData;
+			Modifier   phonemeData[phonemes.size()];
+			Modifier   modifierData[modifiers.size()];
 		};
-
-		struct Modifier
-		{
-			void ApplyPhenome(std::uint32_t idx, RE::Actor* a_actor) const;
-			void ApplyModifier(std::uint32_t idx, RE::Actor* a_actor) const;
-
-			std::int32_t strength{ 0 };
-		};
-
-		inline Expression expressionData;
-		inline Modifier   phonemeData[phonemes.size()];
-		inline Modifier   modifierData[modifiers.size()];
-
-		void RevertAllModifiers();
 	}
 
-	inline ImGui::FormComboBoxFiltered<RE::TESEffectShader>    effectShaders{ "$PM_EffectShaders" };
-	inline ImGui::FormComboBoxFiltered<RE::TESIdleForm>        idles{ "$PM_Idles" };
-	inline ImGui::FormComboBoxFiltered<RE::BGSReferenceEffect> effectVFX{ "$PM_VisualEffects" };
-
-	class Player
+	class Character
 	{
 	public:
+		Character() = default;
+		Character(RE::Actor* a_actor);
+
 		void GetOriginalState();
 		void RevertState();
+
+		const std::string& GetName();
 
 		void Draw(bool a_resetTabs);
 
 	private:
 		struct State
 		{
-			void Get();
-			void Set() const;
+			void Get(const RE::Actor* a_actor);
 
 			// members
 			bool         visible{ true };
@@ -116,14 +120,25 @@ namespace PhotoMode
 		void RevertIdle() const;
 
 		// members
+		RE::Actor* character{ nullptr };
+		std::string characterName{};
+
+		// names should ideally be pulled from a shared map with different indices for characters but this will do
+		ImGui::FormComboBoxFiltered<RE::TESEffectShader>    effectShaders{ "$PM_EffectShaders" };
+		ImGui::FormComboBoxFiltered<RE::TESIdleForm>        idles{ "$PM_Idles" };
+		ImGui::FormComboBoxFiltered<RE::BGSReferenceEffect> effectVFX{ "$PM_VisualEffects" };
+
+		MFG::Data mfgData{};
+
 		State originalState{};
 		State currentState{};
+
+		bool rotationChanged{ false };
+		bool positionChanged{ false };
 
 		bool effectsPlayed{ false };
 		bool vfxPlayed{ false };
 		bool idlePlayed{ false };
-
-		RE::TESIdleForm* resetRootIdle{ nullptr };
 	};
 
 	void InstallHook();

@@ -19,9 +19,9 @@ set(headers ${headers}
 	src/PhotoMode/Hotkeys.h
 	src/PhotoMode/Manager.h
 	src/PhotoMode/Tabs/Camera.h
+	src/PhotoMode/Tabs/Character.h
 	src/PhotoMode/Tabs/Filters.h
 	src/PhotoMode/Tabs/Overlays.h
-	src/PhotoMode/Tabs/Player.h
 	src/PhotoMode/Tabs/Time.h
 	src/Screenshots/LoadScreen.h
 	src/Screenshots/Manager.h

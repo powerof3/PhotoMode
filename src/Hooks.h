@@ -2,7 +2,9 @@
 
 namespace PhotoMode
 {
-	void InstallHooks();
+	inline StringMap<RE::TESIdleForm*> cachedIdles;
+
+    void InstallHooks();
 }
 
 namespace Screenshot
@@ -17,5 +19,5 @@ namespace LoadScreen
 
 namespace Hooks
 {
-	void Install();
+    void Install();
 }

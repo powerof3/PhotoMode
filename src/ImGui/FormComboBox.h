@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ImGui/Widgets.h"
+#include "Hooks.h"
 
 namespace ImGui
 {
@@ -17,7 +18,7 @@ namespace ImGui
 				edids.push_back(a_edid);
 			}
 		}
-		void UpdateValidForms()
+		void UpdateValidForms(RE::Actor* a_actor = nullptr)
 		{
 			if (valid) {
 				return;
@@ -26,11 +27,12 @@ namespace ImGui
 			SetValid(true);
 
 			if constexpr (std::is_same_v<T, RE::TESIdleForm>) {
-				const auto player = RE::PlayerCharacter::GetSingleton();
-
+				if (!a_actor) {
+					a_actor = RE::PlayerCharacter::GetSingleton();
+				}
 				edids.clear();
 				for (auto& [edid, idle] : edidForms) {
-					if (player->CanUseIdle(idle) && idle->CheckConditions(player, nullptr, false)) {
+					if (a_actor->CanUseIdle(idle) && idle->CheckConditions(a_actor, nullptr, false)) {
 						edids.push_back(edid);
 					}
 				}
@@ -54,9 +56,9 @@ namespace ImGui
 			valid = a_valid;
 		}
 
-		T* GetComboWithFilterResult()
+		T* GetComboWithFilterResult(RE::Actor* a_actor = nullptr)
 		{
-			UpdateValidForms();
+			UpdateValidForms(a_actor);
 			if (ImGui::ComboWithFilter("##forms", &index, edids)) {
 				// avoid losing focus
 				ImGui::SetKeyboardFocusHere(-1);
@@ -96,10 +98,14 @@ namespace ImGui
 		}
 		void InitForms()
 		{
-			if constexpr (!std::is_same_v<T, RE::TESIdleForm>) {
-				if (modNameForms.empty()) {
+			if (modNameForms.empty()) {
+				if constexpr (!std::is_same_v<T, RE::TESIdleForm>) {
 					for (const auto& form : RE::TESDataHandler::GetSingleton()->GetFormArray<T>()) {
 						AddForm(EditorID::GetEditorID(form), form);
+					}
+				} else {
+					for (auto& [edid, form] : PhotoMode::cachedIdles) {
+						AddForm(edid, form);
 					}
 				}
 			}
@@ -135,7 +141,7 @@ namespace ImGui
 			}
 		}
 
-		void GetFormResultFromCombo(std::function<void(T*)> a_func)
+		void GetFormResultFromCombo(std::function<void(T*)> a_func, RE::Actor* a_actor = nullptr)
 		{
 			T* formResult;
 
@@ -167,7 +173,7 @@ namespace ImGui
 				ImGui::PopItemWidth();
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 
-				formResult = modNameForms[curMod].GetComboWithFilterResult();
+				formResult = modNameForms[curMod].GetComboWithFilterResult(a_actor);
 
 				ImGui::PopItemWidth();
 				ImGui::PopID();

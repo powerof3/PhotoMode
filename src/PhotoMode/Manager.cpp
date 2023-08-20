@@ -88,7 +88,11 @@ namespace PhotoMode
 	{
 		cameraTab.GetOriginalState();
 		timeTab.GetOriginalState();
-		playerTab.GetOriginalState();
+
+		const auto player = RE::PlayerCharacter::GetSingleton();
+		characterTab.emplace(player->GetFormID(), Character(player));
+		cachedCharacter = player;
+
 		filterTab.GetOriginalState();
 
 		const auto pcCamera = RE::PlayerCamera::GetSingleton();
@@ -168,6 +172,10 @@ namespace PhotoMode
 	{
 		Revert(true);
 
+		//reset characters
+		characterTab.clear();
+		cachedCharacter = nullptr;
+
 		// reset camera
 		if (originalcameraState != RE::CameraState::kFree) {
 			RE::PlayerCamera::GetSingleton()->ToggleFreeCameraMode(false);
@@ -228,10 +236,18 @@ namespace PhotoMode
 		if (tabIndex == -1 || tabIndex == kTime) {
 			timeTab.RevertState();
 		}
-		// Player
-		if (tabIndex == -1 || tabIndex == kPlayer) {
-			playerTab.RevertState();
+
+		// Character
+		if (tabIndex == kCharacter) {
+			if (cachedCharacter) {
+				characterTab[cachedCharacter->GetFormID()].RevertState();
+			}
+		} else if (tabIndex == -1) {
+			for (auto& [formID, characterData] : characterTab) {
+				characterData.RevertState();
+			}
 		}
+
 		// Filters
 		if (tabIndex == -1 || tabIndex == kFilters) {
 			filterTab.RevertState(tabIndex == -1);
@@ -394,7 +410,7 @@ namespace PhotoMode
 
 			//		CAMERA
 			// ----------------
-			ImGui::CenteredText(TRANSLATE(tabs[currentTab]));
+			ImGui::CenteredText(currentTab != TAB_TYPE::kCharacter ? TRANSLATE(tabs[currentTab]) : characterTab[cachedCharacter->GetFormID()].GetName().c_str());
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, 3.0f);
 
 			// content
@@ -408,7 +424,7 @@ namespace PhotoMode
 
 					restoreLastFocusID = false;
 				} else if (updateKeyboardFocus) {
-					if (currentTab == TAB_TYPE::kPlayer) {
+					if (currentTab == TAB_TYPE::kCharacter) {
 						resetPlayerTabs = true;
 					}
 
@@ -431,9 +447,19 @@ namespace PhotoMode
 				case TAB_TYPE::kTime:
 					timeTab.Draw();
 					break;
-				case TAB_TYPE::kPlayer:
+				case TAB_TYPE::kCharacter:
 					{
-						playerTab.Draw(resetPlayerTabs);
+						const auto consoleRef = RE::Console::GetSelectedRef();
+						if (!consoleRef || !consoleRef->Is(RE::FormType::ActorCharacter) || consoleRef->IsDisabled() || consoleRef->IsDeleted()) {
+							cachedCharacter = RE::PlayerCharacter::GetSingleton();
+						} else {
+							cachedCharacter = consoleRef->As<RE::Actor>();
+							if (!characterTab.contains(cachedCharacter->GetFormID())) {
+								characterTab.emplace(cachedCharacter->GetFormID(), Character(cachedCharacter));
+							}
+						}
+
+						characterTab[cachedCharacter->GetFormID()].Draw(resetPlayerTabs);
 
 						if (resetPlayerTabs) {
 							resetPlayerTabs = false;

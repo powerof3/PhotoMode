@@ -3,9 +3,9 @@
 #include "ImGui/IconsFontAwesome6.h"
 
 #include "Tabs/Camera.h"
+#include "Tabs/Character.h"
 #include "Tabs/Filters.h"
 #include "Tabs/Overlays.h"
-#include "Tabs/Player.h"
 #include "Tabs/Time.h"
 
 namespace PhotoMode
@@ -51,7 +51,7 @@ namespace PhotoMode
 		{
 			kCamera,
 			kTime,
-			kPlayer,
+			kCharacter,
 			kFilters,
 			kOverlays
 		};
@@ -75,10 +75,10 @@ namespace PhotoMode
 		};
 		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifOverlays" };
 
-		static void        TogglePlayerControls(bool a_enable);
+	    static void        TogglePlayerControls(bool a_enable);
 		void               DrawControls();
 		void               DrawBar() const;
-        [[nodiscard]] bool SetupJournalMenu() const;
+		[[nodiscard]] bool SetupJournalMenu() const;
 
 		EventResult ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
 
@@ -90,9 +90,12 @@ namespace PhotoMode
 		std::int32_t previousTab{ kCamera };
 		std::int32_t currentTab{ kCamera };
 
-		Camera   cameraTab;
-		Time     timeTab;
-		Player   playerTab;
+		Camera cameraTab;
+		Time   timeTab;
+
+		Map<RE::FormID, Character> characterTab;
+		RE::Actor*                 cachedCharacter{ nullptr };
+
 		Filters  filterTab;
 		Overlays overlaysTab;
 
