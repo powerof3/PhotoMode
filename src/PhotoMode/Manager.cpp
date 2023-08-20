@@ -114,6 +114,9 @@ namespace PhotoMode
 		}
 
 		activated = true;
+		if (activeGlobal) {
+			activeGlobal->value = 1.0f;
+		}
 	}
 
 	void Manager::TogglePlayerControls(bool a_enable)
@@ -181,6 +184,9 @@ namespace PhotoMode
 		updateKeyboardFocus = false;
 
 		activated = false;
+		if (activeGlobal) {
+			activeGlobal->value = 0.0f;
+		}
 	}
 
 	void Manager::ToggleActive()
@@ -286,9 +292,10 @@ namespace PhotoMode
 		}
 	}
 
-	void Manager::LoadOverlays()
+	void Manager::OnDataLoad()
 	{
 		overlaysTab.LoadOverlays();
+	    activeGlobal = RE::TESForm::LookupByEditorID<RE::TESGlobal>("PhotoMode_IsActive");
 	}
 
 	std::pair<Texture::ImageData*, float> Manager::GetOverlay() const

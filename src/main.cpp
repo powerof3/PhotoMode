@@ -54,7 +54,7 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 
 			MANAGER(LoadScreen)->InitLoadScreenObjects();
 			MANAGER(Screenshot)->LoadScreenshotTextures();
-			MANAGER(PhotoMode)->LoadOverlays();
+			MANAGER(PhotoMode)->OnDataLoad();
 		}
 		break;
 	default:

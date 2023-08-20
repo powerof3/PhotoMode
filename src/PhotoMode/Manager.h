@@ -43,7 +43,7 @@ namespace PhotoMode
 		void UpdateENBParams();
 		void RevertENBParams();
 
-		void                                  LoadOverlays();
+		void                                  OnDataLoad();
 		std::pair<Texture::ImageData*, float> GetOverlay() const;
 
 	private:
@@ -114,5 +114,7 @@ namespace PhotoMode
 
 		float freeCameraSpeed{ 4.0f };
 		bool  freezeTimeOnStart{ true };
+
+		RE::TESGlobal* activeGlobal{ nullptr };
 	};
 }
