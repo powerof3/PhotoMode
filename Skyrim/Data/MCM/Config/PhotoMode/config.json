@@ -194,6 +194,15 @@
       "cursorFillMode": "topToBottom",
       "content": [
         {
+          "id": "bOpenFromPauseMenu:Settings",
+          "text": "$PM_OpenFromPauseMenu_Text",
+          "type": "toggle",
+          "help": "$PM_OpenFromPauseMenu_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
           "id": "fFreeCameraTranslationSpeed:Settings",
           "text": "$PM_FreeCameraTranslationSpeed_Text",
           "type": "slider",

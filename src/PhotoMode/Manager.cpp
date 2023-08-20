@@ -18,6 +18,7 @@ namespace PhotoMode
 	{
 		freeCameraSpeed = a_ini.GetDoubleValue("Settings", "fFreeCameraTranslationSpeed", freeCameraSpeed);
 		freezeTimeOnStart = a_ini.GetBoolValue("Settings", "bFreezeTimeOnStart", freezeTimeOnStart);
+		openFromPauseMenu = a_ini.GetBoolValue("Settings", "bOpenFromPauseMenu", openFromPauseMenu);
 	}
 
 	bool Manager::IsValid()
@@ -514,9 +515,9 @@ namespace PhotoMode
 		ImGui::End();
 	}
 
-	bool Manager::SetupJournalMenu()
-	{
-		const auto UI = RE::UI::GetSingleton();
+	bool Manager::SetupJournalMenu() const
+    {
+	    const auto UI = RE::UI::GetSingleton();
 		const auto menu = UI->GetMenu<RE::JournalMenu>(RE::JournalMenu::MENU_NAME);
 
 		if (const auto& view = menu ? menu->systemTab.view : RE::GPtr<RE::GFxMovieView>()) {
@@ -620,9 +621,11 @@ namespace PhotoMode
 		const auto UI = RE::UI::GetSingleton();
 
 		if (a_evn->menuName == RE::JournalMenu::MENU_NAME) {
-			openWithJournalMenu = SetupJournalMenu();
+			if (openFromPauseMenu) {
+				openFromPauseMenu = SetupJournalMenu();
+			}
 		} else if (a_evn->menuName == RE::ModManagerMenu::MENU_NAME) {
-			if (UI->IsMenuOpen(RE::JournalMenu::MENU_NAME) && openWithJournalMenu) {
+			if (UI->IsMenuOpen(RE::JournalMenu::MENU_NAME) && openFromPauseMenu) {
 				const auto msgQueue = RE::UIMessageQueue::GetSingleton();
 
 				msgQueue->AddMessage(RE::ModManagerMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);

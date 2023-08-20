@@ -75,10 +75,10 @@ namespace PhotoMode
 		};
 		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifOverlays" };
 
-		static void TogglePlayerControls(bool a_enable);
-		void        DrawControls();
-		void        DrawBar() const;
-		static bool SetupJournalMenu();
+		static void        TogglePlayerControls(bool a_enable);
+		void               DrawControls();
+		void               DrawBar() const;
+        [[nodiscard]] bool SetupJournalMenu() const;
 
 		EventResult ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
 
@@ -105,7 +105,6 @@ namespace PhotoMode
 		bool resetAll{ false };
 
 		bool menusAlreadyHidden{ false };
-		bool openWithJournalMenu{ false };
 		bool allowTextInput{ false };
 
 		bool    noItemsFocused{ false };
@@ -114,6 +113,7 @@ namespace PhotoMode
 
 		float freeCameraSpeed{ 4.0f };
 		bool  freezeTimeOnStart{ true };
+		bool  openFromPauseMenu{ true };
 
 		RE::TESGlobal* activeGlobal{ nullptr };
 	};
