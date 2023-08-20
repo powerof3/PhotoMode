@@ -38,6 +38,7 @@ namespace PhotoMode
 			RE::TweenMenu::MENU_NAME,
 			RE::SleepWaitMenu::MENU_NAME,
 			RE::RaceSexMenu::MENU_NAME,
+			"LootMenu"sv,
 			"CustomMenu"sv
 		};
 
