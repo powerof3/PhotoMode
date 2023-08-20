@@ -20,6 +20,9 @@ namespace Input
 		static void Register();
 		void        LoadMCMSettings(const CSimpleIniA& a_ini);
 
+		void         LoadDefaultKeys();
+		std::uint32_t GetDefaultScreenshotKey(RE::INPUT_DEVICE a_device) const;
+
 		void HideMenu(bool a_hide);
 		bool IsScreenshotQueued() const;
 		void QueueScreenshot(bool a_forceQueue);
@@ -38,5 +41,9 @@ namespace Input
 		bool menuHidden{ false };
 
 		float keyHeldDuration{ 0.5 };
+
+		std::uint32_t screenshotKeyboard{ 0 };
+		std::uint32_t screenshotMouse{ 0 };
+		std::uint32_t screenshotGamepad{ 0 };
 	};
 }

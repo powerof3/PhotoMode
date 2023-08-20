@@ -24,6 +24,40 @@ namespace Input
 		keyHeldDuration = a_ini.GetDoubleValue("Controls", "iKeyHeldDuration", keyHeldDuration);
 	}
 
+	void Manager::LoadDefaultKeys()
+	{
+		const auto  controlMap = RE::ControlMap::GetSingleton();
+		const auto& screenshot = RE::UserEvents::GetSingleton()->screenshot;
+
+		screenshotKeyboard = controlMap->GetMappedKey(screenshot, RE::INPUT_DEVICE::kKeyboard);
+		screenshotMouse = controlMap->GetMappedKey(screenshot, RE::INPUT_DEVICE::kMouse);
+		screenshotGamepad = controlMap->GetMappedKey(screenshot, RE::INPUT_DEVICE::kGamepad);
+	}
+
+	std::uint32_t Manager::GetDefaultScreenshotKey(RE::INPUT_DEVICE a_device) const
+	{
+		std::uint32_t key{ 0 };
+
+		switch (a_device) {
+		case RE::INPUT_DEVICE::kKeyboard:
+			key = screenshotKeyboard;
+			break;
+		case RE::INPUT_DEVICE::kMouse:
+			{
+				key = screenshotMouse;
+				key += SKSE::InputMap::kMacro_MouseButtonOffset;
+			}
+			break;
+		case RE::INPUT_DEVICE::kGamepad:
+			key = SKSE::InputMap::GamepadMaskToKeycode(screenshotGamepad);
+			break;
+		default:
+			break;
+		}
+
+		return key;
+	}
+
 	bool Manager::IsScreenshotQueued() const
 	{
 		return screenshotQueued;
@@ -403,7 +437,7 @@ namespace Input
 				return EventResult::kContinue;
 			}
 
-		    for (auto event = *a_evn; event; event = event->next) {
+			for (auto event = *a_evn; event; event = event->next) {
 				// process inputs
 				if (const auto charEvent = event->AsCharEvent()) {
 					io.AddInputCharacter(charEvent->keycode);
@@ -442,7 +476,7 @@ namespace Input
 							photoMode->ToggleUI();
 						} else if (hotKey == hotKeys->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
-								QueueScreenshot(false);
+								QueueScreenshot(hotKey != GetDefaultScreenshotKey(device));
 							} else if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > keyHeldDuration) {
 								QueueScreenshot(true);
 							}

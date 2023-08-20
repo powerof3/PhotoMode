@@ -5,6 +5,8 @@
 #include "ImGui/Widgets.h"
 #include "Screenshots/Manager.h"
 
+#include "Input.h"
+
 namespace PhotoMode
 {
 	void Manager::Register()
@@ -114,6 +116,10 @@ namespace PhotoMode
 		if (freezeTimeOnStart) {
 			RE::Main::GetSingleton()->freezeTime = true;
 		}
+
+		// load default screenshot keys
+		// keybindings can change?
+		MANAGER(Input)->LoadDefaultKeys();
 
 		activated = true;
 		if (activeGlobal) {
@@ -297,7 +303,7 @@ namespace PhotoMode
 	void Manager::OnDataLoad()
 	{
 		overlaysTab.LoadOverlays();
-	    activeGlobal = RE::TESForm::LookupByEditorID<RE::TESGlobal>("PhotoMode_IsActive");
+		activeGlobal = RE::TESForm::LookupByEditorID<RE::TESGlobal>("PhotoMode_IsActive");
 	}
 
 	std::pair<Texture::ImageData*, float> Manager::GetOverlay() const
@@ -516,8 +522,8 @@ namespace PhotoMode
 	}
 
 	bool Manager::SetupJournalMenu() const
-    {
-	    const auto UI = RE::UI::GetSingleton();
+	{
+		const auto UI = RE::UI::GetSingleton();
 		const auto menu = UI->GetMenu<RE::JournalMenu>(RE::JournalMenu::MENU_NAME);
 
 		if (const auto& view = menu ? menu->systemTab.view : RE::GPtr<RE::GFxMovieView>()) {
