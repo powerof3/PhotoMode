@@ -78,7 +78,7 @@ namespace PhotoMode
 		static void        TogglePlayerControls(bool a_enable);
 		void               DrawControls();
 		void               DrawBar() const;
-        [[nodiscard]] bool SetupJournalMenu() const;
+		[[nodiscard]] bool SetupJournalMenu() const;
 
 		EventResult ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
 

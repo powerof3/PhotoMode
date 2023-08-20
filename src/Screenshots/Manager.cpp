@@ -36,17 +36,17 @@ namespace Screenshot
 
 			std::vector<std::string> badTextures{};
 
-		    for (const auto& entry : std::filesystem::directory_iterator(a_folder)) {
+			for (const auto& entry : std::filesystem::directory_iterator(a_folder)) {
 				if (entry.exists()) {
 					if (const auto& path = entry.path(); !path.empty() && path.extension() == ".dds") {
 						auto pathStr = entry.path().string();
 
-						DirectX::TexMetadata  info;
+						DirectX::TexMetadata info;
 						GetMetadataFromDDSFile(stl::utf8_to_utf16(pathStr)->c_str(), DirectX::DDS_FLAGS_NONE, info);
 
 						if (info.width % 4 != 0 || info.height % 4 != 0) {
 							badTextures.push_back(pathStr);
-						    continue;
+							continue;
 						}
 
 						a_textures.push_back(Texture::Sanitize(pathStr));
@@ -56,7 +56,7 @@ namespace Screenshot
 
 			for (auto& badTexture : badTextures) {
 				logger::info("\tDeleting invalid texture ({})", badTexture);
-			    std::filesystem::remove(badTexture);
+				std::filesystem::remove(badTexture);
 			}
 		};
 

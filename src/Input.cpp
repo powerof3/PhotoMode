@@ -403,7 +403,7 @@ namespace Input
 				return EventResult::kContinue;
 			}
 
-		    for (auto event = *a_evn; event; event = event->next) {
+			for (auto event = *a_evn; event; event = event->next) {
 				// process inputs
 				if (const auto charEvent = event->AsCharEvent()) {
 					io.AddInputCharacter(charEvent->keycode);

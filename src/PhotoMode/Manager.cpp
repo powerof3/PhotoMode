@@ -297,7 +297,7 @@ namespace PhotoMode
 	void Manager::OnDataLoad()
 	{
 		overlaysTab.LoadOverlays();
-	    activeGlobal = RE::TESForm::LookupByEditorID<RE::TESGlobal>("PhotoMode_IsActive");
+		activeGlobal = RE::TESForm::LookupByEditorID<RE::TESGlobal>("PhotoMode_IsActive");
 	}
 
 	std::pair<Texture::ImageData*, float> Manager::GetOverlay() const
@@ -516,8 +516,8 @@ namespace PhotoMode
 	}
 
 	bool Manager::SetupJournalMenu() const
-    {
-	    const auto UI = RE::UI::GetSingleton();
+	{
+		const auto UI = RE::UI::GetSingleton();
 		const auto menu = UI->GetMenu<RE::JournalMenu>(RE::JournalMenu::MENU_NAME);
 
 		if (const auto& view = menu ? menu->systemTab.view : RE::GPtr<RE::GFxMovieView>()) {
