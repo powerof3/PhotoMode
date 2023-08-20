@@ -387,10 +387,7 @@ namespace Input
 
 	EventResult Manager::ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*)
 	{
-		if (!a_evn ||
-			!RE::PlayerCharacter::GetSingleton()->Is3DLoaded() ||
-			!RE::Main::GetSingleton()->gameActive ||
-			RE::Main::GetSingleton()->wnd != reinterpret_cast<SKSE::WinAPI::HWND>(GetForegroundWindow())) {
+		if (!a_evn || !RE::PlayerCharacter::GetSingleton()->Is3DLoaded() || !RE::Main::GetSingleton()->gameActive) {
 			return EventResult::kContinue;
 		}
 

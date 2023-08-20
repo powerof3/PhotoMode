@@ -19,7 +19,7 @@ namespace PhotoMode::Hotkeys
 		std::uint32_t        ToggleMenusKey() const;
 		std::uint32_t        NextTabKey() const;
 		std::uint32_t        PreviousTabKey() const;
-        static std::uint32_t EscapeKey();
+		static std::uint32_t EscapeKey();
 
 		const IconFont::IconData* ResetIcon() const;
 		const IconFont::IconData* TakePhotoIcon() const;
