@@ -96,6 +96,10 @@ namespace PhotoMode
 		effectShaders.InitForms();
 		effectVFX.InitForms();
 		idles.InitForms();
+
+		if (!character->IsPlayerRef()) {
+			character->InitiateDoNothingPackage();
+		}
 	}
 
 	void Character::RevertState()
@@ -142,7 +146,7 @@ namespace PhotoMode
 				const auto handle = character->CreateRefHandle();
 				processLists->ForEachMagicTempEffect([&](RE::BSTempEffect& a_effect) {
 					if (const auto referenceEffect = a_effect.As<RE::ReferenceEffect>()) {
-						if (referenceEffect->target.get() == handle.get()) {
+						if (referenceEffect->target == handle) {
 							referenceEffect->finished = true;
 						}
 					}
@@ -151,6 +155,10 @@ namespace PhotoMode
 			}
 			vfxPlayed = false;
 			effectsPlayed = false;
+		}
+
+		if (!character->IsPlayerRef()) {
+			character->EndInterruptPackage(false);
 		}
 	}
 
