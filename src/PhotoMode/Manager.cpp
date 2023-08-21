@@ -320,7 +320,7 @@ namespace PhotoMode
 	{
 		overlaysTab.LoadOverlays();
 
-	    activeGlobal = RE::TESForm::LookupByEditorID<RE::TESGlobal>("PhotoMode_IsActive");
+		activeGlobal = RE::TESForm::LookupByEditorID<RE::TESGlobal>("PhotoMode_IsActive");
 		resetRootIdle = RE::TESForm::LookupByEditorID<RE::TESIdleForm>("ResetRoot");
 	}
 
@@ -454,18 +454,18 @@ namespace PhotoMode
 						const auto consoleRef = RE::Console::GetSelectedRef();
 						if (!consoleRef || !consoleRef->Is(RE::FormType::ActorCharacter) || consoleRef->IsDisabled() || consoleRef->IsDeleted()) {
 							prevCachedCharacter = cachedCharacter;
-						    cachedCharacter = RE::PlayerCharacter::GetSingleton();
+							cachedCharacter = RE::PlayerCharacter::GetSingleton();
 						} else {
 							prevCachedCharacter = cachedCharacter;
-						    cachedCharacter = consoleRef->As<RE::Actor>();
+							cachedCharacter = consoleRef->As<RE::Actor>();
 							if (!characterTab.contains(cachedCharacter->GetFormID())) {
 								characterTab.emplace(cachedCharacter->GetFormID(), Character(cachedCharacter));
 							}
 						}
 
-					    if (cachedCharacter != prevCachedCharacter) {
+						if (cachedCharacter != prevCachedCharacter) {
 							resetPlayerTabs = true;
-					    }
+						}
 
 						characterTab[cachedCharacter->GetFormID()].Draw(resetPlayerTabs);
 
