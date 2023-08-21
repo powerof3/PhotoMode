@@ -96,7 +96,12 @@ namespace Screenshot
 		return autoHideMenus;
 	}
 
-	bool Manager::CanDisplayScreenshotInLoadScreen() const
+    bool Manager::CanApplyPaintFilter() const
+	{
+		return applyPaintFilter;
+	}
+
+    bool Manager::CanDisplayScreenshotInLoadScreen() const
 	{
 		return takeScreenshotAsDDS && (!screenshots.empty() || !paintings.empty());
 	}
@@ -205,7 +210,7 @@ namespace Screenshot
 	std::string Manager::GetRandomPainting()
 	{
 		// fallback to screenshots
-		if (paintings.empty()) {
+		if (paintings.empty() || !MANAGER(Screenshot)->CanApplyPaintFilter()) {
 			return GetRandomScreenshot();
 		}
 

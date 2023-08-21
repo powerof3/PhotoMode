@@ -30,6 +30,7 @@ namespace Screenshot
 
 		bool AllowMultiScreenshots() const;
 		bool CanAutoHideMenus() const;
+		bool CanApplyPaintFilter() const;
 
 	private:
 		void AddScreenshotPaths(Paths& a_paths);
