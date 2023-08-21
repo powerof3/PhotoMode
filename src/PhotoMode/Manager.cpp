@@ -243,9 +243,9 @@ namespace PhotoMode
 				characterTab[cachedCharacter->GetFormID()].RevertState();
 			}
 		} else if (tabIndex == -1) {
-			for (auto& [formID, characterData] : characterTab) {
-				characterData.RevertState();
-			}
+			std::for_each(characterTab.begin(), characterTab.end(), [](auto& data) {
+				data.second.RevertState();
+			});
 		}
 
 		// Filters
@@ -319,7 +319,9 @@ namespace PhotoMode
 	void Manager::OnDataLoad()
 	{
 		overlaysTab.LoadOverlays();
-		activeGlobal = RE::TESForm::LookupByEditorID<RE::TESGlobal>("PhotoMode_IsActive");
+
+	    activeGlobal = RE::TESForm::LookupByEditorID<RE::TESGlobal>("PhotoMode_IsActive");
+		resetRootIdle = RE::TESForm::LookupByEditorID<RE::TESIdleForm>("ResetRoot");
 	}
 
 	std::pair<Texture::ImageData*, float> Manager::GetOverlay() const
@@ -451,13 +453,19 @@ namespace PhotoMode
 					{
 						const auto consoleRef = RE::Console::GetSelectedRef();
 						if (!consoleRef || !consoleRef->Is(RE::FormType::ActorCharacter) || consoleRef->IsDisabled() || consoleRef->IsDeleted()) {
-							cachedCharacter = RE::PlayerCharacter::GetSingleton();
+							prevCachedCharacter = cachedCharacter;
+						    cachedCharacter = RE::PlayerCharacter::GetSingleton();
 						} else {
-							cachedCharacter = consoleRef->As<RE::Actor>();
+							prevCachedCharacter = cachedCharacter;
+						    cachedCharacter = consoleRef->As<RE::Actor>();
 							if (!characterTab.contains(cachedCharacter->GetFormID())) {
 								characterTab.emplace(cachedCharacter->GetFormID(), Character(cachedCharacter));
 							}
 						}
+
+					    if (cachedCharacter != prevCachedCharacter) {
+							resetPlayerTabs = true;
+					    }
 
 						characterTab[cachedCharacter->GetFormID()].Draw(resetPlayerTabs);
 
@@ -500,12 +508,15 @@ namespace PhotoMode
 			const static auto takePhotoLabel = "$PM_TAKEPHOTO"_T;
 			const static auto toggleMenusLabel = "$PM_TOGGLEMENUS"_T;
 			const auto        resetLabel = GetResetAll() ? "$PM_RESET_ALL"_T : "$PM_RESET"_T;
-			const static auto togglePMLabel = "$PM_EXIT"_T;
+			const static auto freezeTimeLabel = "$PM_FREEZETIME"_T;
 
 			const auto& takePhotoIcon = MANAGER(Hotkeys)->TakePhotoIcon();
 			const auto& toggleMenusIcon = MANAGER(Hotkeys)->ToggleMenusIcon();
 			const auto& resetIcon = MANAGER(Hotkeys)->ResetIcon();
-			const auto& togglePMIcons = MANAGER(Hotkeys)->TogglePhotoModeIcons();
+			const auto& freezeTimeIcon = MANAGER(Hotkeys)->FreezeTimeIcon();
+
+			// const static auto togglePMLabel = "$PM_EXIT"_T;
+			// const auto& togglePMIcons = MANAGER(Hotkeys)->TogglePhotoModeIcons();
 
 			// calc total elements width
 			const ImGuiStyle& style = ImGui::GetStyle();
@@ -521,13 +532,14 @@ namespace PhotoMode
 
 			calc_width(takePhotoIcon, takePhotoLabel);
 			calc_width(toggleMenusIcon, toggleMenusLabel);
+			calc_width(freezeTimeIcon, freezeTimeLabel);
 			calc_width(resetIcon, resetLabel);
 
-			for (const auto& icon : togglePMIcons) {
+			/*for (const auto& icon : togglePMIcons) {
 				width += icon->size.x;
 			}
 			width += style.ItemSpacing.x;
-			width += ImGui::CalcTextSize(togglePMLabel).x;
+			width += ImGui::CalcTextSize(togglePMLabel).x;*/
 
 			// align at center
 			ImGui::AlignForWidth(width);
@@ -540,9 +552,10 @@ namespace PhotoMode
 
 			draw_button(takePhotoIcon, takePhotoLabel);
 			draw_button(toggleMenusIcon, toggleMenusLabel);
+			draw_button(freezeTimeIcon, freezeTimeLabel);
 			draw_button(resetIcon, resetLabel);
 
-			ImGui::ButtonIconWithLabel(togglePMLabel, togglePMIcons, true);
+			// ImGui::ButtonIconWithLabel(togglePMLabel, togglePMIcons, true);
 		}
 		ImGui::End();
 	}

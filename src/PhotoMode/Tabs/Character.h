@@ -120,7 +120,7 @@ namespace PhotoMode
 		void RevertIdle() const;
 
 		// members
-		RE::Actor* character{ nullptr };
+		RE::Actor*  character{ nullptr };
 		std::string characterName{};
 
 		// names should ideally be pulled from a shared map with different indices for characters but this will do

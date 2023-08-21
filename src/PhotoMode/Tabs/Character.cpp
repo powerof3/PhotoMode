@@ -91,10 +91,6 @@ namespace PhotoMode
 
 	void Character::GetOriginalState()
 	{
-		if (!resetRootIdle) {
-			resetRootIdle = RE::TESForm::LookupByEditorID<RE::TESIdleForm>("ResetRoot");
-		}
-
 		originalState.Get(character);
 
 		effectShaders.InitForms();
@@ -165,8 +161,10 @@ namespace PhotoMode
 
 	void Character::Draw(bool a_resetTabs)
 	{
-		if (ImGui::CheckBox("$PM_ShowPlayer"_T, &currentState.visible)) {
-			character->Get3D()->CullGeometry(!currentState.visible);
+		if (ImGui::CheckBox(character->IsPlayerRef() ? "$PM_ShowPlayer"_T : "$PM_ShowCharacter"_T, &currentState.visible)) {
+			if (const auto root = character->Get3D()) {
+				root->CullGeometry(!currentState.visible);
+			}
 		}
 
 		ImGui::Spacing();

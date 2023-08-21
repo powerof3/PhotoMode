@@ -19,6 +19,7 @@ namespace PhotoMode::Hotkeys
 		std::uint32_t        ToggleMenusKey() const;
 		std::uint32_t        NextTabKey() const;
 		std::uint32_t        PreviousTabKey() const;
+		std::uint32_t        FreezeTimeKey() const;
 		static std::uint32_t EscapeKey();
 
 		const IconFont::IconData* ResetIcon() const;
@@ -26,6 +27,7 @@ namespace PhotoMode::Hotkeys
 		const IconFont::IconData* ToggleMenusIcon() const;
 		const IconFont::IconData* NextTabIcon() const;
 		const IconFont::IconData* PreviousTabIcon() const;
+		const IconFont::IconData* FreezeTimeIcon() const;
 
 		std::set<const IconFont::IconData*> TogglePhotoModeIcons() const;
 
@@ -74,6 +76,7 @@ namespace PhotoMode::Hotkeys
 		Key takePhoto;
 		Key toggleMenus;
 		Key reset;
+		Key freezeTime;
 	};
 }
 namespace Hotkeys = PhotoMode::Hotkeys;

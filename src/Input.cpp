@@ -485,6 +485,8 @@ namespace Input
 								photoMode->NavigateTab(false);
 							} else if (hotKey == hotKeys->PreviousTabKey() && buttonEvent->IsDown()) {
 								photoMode->NavigateTab(true);
+							} else if (hotKey == hotKeys->FreezeTimeKey() && buttonEvent->IsDown()) {
+								RE::Main::GetSingleton()->freezeTime = !RE::Main::GetSingleton()->freezeTime;
 							} else if (hotKey == hotKeys->ResetKey()) {
 								if (buttonEvent->IsUp()) {
 									photoMode->Revert(false);

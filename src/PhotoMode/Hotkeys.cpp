@@ -15,6 +15,7 @@ namespace PhotoMode::Hotkeys
 		toggleMenus.LoadKeys(a_ini, "iToggleMenus");
 		nextTab.LoadKeys(a_ini, "iNextTab");
 		previousTab.LoadKeys(a_ini, "iPreviousTab");
+		freezeTime.LoadKeys(a_ini, "iFreezeTime");
 	}
 
 	void Manager::TogglePhotoMode(RE::InputEvent* const* a_event)
@@ -149,6 +150,11 @@ namespace PhotoMode::Hotkeys
 		return previousTab.GetKey();
 	}
 
+    std::uint32_t Manager::FreezeTimeKey() const
+	{
+		return freezeTime.GetKey();
+	}
+
     std::uint32_t Manager::EscapeKey()
     {
 		if (Input::GetInputType() == Input::TYPE::kKeyboard) {
@@ -180,6 +186,11 @@ namespace PhotoMode::Hotkeys
 	const IconFont::IconData* Manager::PreviousTabIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(previousTab.GetKey());
+	}
+
+	const IconFont::IconData* Manager::FreezeTimeIcon() const
+	{
+		return MANAGER(IconFont)->GetIcon(freezeTime.GetKey());
 	}
 
 	std::set<const IconFont::IconData*> Manager::TogglePhotoModeIcons() const

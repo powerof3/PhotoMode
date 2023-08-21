@@ -95,6 +95,7 @@ namespace PhotoMode
 
 		Map<RE::FormID, Character> characterTab;
 		RE::Actor*                 cachedCharacter{ nullptr };
+		RE::Actor*                 prevCachedCharacter{ nullptr };
 
 		Filters  filterTab;
 		Overlays overlaysTab;
