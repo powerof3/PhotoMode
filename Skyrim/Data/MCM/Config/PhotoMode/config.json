@@ -76,6 +76,15 @@
           }
         },
         {
+          "id": "iFreezeTimeKey:Controls",
+          "text": "$PM_FreezeTime",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
           "id": "iResetKey:Controls",
           "text": "$PM_Reset_Key_Text",
           "type": "keymap",
@@ -167,6 +176,15 @@
           }
         },
         {
+          "id": "iFreezeTimeGamePad:Controls",
+          "text": "$PM_FreezeTime",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
           "id": "iResetGamePad:Controls",
           "text": "$PM_Reset_Key_Text",
           "type": "keymap",
@@ -202,7 +220,7 @@
             "sourceType": "ModSettingBool"
           }
         },
-        {
+		{
           "id": "fFreeCameraTranslationSpeed:Settings",
           "text": "$PM_FreeCameraTranslationSpeed_Text",
           "type": "slider",

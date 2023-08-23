@@ -88,8 +88,8 @@ namespace PhotoMode
 			};
 
 			Expression expressionData;
-			Modifier   phonemeData[phonemes.size()];
-			Modifier   modifierData[modifiers.size()];
+			Modifier   phonemeData[phonemes.size()]{};
+			Modifier   modifierData[modifiers.size()]{};
 		};
 	}
 
@@ -102,7 +102,7 @@ namespace PhotoMode
 		void GetOriginalState();
 		void RevertState();
 
-		const std::string& GetName();
+		const char* GetName() const;
 
 		void Draw(bool a_resetTabs);
 

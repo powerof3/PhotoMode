@@ -87,6 +87,10 @@ namespace PhotoMode
 		}
 
 		GetOriginalState();
+
+		if (!character->IsPlayerRef()) {
+			character->InitiateDoNothingPackage();
+		}
 	}
 
 	void Character::GetOriginalState()
@@ -96,10 +100,6 @@ namespace PhotoMode
 		effectShaders.InitForms();
 		effectVFX.InitForms();
 		idles.InitForms();
-
-		if (!character->IsPlayerRef()) {
-			character->InitiateDoNothingPackage();
-		}
 	}
 
 	void Character::RevertState()
@@ -162,14 +162,14 @@ namespace PhotoMode
 		}
 	}
 
-	const std::string& Character::GetName()
-	{
-		return characterName;
+	const char* Character::GetName() const
+    {
+		return characterName.c_str();
 	}
 
 	void Character::Draw(bool a_resetTabs)
 	{
-		if (ImGui::CheckBox(character->IsPlayerRef() ? "$PM_ShowPlayer"_T : "$PM_ShowCharacter"_T, &currentState.visible)) {
+	    if (ImGui::CheckBox(character->IsPlayerRef() ? "$PM_ShowPlayer"_T : "$PM_ShowCharacter"_T, &currentState.visible)) {
 			if (const auto root = character->Get3D()) {
 				root->CullGeometry(!currentState.visible);
 			}

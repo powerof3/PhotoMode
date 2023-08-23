@@ -48,7 +48,7 @@ void ImGui::StyleVanilla()
 	colors[ImGuiCol_HeaderHovered] = ImVec4(1.0f, 1.0f, 1.0f, 0.1f);
 	colors[ImGuiCol_HeaderActive] = ImVec4(1.0f, 1.0f, 1.0f, 0.1f);
 
-	colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.2f, disabled_alpha);
+	colors[ImGuiCol_Tab] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 	colors[ImGuiCol_TabHovered] = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
 	colors[ImGuiCol_TabActive] = colors[ImGuiCol_TabHovered];
 	colors[ImGuiCol_TabUnfocused] = colors[ImGuiCol_Tab];

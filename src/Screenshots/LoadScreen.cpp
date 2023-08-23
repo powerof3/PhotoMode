@@ -149,7 +149,9 @@ namespace LoadScreen
 
 			if (const auto newTextureSet = RE::BSShaderTextureSet::Create()) {
 				newTextureSet->SetTexturePath(RE::BSTextureSet::Texture::kDiffuse, current.texturePath.c_str());
-				newTextureSet->SetTexturePath(RE::BSTextureSet::Texture::kNormal, R"(textures\photomode\paintings\canvaslandscape_n.dds)");
+				if (current.type == Type::kPainting) {
+					newTextureSet->SetTexturePath(RE::BSTextureSet::Texture::kNormal, R"(textures\photomode\paintings\canvaslandscape_n.dds)");
+				}
 				newMaterial->OnLoadTextureSet(0, newTextureSet);
 			}
 

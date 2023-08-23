@@ -12,7 +12,6 @@ namespace PhotoMode
 	void Manager::Register()
 	{
 		RE::UI::GetSingleton()->AddEventSink(GetSingleton());
-
 		logger::info("Registered for menu open/close event");
 	}
 
@@ -320,7 +319,7 @@ namespace PhotoMode
 	{
 		overlaysTab.LoadOverlays();
 
-	    activeGlobal = RE::TESForm::LookupByEditorID<RE::TESGlobal>("PhotoMode_IsActive");
+		activeGlobal = RE::TESForm::LookupByEditorID<RE::TESGlobal>("PhotoMode_IsActive");
 		resetRootIdle = RE::TESForm::LookupByEditorID<RE::TESIdleForm>("ResetRoot");
 	}
 
@@ -412,7 +411,7 @@ namespace PhotoMode
 
 			//		CAMERA
 			// ----------------
-			ImGui::CenteredText(currentTab != TAB_TYPE::kCharacter ? TRANSLATE(tabs[currentTab]) : characterTab[cachedCharacter->GetFormID()].GetName().c_str());
+			ImGui::CenteredText(currentTab != TAB_TYPE::kCharacter ? TRANSLATE(tabs[currentTab]) : characterTab[cachedCharacter->GetFormID()].GetName());
 			ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, 3.0f);
 
 			// content
@@ -452,20 +451,20 @@ namespace PhotoMode
 				case TAB_TYPE::kCharacter:
 					{
 						const auto consoleRef = RE::Console::GetSelectedRef();
-						if (!consoleRef || !consoleRef->Is(RE::FormType::ActorCharacter) || consoleRef->IsDisabled() || consoleRef->IsDeleted()) {
+						if (!consoleRef || !consoleRef->Is(RE::FormType::ActorCharacter) || consoleRef->IsDisabled() || consoleRef->IsDeleted() || !consoleRef->Is3DLoaded()) {
 							prevCachedCharacter = cachedCharacter;
-						    cachedCharacter = RE::PlayerCharacter::GetSingleton();
+							cachedCharacter = RE::PlayerCharacter::GetSingleton();
 						} else {
 							prevCachedCharacter = cachedCharacter;
-						    cachedCharacter = consoleRef->As<RE::Actor>();
+							cachedCharacter = consoleRef->As<RE::Actor>();
 							if (!characterTab.contains(cachedCharacter->GetFormID())) {
 								characterTab.emplace(cachedCharacter->GetFormID(), Character(cachedCharacter));
 							}
 						}
 
-					    if (cachedCharacter != prevCachedCharacter) {
+						if (cachedCharacter != prevCachedCharacter) {
 							resetPlayerTabs = true;
-					    }
+						}
 
 						characterTab[cachedCharacter->GetFormID()].Draw(resetPlayerTabs);
 
@@ -562,93 +561,91 @@ namespace PhotoMode
 
 	bool Manager::SetupJournalMenu() const
 	{
-		const auto UI = RE::UI::GetSingleton();
-		const auto menu = UI->GetMenu<RE::JournalMenu>(RE::JournalMenu::MENU_NAME);
+		const auto menu = RE::UI::GetSingleton()->GetMenu<RE::JournalMenu>(RE::JournalMenu::MENU_NAME);
+		const auto view = menu ? menu->systemTab.view : nullptr;
 
-		if (const auto& view = menu ? menu->systemTab.view : RE::GPtr<RE::GFxMovieView>()) {
-			RE::GFxValue page;
-			if (!view->GetVariable(&page, "_root.QuestJournalFader.Menu_mc.SystemFader.Page_mc")) {
-				return false;
+		RE::GFxValue page;
+		if (!view || !view->GetVariable(&page, "_root.QuestJournalFader.Menu_mc.SystemFader.Page_mc")) {
+			return false;
+		}
+
+		// in case someone packed the files into a BSA
+		static bool dearDiaryExists = RE::BSResourceNiBinaryStream(R"(interface\deardiary_dm\config.txt)").good() || RE::BSResourceNiBinaryStream(R"(interface\deardiary\config.txt)").good();
+
+		// Dear Diary SetShowMod function is broken af, need to do it manually
+		if (dearDiaryExists) {
+			RE::GFxValue categoryList;
+			if (page.GetMember("CategoryList", &categoryList)) {
+				RE::GFxValue entryList;
+				if (categoryList.GetMember("entryList", &entryList)) {
+					std::vector<std::string> elements;
+
+					entryList.VisitMembers([&](const char*, const RE::GFxValue& a_value) {
+						RE::GFxValue textVal;
+						a_value.GetMember("text", &textVal);
+						elements.push_back(textVal.GetString());
+					});
+
+					RE::GFxValue showModMenu;
+					if (page.GetMember("_showModMenu", &showModMenu) && showModMenu.GetBool() == false) {
+						page.SetMember("_showModMenu", true);
+					} else {
+						std::erase(elements, "$MOD MANAGER");
+					}
+
+					auto index = std::ranges::contains(elements, "$QUICKSAVE") ? 3 : 2;
+					elements.insert(elements.begin() + index, "$PM_Title_Menu");
+
+					entryList.ClearElements();
+					for (auto& element : elements) {
+						RE::GFxValue entry;
+						view->CreateObject(&entry);
+						entry.SetMember("text", element.c_str());
+						entryList.PushBack(entry);
+					}
+
+					categoryList.Invoke("InvalidateData");
+
+					return true;
+				}
 			}
 
-			// in case someone packed the files into a BSA
-			static bool dearDiaryExists = RE::BSResourceNiBinaryStream(R"(interface\deardiary_dm\config.txt)").good() || RE::BSResourceNiBinaryStream(R"(interface\deardiary\config.txt)").good();
+		} else {
+			RE::GFxValue showModMenu;
+			if (page.GetMember("_showModMenu", &showModMenu) && showModMenu.GetBool() == false) {
+				std::array<RE::GFxValue, 1> args;
+				args[0] = true;
+				if (!page.Invoke("SetShowMod", nullptr, args.data(), args.size())) {
+					return false;
+				}
+			}
 
-			// Dear Diary SetShowMod function is broken af, need to do it manually
-			if (dearDiaryExists) {
-				RE::GFxValue categoryList;
-				if (page.GetMember("CategoryList", &categoryList)) {
-					RE::GFxValue entryList;
-					if (categoryList.GetMember("entryList", &entryList)) {
-						std::vector<std::string> elements;
+			RE::GFxValue categoryList;
+			if (page.GetMember("CategoryList", &categoryList)) {
+				RE::GFxValue entryList;
+				if (categoryList.GetMember("entryList", &entryList)) {
+					std::optional<std::uint32_t> modMenuIndex = std::nullopt;
 
-						entryList.VisitMembers([&](const char*, const RE::GFxValue& a_value) {
-							RE::GFxValue textVal;
-							a_value.GetMember("text", &textVal);
-							elements.push_back(textVal.GetString());
-						});
-
-						RE::GFxValue showModMenu;
-						if (page.GetMember("_showModMenu", &showModMenu) && showModMenu.GetBool() == false) {
-							page.SetMember("_showModMenu", true);
-						} else {
-							std::erase(elements, "$MOD MANAGER");
+					std::uint32_t index = 0;
+					std::string   text;
+					entryList.VisitMembers([&](const char*, const RE::GFxValue& a_value) {
+						RE::GFxValue textVal;
+						a_value.GetMember("text", &textVal);
+						if (text = textVal.GetString(); text == "$MOD MANAGER") {
+							modMenuIndex = index;
 						}
+						index++;
+					});
 
-						auto index = std::ranges::contains(elements, "$QUICKSAVE") ? 3 : 2;
-						elements.insert(elements.begin() + index, "$PM_Title_Menu");
+					if (modMenuIndex) {
+						RE::GFxValue entry;
+						view->CreateObject(&entry);
+						entry.SetMember("text", "$PM_Title_Menu");
 
-						entryList.ClearElements();
-						for (auto& element : elements) {
-							RE::GFxValue entry;
-							view->CreateObject(&entry);
-							entry.SetMember("text", element.c_str());
-							entryList.PushBack(entry);
-						}
-
+						entryList.SetElement(*modMenuIndex, entry);
 						categoryList.Invoke("InvalidateData");
 
 						return true;
-					}
-				}
-
-			} else {
-				RE::GFxValue showModMenu;
-				if (page.GetMember("_showModMenu", &showModMenu) && showModMenu.GetBool() == false) {
-					std::array<RE::GFxValue, 1> args;
-					args[0] = true;
-					if (!page.Invoke("SetShowMod", nullptr, args.data(), args.size())) {
-						return false;
-					}
-				}
-
-				RE::GFxValue categoryList;
-				if (page.GetMember("CategoryList", &categoryList)) {
-					RE::GFxValue entryList;
-					if (categoryList.GetMember("entryList", &entryList)) {
-						std::optional<std::uint32_t> modMenuIndex = std::nullopt;
-
-						std::uint32_t index = 0;
-						std::string   text;
-						entryList.VisitMembers([&](const char*, const RE::GFxValue& a_value) {
-							RE::GFxValue textVal;
-							a_value.GetMember("text", &textVal);
-							if (text = textVal.GetString(); text == "$MOD MANAGER") {
-								modMenuIndex = index;
-							}
-							index++;
-						});
-
-						if (modMenuIndex) {
-							RE::GFxValue entry;
-							view->CreateObject(&entry);
-							entry.SetMember("text", "$PM_Title_Menu");
-
-							entryList.SetElement(*modMenuIndex, entry);
-							categoryList.Invoke("InvalidateData");
-
-							return true;
-						}
 					}
 				}
 			}
