@@ -163,13 +163,13 @@ namespace PhotoMode
 	}
 
 	const char* Character::GetName() const
-    {
+	{
 		return characterName.c_str();
 	}
 
 	void Character::Draw(bool a_resetTabs)
 	{
-	    if (ImGui::CheckBox(character->IsPlayerRef() ? "$PM_ShowPlayer"_T : "$PM_ShowCharacter"_T, &currentState.visible)) {
+		if (ImGui::CheckBox(character->IsPlayerRef() ? "$PM_ShowPlayer"_T : "$PM_ShowCharacter"_T, &currentState.visible)) {
 			if (const auto root = character->Get3D()) {
 				root->CullGeometry(!currentState.visible);
 			}
