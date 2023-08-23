@@ -20,7 +20,7 @@ namespace Input
 		static void Register();
 		void        LoadMCMSettings(const CSimpleIniA& a_ini);
 
-		void         LoadDefaultKeys();
+		void          LoadDefaultKeys();
 		std::uint32_t GetDefaultScreenshotKey(RE::INPUT_DEVICE a_device) const;
 
 		void HideMenu(bool a_hide);

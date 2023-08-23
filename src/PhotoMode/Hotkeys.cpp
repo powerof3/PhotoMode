@@ -150,20 +150,20 @@ namespace PhotoMode::Hotkeys
 		return previousTab.GetKey();
 	}
 
-    std::uint32_t Manager::FreezeTimeKey() const
+	std::uint32_t Manager::FreezeTimeKey() const
 	{
 		return freezeTime.GetKey();
 	}
 
-    std::uint32_t Manager::EscapeKey()
-    {
+	std::uint32_t Manager::EscapeKey()
+	{
 		if (Input::GetInputType() == Input::TYPE::kKeyboard) {
 			return KEY::kEscape;
 		}
 		return SKSE::InputMap::kGamepadButtonOffset_B;
 	}
 
-    const IconFont::IconData* Manager::ResetIcon() const
+	const IconFont::IconData* Manager::ResetIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(reset.GetKey());
 	}

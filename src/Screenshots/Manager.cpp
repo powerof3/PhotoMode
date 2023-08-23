@@ -96,12 +96,12 @@ namespace Screenshot
 		return autoHideMenus;
 	}
 
-    bool Manager::CanApplyPaintFilter() const
+	bool Manager::CanApplyPaintFilter() const
 	{
 		return applyPaintFilter;
 	}
 
-    bool Manager::CanDisplayScreenshotInLoadScreen() const
+	bool Manager::CanDisplayScreenshotInLoadScreen() const
 	{
 		return takeScreenshotAsDDS && (!screenshots.empty() || !paintings.empty());
 	}
