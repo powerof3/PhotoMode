@@ -122,7 +122,7 @@ namespace ImGui
 
 	ImVec2 GetNativeViewportPos()
 	{
-		return GetMainViewport()->Pos; // always 0, 0
+		return GetMainViewport()->Pos;  // always 0, 0
 	}
 
 	ImVec2 GetNativeViewportSize()
