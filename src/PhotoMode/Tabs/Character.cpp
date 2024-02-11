@@ -235,6 +235,7 @@ namespace PhotoMode
 					idles.GetFormResultFromCombo([&](const auto& a_idle) {
 						if (idlePlayed) {
 							RevertIdle();
+							idlePlayed = false;
 						}
 						if (const auto currentProcess = character->currentProcess) {
 							if (currentProcess->PlayIdle(character, a_idle, nullptr)) {
