@@ -13,6 +13,8 @@ jobs:
   run:
     uses: adya/pack-skse-mod/.github/workflows/pack.yml@main
     with:
+      AE_353_BRANCH: master
+      AE_353_COMMON_LIB_BRANCH: dev-1.6.640
       FOMOD_INCLUDE_PDB: true
       FOMOD_MOD_NAME: "PhotoMode"
       FOMOD_MOD_AUTHOR: "powerofthree"
