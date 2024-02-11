@@ -21,8 +21,7 @@ namespace PhotoMode
 
 		const auto calendar = RE::Calendar::GetSingleton();
 		calendar->timeScale->value = timescale;
-		// shouldn't revert time?
-		// calendar->gameHour->value = gameHour;
+		calendar->gameHour->value = gameHour;
 	}
 
 	void Time::GetOriginalState()
