@@ -104,7 +104,7 @@ namespace Screenshot
 
 	void Manager::IncrementIndex()
 	{
-		index++;	
+		index++;
 		Settings::GetSingleton()->SerializeToMCM([this](auto& ini) {
 			ini.SetLongValue("Screenshots", "iScreenshotIndex", this->index);
 		});
