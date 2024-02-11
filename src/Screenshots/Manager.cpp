@@ -6,8 +6,8 @@
 namespace Screenshot
 {
 	Paths::Paths(std::uint32_t index) :
-		screenshot(fmt::format("{}/Screenshot{}.dds", screenshotFolder, index)),
-		painting(fmt::format("{}/Screenshot{}.dds", paintingFolder, index))
+		screenshot(std::format("{}/Screenshot{}.dds", screenshotFolder, index)),
+		painting(std::format("{}/Screenshot{}.dds", paintingFolder, index))
 	{}
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)

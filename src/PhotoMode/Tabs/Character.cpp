@@ -83,7 +83,7 @@ namespace PhotoMode
 		} else if (const auto actorbase = a_actor->GetActorBase(); actorbase && actorbase->IsUnique()) {
 			characterName = a_actor->GetName();
 		} else {
-			characterName = fmt::format("{} [0x{:X}]", a_actor->GetName(), a_actor->GetFormID());
+			characterName = std::format("{} [0x{:X}]", a_actor->GetName(), a_actor->GetFormID());
 		}
 
 		GetOriginalState();
