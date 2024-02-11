@@ -132,14 +132,9 @@ namespace Screenshot
 
 	bool Manager::TakeScreenshot()
 	{
-		constexpr auto GetStaticRendererData = []() {
-			static REL::Relocation<RE::BSGraphics::RendererData**> singleton{ RELOCATION_ID(524728, 411347) };
-			return *singleton;
-		};
-
 		bool skipVanillaScreenshot = false;
 
-		const auto renderer = GetStaticRendererData();
+		const auto renderer = RE::BSGraphics::Renderer::GetRendererData();
 		if (!renderer) {
 			return skipVanillaScreenshot;
 		}

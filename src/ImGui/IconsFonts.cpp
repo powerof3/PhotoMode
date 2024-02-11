@@ -19,7 +19,7 @@ namespace IconFont
 			// 0.0004630f is 0.5/1080
 			// at 1080 render at half size
 
-			const auto windowHeight = RE::BSGraphics::Renderer::GetSingleton()->data.renderWindows[0].windowHeight;
+			const auto windowHeight = RE::BSGraphics::Renderer::GetScreenSize().height;
 
 			size.x = size.x * (0.0004630f * windowHeight);
 			size.y = size.y * (0.0004630f * windowHeight);
@@ -41,10 +41,10 @@ namespace IconFont
 		const auto resolutionScale = ImGui::Renderer::GetResolutionScale();
 
 		fontSize = static_cast<float>(a_ini.GetLongValue("Fonts", "FontSize", fontSize)) * resolutionScale;
-		largeFontSize = static_cast<float>(a_ini.GetLongValue("Fonts", "LargeFontSize", fontSize)) * resolutionScale;
+		largeFontSize = static_cast<float>(a_ini.GetLongValue("Fonts", "LargeFontSize", largeFontSize)) * resolutionScale;
 
-		iconSize = static_cast<float>(a_ini.GetLongValue("Fonts", "IconSize", fontSize)) * resolutionScale;
-		largeIconSize = static_cast<float>(a_ini.GetLongValue("Fonts", "LargeIconSize", fontSize)) * resolutionScale;
+		iconSize = static_cast<float>(a_ini.GetLongValue("Fonts", "IconSize", iconSize)) * resolutionScale;
+		largeIconSize = static_cast<float>(a_ini.GetLongValue("Fonts", "LargeIconSize", largeIconSize)) * resolutionScale;
 	}
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)

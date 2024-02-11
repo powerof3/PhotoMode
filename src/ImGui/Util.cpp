@@ -122,19 +122,17 @@ namespace ImGui
 
 	ImVec2 GetNativeViewportPos()
 	{
-		return GetMainViewport()->Pos * Renderer::GetResolutionScale();
+		return GetMainViewport()->Pos; // always 0, 0
 	}
 
 	ImVec2 GetNativeViewportSize()
 	{
-		return GetMainViewport()->Size * Renderer::GetResolutionScale();
+		return GetMainViewport()->Size;
 	}
 
 	ImVec2 GetNativeViewportCenter()
 	{
-		const auto Pos = GetNativeViewportPos();
 		const auto Size = GetNativeViewportSize();
-
-		return { Pos.x + Size.x * 0.5f, Pos.y + Size.y * 0.5f };
+		return { Size.x * 0.5f, Size.y * 0.5f };
 	}
 }
