@@ -12,9 +12,10 @@ namespace Translation
 
 	void Manager::BuildTranslationMap()
 	{
-		std::filesystem::path path{ fmt::format(R"(Data\Interface\Translations\PhotoMode_{}.txt)", GetGameLanguage()) };
+		std::filesystem::path path{ std::format(R"(Data\Interface\Translations\PhotoMode_{}.txt)", GetGameLanguage()) };
 
 		if (!LoadTranslation(path)) {
+			logger::info("Failed to load translation file in {}, loading default ENGLISH file...", path.string());
 			LoadTranslation(R"(Data\Interface\Translations\PhotoMode_ENGLISH.txt)"sv);
 		}
 	}
@@ -37,7 +38,7 @@ namespace Translation
 		// check if the BOM is UTF-16
 		constexpr wchar_t BOM_UTF16LE = 0xFEFF;
 		if (filestream.get() != BOM_UTF16LE) {
-			logger::info("BOM Error, file must be encoded in UCS-2 LE.");
+			logger::info("\tBOM Error, file must be encoded in UCS-2 LE.");
 			return false;
 		}
 

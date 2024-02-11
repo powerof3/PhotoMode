@@ -45,7 +45,7 @@ void Settings::LoadSettings() const
 
 void Settings::LoadMCMSettings() const
 {
-	constexpr auto load_mcm_settings = [](auto& ini) {
+	constexpr auto load_mcm = [](auto& ini) {
 		MANAGER(Hotkeys)->LoadHotKeys(ini);
 
 		MANAGER(Screenshot)->LoadMCMSettings(ini);
@@ -57,5 +57,10 @@ void Settings::LoadMCMSettings() const
 		MANAGER(PhotoMode)->LoadMCMSettings(ini);
 	};
 
-	SerializeINI(defaultMCMPath, userMCMPath, load_mcm_settings);
+	SerializeINI(defaultMCMPath, userMCMPath, load_mcm);
+}
+
+void Settings::SerializeToMCM(std::function<void(CSimpleIniA&)> a_func)
+{
+	SerializeINI(defaultMCMPath, a_func);
 }

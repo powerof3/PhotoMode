@@ -2,6 +2,7 @@
 
 #include "Graphics.h"
 #include "PhotoMode/Manager.h"
+#include "Settings.h"
 
 namespace Screenshot
 {
@@ -23,9 +24,23 @@ namespace Screenshot
 		compressTextures = a_ini.GetBoolValue("Screenshots", "bCompressTextures", compressTextures);
 	}
 
-	void Manager::LoadScreenshotTextures()
+	void Manager::LoadScreenshots()
 	{
-		logger::info("Loading screenshot textures...");
+		logger::info("Loading screenshots...");
+
+		if (auto directory = logger::log_directory()) {
+			directory->remove_filename();
+			*directory /= "Photos";
+			photoPath = *directory;
+		}
+
+		if (!std::filesystem::exists(photoPath)) {
+			std::filesystem::create_directory(photoPath);
+		}
+
+		logger::info("\tScreenshot directory : {}", photoPath.string());
+		logger::info("\tScreenshot textures : {}", screenshotFolder);
+		logger::info("\tPainting textures : {}", paintingFolder);
 
 		constexpr auto get_textures = [](std::string_view a_folder, std::vector<std::string>& a_textures) {
 			const std::filesystem::directory_entry folder{ a_folder };
@@ -63,7 +78,13 @@ namespace Screenshot
 		get_textures(screenshotFolder, screenshots);
 		get_textures(paintingFolder, paintings);
 
-		index = RE::GetINISetting("iScreenShotIndex:Display")->GetSInt();
+		Settings::GetSingleton()->SerializeToMCM([this](auto& ini) {
+			index = ini.GetLongValue("Screenshots", "iScreenshotIndex", this->index);
+			if (index == -1) {
+				index = RE::GetINISetting("iScreenShotIndex:Display")->GetSInt();
+			}
+			ini.SetLongValue("Screenshots", "iScreenshotIndex", this->index);
+		});
 
 		logger::info("\t{} screenshots", screenshots.size());
 		logger::info("\t{} paintings", paintings.size());
@@ -83,7 +104,10 @@ namespace Screenshot
 
 	void Manager::IncrementIndex()
 	{
-		index++;
+		index++;	
+		Settings::GetSingleton()->SerializeToMCM([this](auto& ini) {
+			ini.SetLongValue("Screenshots", "iScreenshotIndex", this->index);
+		});
 	}
 
 	bool Manager::AllowMultiScreenshots() const
@@ -106,49 +130,57 @@ namespace Screenshot
 		return takeScreenshotAsDDS && (!screenshots.empty() || !paintings.empty());
 	}
 
-	bool Manager::TakeScreenshot(ID3D11Texture2D* a_texture_2d, const char* a_path)
+	bool Manager::TakeScreenshot()
 	{
 		constexpr auto GetStaticRendererData = []() {
-			REL::Relocation<RE::BSGraphics::RendererData**> singleton{ RELOCATION_ID(524728, 411347) };
+			static REL::Relocation<RE::BSGraphics::RendererData**> singleton{ RELOCATION_ID(524728, 411347) };
 			return *singleton;
 		};
 
-		const auto renderer = GetStaticRendererData();
-		if (!renderer) {
-			return false;
-		}
-
 		bool skipVanillaScreenshot = false;
 
+		const auto renderer = GetStaticRendererData();
+		if (!renderer) {
+			return skipVanillaScreenshot;
+		}
+
 		// capture screenshot
-		DirectX::ScratchImage inputImage;
+		DirectX::ScratchImage inputImage{};
 
 		const ComPtr<ID3D11Device>        device{ renderer->forwarder };
 		const ComPtr<ID3D11DeviceContext> deviceContext{ renderer->context };
-		DirectX::CaptureTexture(device.Get(), deviceContext.Get(), a_texture_2d, inputImage);
+		ID3D11Texture2D*                  texture2D{ renderer->renderTargets[RE::RENDER_TARGET::kSCREENSHOT].texture };
 
-		// apply overlay
-		if (const auto [overlay, alpha] = MANAGER(PhotoMode)->GetOverlay(); overlay) {
-			DirectX::ScratchImage overlayImage;
-			DirectX::ScratchImage blendedImage;
-
-			// Convert PNG B8G8R8 format to R8G8B8
-			DirectX::Convert(overlay->image->GetImages(), 1,
-				overlay->image->GetMetadata(),
-				inputImage.GetMetadata().format, DirectX::TEX_FILTER_DEFAULT, DirectX::TEX_THRESHOLD_DEFAULT,
-				overlayImage);
-
-			Texture::AlphaBlendImage(inputImage.GetImages(), overlayImage.GetImages(), blendedImage, alpha);
-
-			TakeScreenshotAsTexture(blendedImage, inputImage);
-			Texture::SaveToPNG(blendedImage, a_path);
-
-			overlayImage.Release();
-			blendedImage.Release();
-
+		if (auto result = DirectX::CaptureTexture(device.Get(), deviceContext.Get(), texture2D, inputImage); result == S_OK) {
 			skipVanillaScreenshot = true;
-		} else {
-			TakeScreenshotAsTexture(inputImage, inputImage);
+			std::string pngPath = std::format("{}/Screenshot{}.png", photoPath.string(), GetIndex());
+
+			// apply overlay
+			if (const auto [overlay, alpha] = MANAGER(PhotoMode)->GetOverlay(); overlay) {
+				DirectX::ScratchImage overlayImage;
+				DirectX::ScratchImage blendedImage;
+
+				// Convert PNG B8G8R8 format to R8G8B8
+				DirectX::Convert(overlay->image->GetImages(), 1,
+					overlay->image->GetMetadata(),
+					inputImage.GetMetadata().format, DirectX::TEX_FILTER_DEFAULT, DirectX::TEX_THRESHOLD_DEFAULT,
+					overlayImage);
+
+				Texture::AlphaBlendImage(inputImage.GetImages(), overlayImage.GetImages(), blendedImage, alpha);
+
+				TakeScreenshotAsTexture(blendedImage, inputImage);
+				Texture::SaveToPNG(blendedImage, pngPath);
+
+				overlayImage.Release();
+				blendedImage.Release();
+			} else {
+				TakeScreenshotAsTexture(inputImage, inputImage);
+				Texture::SaveToPNG(inputImage, pngPath);
+			}
+
+			RE::DebugNotification("PhotoMode: Screenshot created!");
+
+			IncrementIndex();
 		}
 
 		inputImage.Release();
@@ -194,7 +226,6 @@ namespace Screenshot
 			outputImage.Release();
 		}
 
-		IncrementIndex();
 		AddScreenshotPaths(ssPaths);
 	}
 

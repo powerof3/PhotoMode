@@ -2,8 +2,8 @@
 
 namespace Screenshot
 {
-	inline std::string_view screenshotFolder{ "Data/Textures/PhotoMode/Screenshots"sv };
-	inline std::string_view paintingFolder{ "Data/Textures/PhotoMode/Screenshots/Paintings"sv };
+	inline std::string_view screenshotFolder{ "Data\\Textures\\PhotoMode\\Screenshots"sv };
+	inline std::string_view paintingFolder{ "Data\\Textures\\PhotoMode\\Screenshots\\Paintings"sv };
 
 	struct Paths
 	{
@@ -17,9 +17,9 @@ namespace Screenshot
 	{
 	public:
 		void LoadMCMSettings(const CSimpleIniA& a_ini);
-		void LoadScreenshotTextures();
+		void LoadScreenshots();
 
-		bool TakeScreenshot(ID3D11Texture2D* a_texture_2d, const char* a_path);
+		bool TakeScreenshot();
 
 		std::uint32_t GetIndex() const;
 		void          IncrementIndex();
@@ -39,7 +39,7 @@ namespace Screenshot
 		// members
 		std::vector<std::string> screenshots{};
 		std::vector<std::string> paintings{};
-		std::uint32_t            index{ 0 };
+		std::int32_t             index{ -1 };
 
 		bool takeScreenshotAsDDS{ true };
 		bool compressTextures{ true };
@@ -53,5 +53,7 @@ namespace Screenshot
 
 		bool allowMultiScreenshots{ true };
 		bool autoHideMenus{ true };
+
+		std::filesystem::path photoPath{};
 	};
 }

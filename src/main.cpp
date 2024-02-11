@@ -18,9 +18,9 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 
 			Hooks::Install();
 
-			ENB::handle = static_cast<ENB_API::ENBSDKALT1001*>(RequestENBAPI(ENB_API::SDKVersion::V1001));
+			/*ENB::handle = static_cast<ENB_API::ENBSDKALT1001*>(RequestENBAPI(ENB_API::SDKVersion::V1001));
 			if (ENB::handle) {
-				/*ENB::handle->SetCallbackFunction([](ENBCallbackType a_calltype) {
+				ENB::handle->SetCallbackFunction([](ENBCallbackType a_calltype) {
 					switch (a_calltype) {
 					case ENBCallbackType::ENBCallback_BeginFrame:
 						MANAGER(PhotoMode)->UpdateENBParams();
@@ -32,10 +32,10 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 						break;
 					}
 				});
-				logger::info("Obtained ENB API");*/
+				logger::info("Obtained ENB API");
 			} else {
 				logger::info("Unable to acquire ENB API");
-			}
+			}*/
 		}
 		break;
 	case SKSE::MessagingInterface::kInputLoaded:
@@ -49,11 +49,11 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 	case SKSE::MessagingInterface::kDataLoaded:
 		{
 			logger::info("{:*^30}", "DATA LOADED");
-
+		
 			MANAGER(Translation)->BuildTranslationMap();
 
 			MANAGER(LoadScreen)->InitLoadScreenObjects();
-			MANAGER(Screenshot)->LoadScreenshotTextures();
+			MANAGER(Screenshot)->LoadScreenshots();
 			MANAGER(PhotoMode)->OnDataLoad();
 		}
 		break;
@@ -126,6 +126,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	SKSE::Init(a_skse);
 
 	Settings::GetSingleton()->LoadSettings();
+
 	ImGui::Renderer::Install();
 
 	const auto messaging = SKSE::GetMessagingInterface();

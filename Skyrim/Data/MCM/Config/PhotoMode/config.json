@@ -220,7 +220,7 @@
             "sourceType": "ModSettingBool"
           }
         },
-		{
+        {
           "id": "fFreeCameraTranslationSpeed:Settings",
           "text": "$PM_FreeCameraTranslationSpeed_Text",
           "type": "slider",
