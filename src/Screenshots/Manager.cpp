@@ -173,7 +173,7 @@ namespace Screenshot
 				Texture::SaveToPNG(inputImage, pngPath);
 			}
 
-			RE::DebugNotification("PhotoMode: Screenshot created!");
+			RE::DebugNotification("$PM_ScreenshotNotif"_T);
 
 			IncrementIndex();
 		}
