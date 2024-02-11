@@ -41,7 +41,7 @@ namespace ImGui
 		void ResetIndex()
 		{
 			index = 0;
-			
+
 			if constexpr (std::is_same_v<T, RE::TESWeather>) {
 				if (auto currentWeather = RE::Sky::GetSingleton()->currentWeather) {
 					if (const auto it = edidForms.find(editorID::get_editorID(currentWeather)); it != edidForms.end()) {

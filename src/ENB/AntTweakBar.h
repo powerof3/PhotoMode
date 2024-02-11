@@ -32,7 +32,8 @@
 #		else
 #			include <string>
 #		endif
-extern "C" {
+extern "C"
+{
 #	endif  // __cplusplus
 
 	// ----------------------------------------------------------------------------
