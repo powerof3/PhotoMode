@@ -19,11 +19,9 @@ namespace ImGui
 	float CalcMaxPopupHeightFromItemCount(const int items_count)
 	{
 		ImGuiContext& g = *GImGui;
-		if (items_count <= 0) {
+		if (items_count <= 0)
 			return FLT_MAX;
-		}
-		return (g.FontSize + g.Style.ItemSpacing.y) * items_count - g.Style.ItemSpacing.y +
-		       (g.Style.WindowPadding.y * 2);
+		return (g.FontSize + g.Style.ItemSpacing.y) * items_count - g.Style.ItemSpacing.y + (g.Style.WindowPadding.y * 2);
 	}
 
 	// https://github.com/ocornut/imgui/discussions/3862

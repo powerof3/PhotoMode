@@ -12,11 +12,6 @@
 #include <codecvt>
 #include <wrl/client.h>
 
-#include <ClibUtil/RNG.hpp>
-#include <ClibUtil/hash.hpp>
-#include <ClibUtil/simpleINI.hpp>
-#include <ClibUtil/singleton.hpp>
-#include <ClibUtil/string.hpp>
 #include <DirectXMath.h>
 #include <DirectXTex.h>
 
@@ -34,15 +29,22 @@
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>
 
+#include <ClibUtil/RNG.hpp>
+#include <ClibUtil/editorID.hpp>
+#include <ClibUtil/hash.hpp>
+#include <ClibUtil/simpleINI.hpp>
+#include <ClibUtil/singleton.hpp>
+#include <ClibUtil/string.hpp>
+
 #define DLLEXPORT __declspec(dllexport)
 
 using namespace std::literals;
 using namespace clib_util::string::literals;
+using namespace clib_util::singleton;
 
 namespace logger = SKSE::log;
 namespace ini = clib_util::ini;
-
-using namespace clib_util::singleton;
+namespace editorID = clib_util::editorID;
 
 using RNG = clib_util::RNG;
 using EventResult = RE::BSEventNotifyControl;

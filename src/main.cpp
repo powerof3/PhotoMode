@@ -31,8 +31,8 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 					default:
 						break;
 					}
-				});*/
-				logger::info("Obtained ENB API");
+				});
+				logger::info("Obtained ENB API");*/
 			} else {
 				logger::info("Unable to acquire ENB API");
 			}

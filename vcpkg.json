@@ -1,11 +1,10 @@
 {
   "name": "photo-mode",
-  "version-string": "1.2.0",
+  "version-string": "1.2.1",
   "description": "",
   "homepage": "",
   "license": "MIT",
   "dependencies": [
-    "boost-stl-interfaces",
     "clib-util",
     "directxtex",
     "freetype",

@@ -128,7 +128,7 @@ namespace ImGui
 		// Copied from ListBoxHeader
 		// If popup_max_height_in_items == -1, default height is maximum 7.
 		const float height_in_items_f = (popup_max_height_in_items < 0 ? ImMin(items_count, 7) :
-                                                                         popup_max_height_in_items) +
+																		 popup_max_height_in_items) +
 		                                0.25f;
 		ImVec2 size;
 		size.x = 0.0f;
@@ -286,18 +286,17 @@ namespace ImGui
 		if (format == NULL)
 			format = DataTypeGetInfo(data_type)->PrintFmt;
 
-		const bool hovered = ItemHoverable(frame_bb, id);
+		const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.InFlags);
 		bool       temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
 		if (!temp_input_is_active) {
 			// Tabbing or CTRL-clicking on Drag turns it into an InputText
-			const bool input_requested_by_tabbing = temp_input_allowed && (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_FocusedByTabbing) != 0;
 			const bool clicked = hovered && IsMouseClicked(0, id);
 			const bool double_clicked = (hovered && g.IO.MouseClickedCount[0] == 2 && TestKeyOwner(ImGuiKey_MouseLeft, id));
-			const bool make_active = (input_requested_by_tabbing || clicked || double_clicked || g.NavActivateId == id);
+			const bool make_active = (clicked || double_clicked || g.NavActivateId == id);
 			if (make_active && (clicked || double_clicked))
 				SetKeyOwner(ImGuiKey_MouseLeft, id);
 			if (make_active && temp_input_allowed)
-				if (input_requested_by_tabbing || (clicked && g.IO.KeyCtrl) || double_clicked || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
+				if ((clicked && g.IO.KeyCtrl) || double_clicked || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
 					temp_input_is_active = true;
 
 			// (Optional) simple click (without moving) turns Drag into an InputText
@@ -324,7 +323,7 @@ namespace ImGui
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
-                                                                                                  ImGuiCol_FrameBg);
+																								  ImGuiCol_FrameBg);
 		//RenderNavHighlight(frame_bb, id);
 		RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
 		window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, g.ActiveId == id ? IM_COL32(255, 255, 255, 204) : IM_COL32(255, 255, 255, 62), g.Style.FrameRounding, 0, 1.5f);
@@ -334,12 +333,12 @@ namespace ImGui
 		if (value_changed)
 			MarkItemEdited(id);
 
-		// Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
 		const bool isHovered = GetFocusID() == id;
 		if (!isHovered) {
 			PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TextDisabled));
 		}
 
+		// Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
 		char        value_buf[64];
 		const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
 		if (g.LogEnabled)
@@ -391,24 +390,32 @@ namespace ImGui
 		if (format == nullptr)
 			format = DataTypeGetInfo(data_type)->PrintFmt;
 
-		const bool hovered = ItemHoverable(frame_bb, id);
+		const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.InFlags);
 		bool       temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
 		if (!temp_input_is_active) {
-			// Tabbing or CTRL-clicking on Slider turns it into an input box
-			const bool input_requested_by_tabbing = temp_input_allowed && (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_FocusedByTabbing) != 0;
+			// Tabbing or CTRL-clicking on Drag turns it into an InputText
 			const bool clicked = hovered && IsMouseClicked(0, id);
-			const bool make_active = (input_requested_by_tabbing || clicked || g.NavActivateId == id);
-			if (make_active && clicked)
+			const bool double_clicked = (hovered && g.IO.MouseClickedCount[0] == 2 && TestKeyOwner(ImGuiKey_MouseLeft, id));
+			const bool make_active = (clicked || double_clicked || g.NavActivateId == id);
+			if (make_active && (clicked || double_clicked))
 				SetKeyOwner(ImGuiKey_MouseLeft, id);
 			if (make_active && temp_input_allowed)
-				if (input_requested_by_tabbing || (clicked && g.IO.KeyCtrl) || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
+				if ((clicked && g.IO.KeyCtrl) || double_clicked || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
 					temp_input_is_active = true;
+
+			// (Optional) simple click (without moving) turns Drag into an InputText
+			if (g.IO.ConfigDragClickToInputText && temp_input_allowed && !temp_input_is_active)
+				if (g.ActiveId == id && hovered && g.IO.MouseReleased[0] && !IsMouseDragPastThreshold(0, g.IO.MouseDragThreshold * 0.50f)) {
+					g.NavActivateId = id;
+					g.NavActivateFlags = ImGuiActivateFlags_PreferInput;
+					temp_input_is_active = true;
+				}
 
 			if (make_active && !temp_input_is_active) {
 				SetActiveID(id, window);
 				SetFocusID(id, window);
 				FocusWindow(window);
-				g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
+				g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
 			}
 		}
 
@@ -420,7 +427,7 @@ namespace ImGui
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
-                                                                                                  ImGuiCol_FrameBg);
+																								  ImGuiCol_FrameBg);
 		// RenderNavHighlight(frame_bb, id);
 		// RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, g.Style.FrameRounding);
 
@@ -442,18 +449,18 @@ namespace ImGui
 
 		window->DrawList->AddRect(draw_bb.Min, draw_bb.Max, isHovered ? IM_COL32(255, 255, 255, 204) : IM_COL32(255, 255, 255, 62), g.Style.FrameRounding, 0, 1.75f);
 
-		window->DrawList->AddRectFilled(draw_bb.Min, ImVec2(grab_bb.Min.x + (grab_bb.Max.x - grab_bb.Min.x) * 0.65f, draw_bb.Max.y), frame_col, style.FrameRounding, ImDrawCornerFlags_Left);
-		window->DrawList->AddRectFilled(ImVec2(grab_bb.Max.x - (grab_bb.Max.x - grab_bb.Min.x) * 0.35f, draw_bb.Min.y), draw_bb.Max, frame_col, style.FrameRounding, ImDrawCornerFlags_Right);
+		window->DrawList->AddRectFilled(draw_bb.Min, ImVec2(grab_bb.Min.x + (grab_bb.Max.x - grab_bb.Min.x) * 0.65f, draw_bb.Max.y), frame_col, style.FrameRounding, ImDrawFlags_RoundCornersLeft);
+		window->DrawList->AddRectFilled(ImVec2(grab_bb.Max.x - (grab_bb.Max.x - grab_bb.Min.x) * 0.35f, draw_bb.Min.y), draw_bb.Max, frame_col, style.FrameRounding, ImDrawFlags_RoundCornersRight);
 
 		// Render grab
 		if (grab_bb.Max.x > grab_bb.Min.x)
 			window->DrawList->AddRectFilled(grab_bb.Min, grab_bb.Max, GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab), style.GrabRounding);
 
-		// Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
 		if (!isHovered) {
 			PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TextDisabled));
 		}
 
+		// Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
 		char        value_buf[64];
 		const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
 		if (g.LogEnabled)

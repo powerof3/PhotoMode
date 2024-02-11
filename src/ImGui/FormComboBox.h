@@ -40,15 +40,14 @@ namespace ImGui
 		}
 		void ResetIndex()
 		{
+			index = 0;
+			
 			if constexpr (std::is_same_v<T, RE::TESWeather>) {
-				const auto it = edidForms.find(EditorID::GetEditorID(RE::Sky::GetSingleton()->currentWeather));
-				if (it != edidForms.end()) {
-					index = static_cast<std::int32_t>(std::distance(edidForms.begin(), it));
-				} else {
-					index = 0;
+				if (auto currentWeather = RE::Sky::GetSingleton()->currentWeather) {
+					if (const auto it = edidForms.find(editorID::get_editorID(currentWeather)); it != edidForms.end()) {
+						index = static_cast<std::int32_t>(std::distance(edidForms.begin(), it));
+					}
 				}
-			} else {
-				index = 0;
 			}
 		}
 		void SetValid(bool a_valid)
@@ -101,7 +100,9 @@ namespace ImGui
 			if (modNameForms.empty()) {
 				if constexpr (!std::is_same_v<T, RE::TESIdleForm>) {
 					for (const auto& form : RE::TESDataHandler::GetSingleton()->GetFormArray<T>()) {
-						AddForm(EditorID::GetEditorID(form), form);
+						if (form) {
+							AddForm(editorID::get_editorID(form), form);
+						}
 					}
 				} else {
 					for (auto& [edid, form] : PhotoMode::cachedIdles) {

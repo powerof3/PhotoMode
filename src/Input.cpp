@@ -21,7 +21,7 @@ namespace Input
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
-		keyHeldDuration = a_ini.GetDoubleValue("Controls", "iKeyHeldDuration", keyHeldDuration);
+		keyHeldDuration = static_cast<float>(a_ini.GetDoubleValue("Controls", "iKeyHeldDuration", keyHeldDuration));
 	}
 
 	void Manager::LoadDefaultKeys()

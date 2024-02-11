@@ -46,11 +46,11 @@ namespace LoadScreen
 			auto rng = RNG();
 
 			// process fullscreen art first
-			if (fullscreenChance > 0 && rng.Generate<std::int32_t>(0, 100) <= fullscreenChance) {
+			if (fullscreenChance > 0 && rng.generate<std::int32_t>(0, 100) <= fullscreenChance) {
 				return Type::kFullScreen;
 			}
 
-			if (paintingChance > 0 && rng.Generate<std::int32_t>(0, 100) <= paintingChance) {
+			if (paintingChance > 0 && rng.generate<std::int32_t>(0, 100) <= paintingChance) {
 				return Type::kPainting;
 			}
 		}
@@ -76,7 +76,7 @@ namespace LoadScreen
 			break;
 		case Type::kPainting:
 			{
-				current.obj = paintingModels[RNG().Generate<std::size_t>(0, paintingModels.size() - 1)];  // Load random painting mesh
+				current.obj = paintingModels[RNG().generate<std::size_t>(0, paintingModels.size() - 1)];  // Load random painting mesh
 				current.texturePath = GetScreenshotTexture();
 
 				// skip if empty

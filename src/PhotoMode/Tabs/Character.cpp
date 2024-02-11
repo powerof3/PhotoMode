@@ -144,8 +144,8 @@ namespace PhotoMode
 		if (vfxPlayed || effectsPlayed) {
 			if (const auto processLists = RE::ProcessLists::GetSingleton()) {
 				const auto handle = character->CreateRefHandle();
-				processLists->ForEachMagicTempEffect([&](RE::BSTempEffect& a_effect) {
-					if (const auto referenceEffect = a_effect.As<RE::ReferenceEffect>()) {
+				processLists->ForEachMagicTempEffect([&](RE::BSTempEffect* a_effect) {
+					if (const auto referenceEffect = a_effect->As<RE::ReferenceEffect>()) {
 						if (referenceEffect->target == handle) {
 							referenceEffect->finished = true;
 						}

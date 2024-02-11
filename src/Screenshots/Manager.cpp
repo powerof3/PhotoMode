@@ -37,8 +37,8 @@ namespace Screenshot
 			std::vector<std::string> badTextures{};
 
 			for (const auto& entry : std::filesystem::directory_iterator(a_folder)) {
-				if (entry.exists()) {
-					if (const auto& path = entry.path(); !path.empty() && path.extension() == ".dds") {
+				if (entry.is_regular_file()) {
+					if (const auto& path = entry.path(); path.extension() == ".dds") {
 						auto pathStr = entry.path().string();
 
 						DirectX::TexMetadata info;
@@ -204,7 +204,7 @@ namespace Screenshot
 			return {};
 		}
 
-		return screenshots[RNG().Generate<std::size_t>(0, screenshots.size() - 1)];
+		return screenshots[RNG().generate<std::size_t>(0, screenshots.size() - 1)];
 	}
 
 	std::string Manager::GetRandomPainting()
@@ -214,6 +214,6 @@ namespace Screenshot
 			return GetRandomScreenshot();
 		}
 
-		return paintings[RNG().Generate<std::size_t>(0, paintings.size() - 1)];
+		return paintings[RNG().generate<std::size_t>(0, paintings.size() - 1)];
 	}
 }
