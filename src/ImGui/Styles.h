@@ -33,7 +33,7 @@ namespace ImGui
 
 	private:
 		void ConvertVec4StylesToU32();
-		
+
 		template <class T>
 		T ToStyle(const std::string& a_str);
 		template <class T>

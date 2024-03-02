@@ -101,7 +101,7 @@ namespace ImGui
 		if (result) {
 			RE::PlaySound("UIMenuPrevNext");
 		}
-		ActivateOnHover(); 
+		ActivateOnHover();
 
 		PopStyleColor(3);
 
