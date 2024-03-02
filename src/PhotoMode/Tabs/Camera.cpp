@@ -150,8 +150,8 @@ namespace PhotoMode
 		const auto static bottomLeft = ImVec2(0.0f, size.y);
 		const auto static bottomRight = ImVec2(size.x, size.y);
 
-		constexpr auto colour = IM_COL32(255, 255, 255, 85);
-		constexpr auto thickness = 2.5f;
+		const auto colour = ImGui::GetUserStyleColorU32(ImGui::USER_STYLE::kGridLines);
+		const auto thickness = ImGui::GetUserStyleVar(ImGui::USER_STYLE::kGridLines);
 
 		switch (gridType) {
 		case kRuleOfThirds:

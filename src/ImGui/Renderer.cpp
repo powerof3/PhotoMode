@@ -23,7 +23,6 @@ namespace ImGui::Renderer
 		{
 			auto& io = ImGui::GetIO();
 			if (uMsg == WM_KILLFOCUS) {
-				io.ClearInputCharacters();
 				io.ClearInputKeys();
 			}
 
@@ -61,8 +60,6 @@ namespace ImGui::Renderer
 				auto& io = ImGui::GetIO();
 				io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
 				io.IniFilename = nullptr;
-
-				ImGui::StyleVanilla();
 
 				if (!ImGui_ImplWin32_Init(desc.OutputWindow)) {
 					logger::error("ImGui initialization failed (Win32)");
@@ -110,7 +107,8 @@ namespace ImGui::Renderer
 				return;
 			}
 
-			MANAGER(IconFont)->LoadFonts();
+			// refresh style
+			ImGui::Styles::GetSingleton()->OnStyleRefresh();
 
 			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();
@@ -124,9 +122,6 @@ namespace ImGui::Renderer
 			}
 			ImGui::NewFrame();
 			{
-				// disable windowing
-				GImGui->NavWindowingTarget = nullptr;
-
 				photoMode->Draw();
 			}
 			ImGui::EndFrame();

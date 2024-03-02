@@ -78,7 +78,7 @@ namespace Screenshot
 		get_textures(screenshotFolder, screenshots);
 		get_textures(paintingFolder, paintings);
 
-		Settings::GetSingleton()->SerializeToMCM([this](auto& ini) {
+		Settings::GetSingleton()->SerializeMCM([this](auto& ini) {
 			index = ini.GetLongValue("Screenshots", "iScreenshotIndex", this->index);
 			if (index == -1) {
 				index = RE::GetINISetting("iScreenShotIndex:Display")->GetSInt();
@@ -105,7 +105,7 @@ namespace Screenshot
 	void Manager::IncrementIndex()
 	{
 		index++;
-		Settings::GetSingleton()->SerializeToMCM([this](auto& ini) {
+		Settings::GetSingleton()->SerializeMCM([this](auto& ini) {
 			ini.SetLongValue("Screenshots", "iScreenshotIndex", this->index);
 		});
 	}
@@ -130,7 +130,7 @@ namespace Screenshot
 		return takeScreenshotAsDDS && (!screenshots.empty() || !paintings.empty());
 	}
 
-	bool Manager::TakeScreenshot()
+	bool Manager::TakeScreenshot(const char* a_fallbackPath)
 	{
 		bool skipVanillaScreenshot = false;
 
@@ -148,7 +148,8 @@ namespace Screenshot
 
 		if (auto result = DirectX::CaptureTexture(device.Get(), deviceContext.Get(), texture2D, inputImage); result == S_OK) {
 			skipVanillaScreenshot = true;
-			std::string pngPath = std::format("{}/Screenshot{}.png", photoPath.string(), GetIndex());
+			
+			std::string pngPath = std::format("{}\\Screenshot{}.png", std::filesystem::exists(photoPath) ? photoPath.string() : a_fallbackPath, GetIndex());
 
 			// apply overlay
 			if (const auto [overlay, alpha] = MANAGER(PhotoMode)->GetOverlay(); overlay) {

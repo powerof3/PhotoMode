@@ -3,6 +3,7 @@
 #include "IconsFontAwesome6.h"
 #include "Input.h"
 #include "Renderer.h"
+#include "Styles.h"
 #include "Util.h"
 
 namespace IconFont
@@ -16,13 +17,9 @@ namespace IconFont
 		const bool result = ImageData::Load(a_resizeToScreenRes);
 
 		if (result) {
-			// 0.0004630f is 0.5/1080
-			// at 1080 render at half size
+			imageSize = size;
 
-			const auto windowHeight = RE::BSGraphics::Renderer::GetScreenSize().height;
-
-			size.x = size.x * (0.0004630f * windowHeight);
-			size.y = size.y * (0.0004630f * windowHeight);
+			Resize();
 
 			// don't need this
 			if (image) {
@@ -31,6 +28,12 @@ namespace IconFont
 		}
 
 		return result;
+	}
+
+	void IconData::Resize()
+	{
+		auto scale = ImGui::GetUserStyleVar(ImGui::USER_STYLE::kIconScale) / 1080;  // standard window height
+		size = imageSize * (scale * RE::BSGraphics::Renderer::GetScreenSize().height);
 	}
 
 	void Manager::LoadSettings(CSimpleIniA& a_ini)
@@ -79,16 +82,13 @@ namespace IconFont
 		checkboxFilled.Load();
 	}
 
-	void Manager::LoadFonts()
+	void Manager::ReloadFonts()
 	{
-		if (loadedFonts) {
-			return;
-		}
+		auto& io = ImGui::GetIO();
+		io.Fonts->Clear();
 
-		loadedFonts = true;
-
-		ImVector<ImWchar>        ranges;
-		ImFontGlyphRangesBuilder builder;
+		ImVector<ImWchar>               ranges;
+		static ImFontGlyphRangesBuilder builder;
 		builder.AddText(RE::BSScaleformManager::GetSingleton()->validNameChars.c_str());
 		builder.AddChar(0xf030);  // CAMERA
 		builder.AddChar(0xf017);  // CLOCK
@@ -97,12 +97,40 @@ namespace IconFont
 		builder.AddChar(0xf03e);  // IMAGE
 		builder.BuildRanges(&ranges);
 
-		auto& io = ImGui::GetIO();
-
 		io.FontDefault = LoadFontIconSet(fontSize, iconSize, ranges);
 		largeFont = LoadFontIconSet(largeFontSize, largeIconSize, ranges);
 
 		io.Fonts->Build();
+
+		ImGui_ImplDX11_InvalidateDeviceObjects();
+		ImGui_ImplDX11_CreateDeviceObjects();
+	}
+
+	void Manager::ResizeIcons()
+	{
+		unknownKey.Resize();
+
+		upKey.Resize();
+		downKey.Resize();
+		leftKey.Resize();
+		rightKey.Resize();
+
+		std::for_each(keyboard.begin(), keyboard.end(), [](auto& IconData) {
+			IconData.second.Resize();
+		});
+		std::for_each(gamePad.begin(), gamePad.end(), [](auto& IconData) {
+			auto& [xbox, ps4] = IconData.second;
+			xbox.Resize();
+			ps4.Resize();
+		});
+		std::for_each(mouse.begin(), mouse.end(), [](auto& IconData) {
+			IconData.second.Resize();
+		});
+
+		stepperLeft.Resize();
+		stepperRight.Resize();
+		checkbox.Resize();
+		checkboxFilled.Resize();
 	}
 
 	ImFont* Manager::LoadFontIconSet(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const
@@ -161,7 +189,7 @@ namespace IconFont
 			return &rightKey;
 		default:
 			{
-				if (Input::GetInputType() == Input::TYPE::kKeyboard) {
+				if (auto inputDevice = MANAGER(Input)->GetInputDevice(); inputDevice == Input::DEVICE::kKeyboard || inputDevice == Input::DEVICE::kMouse) {
 					if (key >= SKSE::InputMap::kMacro_MouseButtonOffset) {
 						if (const auto it = mouse.find(key); it != mouse.end()) {
 							return &it->second;
@@ -196,7 +224,7 @@ namespace IconFont
 	{
 		switch (buttonScheme) {
 		case BUTTON_SCHEME::kAutoDetect:
-			return Input::GetInputType() == Input::TYPE::kGamepadOrbis ? &a_icons.ps4 : &a_icons.xbox;
+			return MANAGER(Input)->GetInputDevice() == Input::DEVICE::kGamepadOrbis ? &a_icons.ps4 : &a_icons.xbox;
 		case BUTTON_SCHEME::kXbox:
 			return &a_icons.xbox;
 		case BUTTON_SCHEME::kPS4:

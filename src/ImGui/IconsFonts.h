@@ -12,6 +12,10 @@ namespace IconFont
 		~IconData() override = default;
 
 		bool Load(bool a_resizeToScreenRes = false) override;
+		void Resize();
+
+		// members
+		ImVec2 imageSize{};
 	};
 
 	class Manager final : public ISingleton<Manager>
@@ -27,7 +31,8 @@ namespace IconFont
 		void LoadMCMSettings(const CSimpleIniA& a_ini);
 
 		void LoadIcons();
-		void LoadFonts();
+		void ReloadFonts();
+		void ResizeIcons();
 
 		ImFont* GetLargeFont() const;
 

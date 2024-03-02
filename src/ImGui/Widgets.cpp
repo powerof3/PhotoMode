@@ -88,9 +88,10 @@ namespace ImGui
 			memset(pattern_buffer, 0, IM_ARRAYSIZE(pattern_buffer));
 		}
 
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, static_cast<ImVec4>(ImColor(0, 0, 0, 255)));
-		ImGui::PushStyleColor(ImGuiCol_Text, static_cast<ImVec4>(ImColor(255, 255, 255, 204)));
-		ImGui::PushStyleColor(ImGuiCol_NavHighlight, static_cast<ImVec4>(ImColor(0, 0, 0, 0)));
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, GetUserStyleColorVec4(USER_STYLE::kFrameBG_ComboBox));
+		ImGui::PushStyleColor(ImGuiCol_Text, GetUserStyleColorVec4(USER_STYLE::kText_ComboBox));
+		ImGui::PushStyleColor(ImGuiCol_NavHighlight, ImVec4(0, 0, 0, 0));
+
 		ImGui::PushItemWidth(-FLT_MIN);
 		// Filter input
 		if (!is_already_open) {
@@ -134,7 +135,7 @@ namespace ImGui
 		size.x = 0.0f;
 		size.y = GetTextLineHeightWithSpacing() * height_in_items_f + g.Style.FramePadding.y * 2.0f;
 
-		ImGui::PushStyleColor(ImGuiCol_NavHighlight, static_cast<ImVec4>(ImColor(0, 0, 0, 0)));
+		ImGui::PushStyleColor(ImGuiCol_NavHighlight, ImVec4(0,0,0,0));
 		if (ImGui::BeginListBox("##ComboWithFilter_itemList", size)) {
 			for (int i = 0; i < show_count; i++) {
 				int idx = is_filtering ? itemScoreVector[i].first : i;
@@ -242,8 +243,9 @@ namespace ImGui
 		PushStyleColor(ImGuiCol_ButtonActive, ImVec4());
 		PushStyleColor(ImGuiCol_ButtonHovered, ImVec4());
 
+		auto& colors = GetStyle().Colors;
 		ImageButton(newLabel.c_str(), *a_toggle ? checkboxFilled->srView.Get() : checkbox->srView.Get(), checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
-			GetFocusID() == GetCurrentWindow()->GetID(newLabel.c_str()) ? ImVec4(1, 1, 1, 1) : GetStyle().Colors[ImGuiCol_TextDisabled]);
+			GetFocusID() == GetCurrentWindow()->GetID(newLabel.c_str()) ? ImVec4(1, 1, 1, 1) : colors[ImGuiCol_TextDisabled]);
 
 		PopStyleColor(3);
 
@@ -326,7 +328,7 @@ namespace ImGui
 																								  ImGuiCol_FrameBg);
 		//RenderNavHighlight(frame_bb, id);
 		RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
-		window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, g.ActiveId == id ? IM_COL32(255, 255, 255, 204) : IM_COL32(255, 255, 255, 62), g.Style.FrameRounding, 0, 1.5f);
+		window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, g.ActiveId == id ? GetUserStyleColorU32(USER_STYLE::kSliderBorderActive) : GetUserStyleColorU32(USER_STYLE::kSliderBorder), g.Style.FrameRounding, 0, 1.5f);
 
 		// Drag behavior
 		const bool value_changed = DragBehavior(id, data_type, p_data, v_speed, p_min, p_max, format, flags);
@@ -447,7 +449,7 @@ namespace ImGui
 		// Render track
 		const bool isHovered = GetFocusID() == id;
 
-		window->DrawList->AddRect(draw_bb.Min, draw_bb.Max, isHovered ? IM_COL32(255, 255, 255, 204) : IM_COL32(255, 255, 255, 62), g.Style.FrameRounding, 0, 1.75f);
+		window->DrawList->AddRect(draw_bb.Min, draw_bb.Max, isHovered ? GetUserStyleColorU32(USER_STYLE::kSliderBorderActive) : GetUserStyleColorU32(USER_STYLE::kSliderBorder), g.Style.FrameRounding, 0, 1.75f);
 
 		window->DrawList->AddRectFilled(draw_bb.Min, ImVec2(grab_bb.Min.x + (grab_bb.Max.x - grab_bb.Min.x) * 0.65f, draw_bb.Max.y), frame_col, style.FrameRounding, ImDrawFlags_RoundCornersLeft);
 		window->DrawList->AddRectFilled(ImVec2(grab_bb.Max.x - (grab_bb.Max.x - grab_bb.Min.x) * 0.35f, draw_bb.Min.y), draw_bb.Max, frame_col, style.FrameRounding, ImDrawFlags_RoundCornersRight);

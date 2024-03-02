@@ -33,8 +33,9 @@ namespace Texture
 		if (SUCCEEDED(hr)) {
 			if (auto renderer = RE::BSGraphics::Renderer::GetSingleton()) {
 				if (a_resizeToScreenRes) {
-					auto height = renderer->data.renderWindows[0].windowHeight * ImGui::Renderer::GetResolutionScale();
-					auto width = renderer->data.renderWindows[0].windowWidth * ImGui::Renderer::GetResolutionScale();
+					auto screenSize = RE::BSGraphics::Renderer::GetScreenSize();
+					auto height = screenSize.height * ImGui::Renderer::GetResolutionScale();
+					auto width = screenSize.width * ImGui::Renderer::GetResolutionScale();
 
 					if (height != image->GetMetadata().height && height != image->GetMetadata().width) {
 						DirectX::ScratchImage tmpImage;

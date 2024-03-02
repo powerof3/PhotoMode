@@ -2,6 +2,7 @@
 
 #include "Hotkeys.h"
 #include "ImGui/IconsFonts.h"
+#include "ImGui/Styles.h"
 #include "ImGui/Widgets.h"
 #include "Screenshots/Manager.h"
 
@@ -27,40 +28,37 @@ namespace PhotoMode
 		static constexpr std::array badMenus{
 			RE::MainMenu::MENU_NAME,
 			RE::MistMenu::MENU_NAME,
-			RE::JournalMenu::MENU_NAME,
-			RE::InventoryMenu::MENU_NAME,
-			RE::MagicMenu::MENU_NAME,
-			RE::MapMenu::MENU_NAME,
-			RE::BookMenu::MENU_NAME,
-			RE::LockpickingMenu::MENU_NAME,
-			RE::StatsMenu::MENU_NAME,
-			RE::BarterMenu::MENU_NAME,
-			RE::GiftMenu::MENU_NAME,
-			RE::TrainingMenu::MENU_NAME,
-			RE::ContainerMenu::MENU_NAME,
-			RE::DialogueMenu::MENU_NAME,
-			RE::CraftingMenu::MENU_NAME,
-			RE::TweenMenu::MENU_NAME,
-			RE::SleepWaitMenu::MENU_NAME,
-			RE::RaceSexMenu::MENU_NAME,
+			RE::LoadingMenu::MENU_NAME,
+			RE::FaderMenu::MENU_NAME,
 			"LootMenu"sv,
 			"CustomMenu"sv
 		};
 
-		if (const auto player = RE::PlayerCharacter::GetSingleton(); !player || !player->Get3D() && !player->Get3D(true)) {
+		if (const auto UI = RE::UI::GetSingleton();
+			!UI || std::ranges::any_of(badMenus, [&](const auto& menuName) { return UI->IsMenuOpen(menuName); })) {
 			return false;
 		}
 
-		if (const auto UI = RE::UI::GetSingleton(); !UI || std::ranges::any_of(badMenus, [&](const auto& menuName) { return UI->IsMenuOpen(menuName); })) {
+		const auto* controlMap = RE::ControlMap::GetSingleton();
+		if (!controlMap) {
+			return false;
+		}
+
+		auto context_id = controlMap->contextPriorityStack.back();
+		if (!(context_id == RE::UserEvents::INPUT_CONTEXT_ID::kGameplay || context_id == RE::UserEvents::INPUT_CONTEXT_ID::kTFCMode || context_id == RE::UserEvents::INPUT_CONTEXT_ID::kConsole)) {
+			return false;
+		}
+
+		if (RE::MenuControls::GetSingleton()->InBeastForm()) {
 			return false;
 		}
 
 		return true;
 	}
 
-	bool Manager::ShouldBlockInput()
+	bool Manager::ShouldBlockInput() const
 	{
-		return RE::UI::GetSingleton()->IsMenuOpen(RE::Console::MENU_NAME);
+		return blockInput;
 	}
 
 	bool Manager::IsActive() const
@@ -87,7 +85,7 @@ namespace PhotoMode
 	}
 
 	void Manager::Activate()
-	{
+	{	
 		cameraTab.GetOriginalState();
 		timeTab.GetOriginalState();
 
@@ -126,6 +124,9 @@ namespace PhotoMode
 		// load default screenshot keys
 		// keybindings can change?
 		MANAGER(Input)->LoadDefaultKeys();
+
+		// refresh style
+		ImGui::Styles::GetSingleton()->RefreshStyle();
 
 		activated = true;
 		if (activeGlobal) {
@@ -336,7 +337,7 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(ImGui::GetNativeViewportPos());
 		ImGui::SetNextWindowSize(ImGui::GetNativeViewportSize());
 
-		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus);
+		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
 		{
 			// render hierachy
 			overlaysTab.DrawOverlays();
@@ -415,7 +416,7 @@ namespace PhotoMode
 			//		CAMERA
 			// ----------------
 			ImGui::CenteredText(currentTab != TAB_TYPE::kCharacter ? TRANSLATE(tabs[currentTab]) : characterTab[cachedCharacter->GetFormID()].GetName());
-			ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, 3.0f);
+			ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, ImGui::GetUserStyleVar(ImGui::USER_STYLE::kSeparatorThickness));
 
 			// content
 			ImGui::SetNextWindowBgAlpha(0.0f);  // child bg color is added ontop of window
@@ -659,25 +660,27 @@ namespace PhotoMode
 
 	EventResult Manager::ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*)
 	{
-		if (!a_evn || !a_evn->opening) {
+		if (!a_evn) {
 			return EventResult::kContinue;
 		}
 
-		const auto UI = RE::UI::GetSingleton();
+		if (a_evn->menuName == RE::Console::MENU_NAME) {
+			blockInput = a_evn->opening;
+		} else if (a_evn->opening) {
+			if (a_evn->menuName == RE::JournalMenu::MENU_NAME) {
+				if (openFromPauseMenu) {
+					openFromPauseMenu = SetupJournalMenu();
+				}
+			} else if (a_evn->menuName == RE::ModManagerMenu::MENU_NAME) {
+				if (RE::UI::GetSingleton()->IsMenuOpen(RE::JournalMenu::MENU_NAME) && openFromPauseMenu) {
+					const auto msgQueue = RE::UIMessageQueue::GetSingleton();
 
-		if (a_evn->menuName == RE::JournalMenu::MENU_NAME) {
-			if (openFromPauseMenu) {
-				openFromPauseMenu = SetupJournalMenu();
-			}
-		} else if (a_evn->menuName == RE::ModManagerMenu::MENU_NAME) {
-			if (UI->IsMenuOpen(RE::JournalMenu::MENU_NAME) && openFromPauseMenu) {
-				const auto msgQueue = RE::UIMessageQueue::GetSingleton();
+					msgQueue->AddMessage(RE::ModManagerMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
+					msgQueue->AddMessage(RE::JournalMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
 
-				msgQueue->AddMessage(RE::ModManagerMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
-				msgQueue->AddMessage(RE::JournalMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
-
-				RE::PlaySound("UIMenuOK");
-				Activate();
+					RE::PlaySound("UIMenuOK");
+					Activate();
+				}
 			}
 		}
 

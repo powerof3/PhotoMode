@@ -19,7 +19,7 @@ namespace PhotoMode
 		void        LoadMCMSettings(const CSimpleIniA& a_ini);
 
 		static bool        IsValid();
-		static bool        ShouldBlockInput();
+		bool               ShouldBlockInput() const;
 		[[nodiscard]] bool IsActive() const;
 		void               Activate();
 		void               Deactivate();
@@ -86,6 +86,7 @@ namespace PhotoMode
 		bool activated{ false };
 		bool hiddenUI{ false };
 		bool revertENB{ false };
+		bool blockInput{ false };
 
 		std::int32_t previousTab{ kCamera };
 		std::int32_t currentTab{ kCamera };

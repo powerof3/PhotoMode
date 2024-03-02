@@ -19,7 +19,7 @@ namespace Screenshot
 		void LoadMCMSettings(const CSimpleIniA& a_ini);
 		void LoadScreenshots();
 
-		bool TakeScreenshot();
+		bool TakeScreenshot(const char* a_fallbackPath);
 
 		std::uint32_t GetIndex() const;
 		void          IncrementIndex();

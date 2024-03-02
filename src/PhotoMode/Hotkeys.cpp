@@ -37,10 +37,8 @@ namespace PhotoMode::Hotkeys
 
 	std::uint32_t Manager::Key::GetKey() const
 	{
-		if (Input::GetInputType() == Input::TYPE::kKeyboard) {
-			return keyboard;
-		}
-		return gamePad;
+		auto device = MANAGER(Input)->GetInputDevice();
+		return (device == Input::DEVICE::kKeyboard || device == Input::DEVICE::kMouse) ? keyboard : gamePad;
 	}
 
 	std::uint32_t Manager::Key::Keyboard() const
@@ -80,10 +78,8 @@ namespace PhotoMode::Hotkeys
 
 	std::set<std::uint32_t> Manager::KeyCombo::GetKeys() const
 	{
-		if (Input::GetInputType() == Input::TYPE::kKeyboard) {
-			return keyboard.keys;
-		}
-		return gamePad.keys;
+		auto device = MANAGER(Input)->GetInputDevice();
+		return (device == Input::DEVICE::kKeyboard || device == Input::DEVICE::kMouse) ? keyboard.keys : gamePad.keys;
 	}
 
 	bool Manager::KeyCombo::ProcessKeyPress(RE::InputEvent* const* a_event, std::function<void()> a_callback)
@@ -157,10 +153,8 @@ namespace PhotoMode::Hotkeys
 
 	std::uint32_t Manager::EscapeKey()
 	{
-		if (Input::GetInputType() == Input::TYPE::kKeyboard) {
-			return KEY::kEscape;
-		}
-		return SKSE::InputMap::kGamepadButtonOffset_B;
+		auto device = MANAGER(Input)->GetInputDevice();
+		return (device == Input::DEVICE::kKeyboard || device == Input::DEVICE::kMouse) ? KEY::kEscape : SKSE::InputMap::kGamepadButtonOffset_B;
 	}
 
 	const IconFont::IconData* Manager::ResetIcon() const

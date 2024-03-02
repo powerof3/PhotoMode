@@ -6,9 +6,9 @@
 
 namespace Input
 {
-	TYPE GetInputType()
+	DEVICE Manager::GetInputDevice() const
 	{
-		return inputType;
+		return inputDevice;
 	}
 
 	void Manager::Register()
@@ -34,21 +34,22 @@ namespace Input
 		screenshotGamepad = controlMap->GetMappedKey(screenshot, RE::INPUT_DEVICE::kGamepad);
 	}
 
-	std::uint32_t Manager::GetDefaultScreenshotKey(RE::INPUT_DEVICE a_device) const
+	std::uint32_t Manager::GetDefaultScreenshotKey() const
 	{
 		std::uint32_t key{ 0 };
 
-		switch (a_device) {
-		case RE::INPUT_DEVICE::kKeyboard:
+		switch (inputDevice) {
+		case DEVICE::kKeyboard:
 			key = screenshotKeyboard;
 			break;
-		case RE::INPUT_DEVICE::kMouse:
+		case DEVICE::kMouse:
 			{
 				key = screenshotMouse;
 				key += SKSE::InputMap::kMacro_MouseButtonOffset;
 			}
 			break;
-		case RE::INPUT_DEVICE::kGamepad:
+		case DEVICE::kGamepadDirectX:
+		case DEVICE::kGamepadOrbis:
 			key = SKSE::InputMap::GamepadMaskToKeycode(screenshotGamepad);
 			break;
 		default:
@@ -71,7 +72,7 @@ namespace Input
 			HideMenu(true);
 		}
 
-		if (inputType != TYPE::kKeyboard || a_forceQueue) {
+		if (inputDevice != DEVICE::kKeyboard || a_forceQueue) {
 			RE::MenuControls::GetSingleton()->QueueScreenshot();
 		}
 	}
@@ -84,7 +85,7 @@ namespace Input
 		}
 	}
 
-	ImGuiKey Manager::ToImGuiKey(RE::BSWin32KeyboardDevice::Key a_key)
+	ImGuiKey Manager::ToImGuiKey(KEY a_key)
 	{
 		switch (a_key) {
 		case KEY::kTab:
@@ -384,27 +385,39 @@ namespace Input
 		}
 	}
 
-	void Manager::SendKeyEvent(std::uint32_t a_key, bool a_keyPressed) const
+	void Manager::SendKeyEvent(std::uint32_t a_key, std::uint32_t a_value, bool a_keyPressed) const
 	{
-		ImGuiKey key{ ImGuiKey_None };
+		auto& io = ImGui::GetIO();
 
-		switch (inputType) {
-		case TYPE::kKeyboard:
-			key = ToImGuiKey(static_cast<KEY>(a_key));
-			break;
-		case TYPE::kGamepadDirectX:
-			key = ToImGuiKey(static_cast<GAMEPAD_DIRECTX>(a_key));
-			break;
-		case TYPE::kGamepadOrbis:
-			{
-				key = ToImGuiKey(static_cast<GAMEPAD_ORBIS>(a_key));
+		if (inputDevice == DEVICE::kMouse) {
+			switch (auto mouseKey = static_cast<MOUSE>(a_key)) {
+			case MOUSE::kWheelUp:
+				io.AddMouseWheelEvent(0, a_value);
+				break;
+			case MOUSE::kWheelDown:
+				io.AddMouseWheelEvent(0, a_value * -1);
+				break;
+			default:
+				io.AddMouseButtonEvent(mouseKey, a_keyPressed);
+				break;
 			}
-			break;
-		default:
-			break;
+		} else {
+			ImGuiKey key{ ImGuiKey_None };
+			switch (inputDevice) {
+			case DEVICE::kKeyboard:
+				key = ToImGuiKey(static_cast<KEY>(a_key));
+				break;
+			case DEVICE::kGamepadDirectX:
+				key = ToImGuiKey(static_cast<GAMEPAD_DIRECTX>(a_key));
+				break;
+			case DEVICE::kGamepadOrbis:
+				key = ToImGuiKey(static_cast<GAMEPAD_ORBIS>(a_key));
+				break;
+			default:
+				break;
+			}
+			io.AddKeyEvent(key, a_keyPressed);
 		}
-
-		ImGui::GetIO().AddKeyEvent(key, a_keyPressed);
 	}
 
 	void Manager::HideMenu(bool a_hide)
@@ -421,7 +434,7 @@ namespace Input
 
 	EventResult Manager::ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*)
 	{
-		if (!a_evn || !RE::PlayerCharacter::GetSingleton()->Is3DLoaded() || !RE::Main::GetSingleton()->gameActive) {
+		if (!a_evn || !RE::Main::GetSingleton()->gameActive) {
 			return EventResult::kContinue;
 		}
 
@@ -449,21 +462,21 @@ namespace Input
 					// get input type
 					switch (device) {
 					case RE::INPUT_DEVICE::kKeyboard:
-						inputType = TYPE::kKeyboard;
+						inputDevice = DEVICE::kKeyboard;
 						break;
 					case RE::INPUT_DEVICE::kMouse:
 						{
 							hotKey += SKSE::InputMap::kMacro_MouseButtonOffset;
-							inputType = TYPE::kKeyboard;
+							inputDevice = DEVICE::kMouse;
 						}
 						break;
 					case RE::INPUT_DEVICE::kGamepad:
 						{
 							hotKey = SKSE::InputMap::GamepadMaskToKeycode(hotKey);
 							if (RE::ControlMap::GetSingleton()->GetGamePadType() == RE::PC_GAMEPAD_TYPE::kOrbis) {
-								inputType = TYPE::kGamepadOrbis;
+								inputDevice = DEVICE::kGamepadOrbis;
 							} else {
-								inputType = TYPE::kGamepadDirectX;
+								inputDevice = DEVICE::kGamepadDirectX;
 							}
 						}
 						break;
@@ -476,7 +489,7 @@ namespace Input
 							photoMode->ToggleUI();
 						} else if (hotKey == hotKeys->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
-								QueueScreenshot(hotKey != GetDefaultScreenshotKey(device));
+								QueueScreenshot(hotKey != GetDefaultScreenshotKey());
 							} else if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > keyHeldDuration) {
 								QueueScreenshot(true);
 							}
@@ -497,8 +510,8 @@ namespace Input
 						}
 					}
 
-					if (device != RE::INPUT_DEVICE::kMouse && (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey())) {
-						SendKeyEvent(key, buttonEvent->IsPressed());
+					if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {
+						SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
 					}
 				}
 			}

@@ -2,6 +2,7 @@
 
 #include "ImGui/IconsFonts.h"
 #include "ImGui/Renderer.h"
+#include "ImGui/Styles.h"
 #include "Input.h"
 #include "PhotoMode/Hotkeys.h"
 #include "PhotoMode/Manager.h"
@@ -60,7 +61,12 @@ void Settings::LoadMCMSettings() const
 	SerializeINI(defaultMCMPath, userMCMPath, load_mcm);
 }
 
-void Settings::SerializeToMCM(std::function<void(CSimpleIniA&)> a_func)
+void Settings::SerializeMCM(std::function<void(CSimpleIniA&)> a_func)
 {
 	SerializeINI(defaultMCMPath, a_func);
+}
+
+void Settings::SerializeStyles(std::function<void(CSimpleIniA&)> a_func) const
+{
+	SerializeINI(stylesPath, a_func, true);
 }

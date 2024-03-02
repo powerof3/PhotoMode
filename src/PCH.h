@@ -2,6 +2,8 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
+#define DIRECTINPUT_VERSION 0x0800
+#define IMGUI_DEFINE_MATH_OPERATORS
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 
 #define MANAGER(T) T::Manager::GetSingleton()
@@ -22,7 +24,6 @@
 #include <srell.hpp>
 #include <xbyak/xbyak.h>
 
-#define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
 #include <imgui.h>
 #include <imgui_freetype.h>
@@ -39,12 +40,11 @@
 #define DLLEXPORT __declspec(dllexport)
 
 using namespace std::literals;
-using namespace clib_util::string::literals;
+using namespace clib_util;
+using namespace string::literals;
 using namespace clib_util::singleton;
 
 namespace logger = SKSE::log;
-namespace ini = clib_util::ini;
-namespace editorID = clib_util::editorID;
 
 using RNG = clib_util::RNG;
 using EventResult = RE::BSEventNotifyControl;
@@ -58,7 +58,7 @@ template <class T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 template <class K, class D>
-using Map = ankerl::unordered_dense::segmented_map<K, D>;
+using Map = ankerl::unordered_dense::map<K, D>;
 
 struct string_hash
 {
@@ -72,7 +72,7 @@ struct string_hash
 };
 
 template <class D>
-using StringMap = ankerl::unordered_dense::segmented_map<std::string, D, string_hash, std::equal_to<>>;
+using StringMap = ankerl::unordered_dense::map<std::string, D, string_hash, std::equal_to<>>;
 
 namespace stl
 {

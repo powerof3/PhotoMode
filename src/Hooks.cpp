@@ -50,7 +50,7 @@ namespace Screenshot
 			bool skipVanillaScreenshot = false;
 
 			if (MANAGER(Input)->IsScreenshotQueued()) {
-				skipVanillaScreenshot = MANAGER(Screenshot)->TakeScreenshot();
+				skipVanillaScreenshot = MANAGER(Screenshot)->TakeScreenshot(a_path);
 			}
 
 			if (!skipVanillaScreenshot) {

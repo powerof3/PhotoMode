@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Styles.h"
 #include "Util.h"
 
 namespace ImGui
@@ -59,9 +60,9 @@ namespace ImGui
 	{
 		const auto newLabel = LeftAlignedText(label);
 
-		PushStyleColor(ImGuiCol_FrameBg, IM_COL32(255, 255, 255, 16));
-		PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(255, 255, 255, 51));
-		PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(255, 255, 255, 51));
+		PushStyleColor(ImGuiCol_FrameBg, GetUserStyleColorU32(USER_STYLE::kFrameBG_Widget));
+		PushStyleColor(ImGuiCol_FrameBgHovered, GetUserStyleColorU32(USER_STYLE::kFrameBG_WidgetActive));
+		PushStyleColor(ImGuiCol_FrameBgActive, GetUserStyleColorU32(USER_STYLE::kFrameBG_WidgetActive));
 
 		bool result;
 		if constexpr (std::is_floating_point_v<T>) {
@@ -87,9 +88,9 @@ namespace ImGui
 	{
 		const auto newLabel = LeftAlignedText(label);
 
-		PushStyleColor(ImGuiCol_FrameBg, IM_COL32(255, 255, 255, 16));
-		PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(255, 255, 255, 51));
-		PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(255, 255, 255, 51));
+		PushStyleColor(ImGuiCol_FrameBg, GetUserStyleColorU32(USER_STYLE::kFrameBG_Widget));
+		PushStyleColor(ImGuiCol_FrameBgHovered, GetUserStyleColorU32(USER_STYLE::kFrameBG_WidgetActive));
+		PushStyleColor(ImGuiCol_FrameBgActive, GetUserStyleColorU32(USER_STYLE::kFrameBG_WidgetActive));
 
 		bool result;
 		if constexpr (std::is_floating_point_v<T>) {
@@ -100,7 +101,7 @@ namespace ImGui
 		if (result) {
 			RE::PlaySound("UIMenuPrevNext");
 		}
-		ActivateOnHover();
+		ActivateOnHover(); 
 
 		PopStyleColor(3);
 
