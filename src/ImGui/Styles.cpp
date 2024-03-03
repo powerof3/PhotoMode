@@ -146,7 +146,7 @@ namespace ImGui
 
 		get_value(text, "Text", "rColor");
 		get_value(textDisabled, "Text", "rDisabledColor");
-	
+
 		get_value(frameBG_Widget, "Widget", "rBackgroundColor");
 		get_value(frameBG_WidgetActive, "Widget", "rBackgroundActiveColor");
 		get_value(header, "Widget", "rHighlightColor");

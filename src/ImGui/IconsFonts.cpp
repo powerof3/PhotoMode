@@ -18,7 +18,7 @@ namespace IconFont
 
 		if (result) {
 			// store original size
-			imageSize = size;		
+			imageSize = size;
 			// don't need this
 			if (image) {
 				image.reset();
@@ -110,7 +110,7 @@ namespace IconFont
 		float buttonScale = ImGui::GetUserStyleVar(ImGui::USER_STYLE::kButtons);
 		float checkboxScale = ImGui::GetUserStyleVar(ImGui::USER_STYLE::kCheckbox);
 		float stepperScale = ImGui::GetUserStyleVar(ImGui::USER_STYLE::kStepper);
-		
+
 		unknownKey.Resize(buttonScale);
 
 		upKey.Resize(buttonScale);
