@@ -54,6 +54,7 @@ namespace Screenshot
 		bool allowMultiScreenshots{ true };
 		bool autoHideMenus{ true };
 
+		bool                  takeScreenshotAsPNG{ true };
 		std::filesystem::path photoPath{};
 	};
 }

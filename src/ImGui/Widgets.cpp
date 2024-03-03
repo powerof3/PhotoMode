@@ -243,7 +243,6 @@ namespace ImGui
 		PushStyleColor(ImGuiCol_ButtonActive, ImVec4());
 		PushStyleColor(ImGuiCol_ButtonHovered, ImVec4());
 
-		auto& colors = GetStyle().Colors;
 		ImageButton(newLabel.c_str(), *a_toggle ? checkboxFilled->srView.Get() : checkbox->srView.Get(), checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
 			GetFocusID() == GetCurrentWindow()->GetID(newLabel.c_str()) ? ImVec4(1, 1, 1, 1) : GetUserStyleColorVec4(USER_STYLE::kIconDisabled));
 

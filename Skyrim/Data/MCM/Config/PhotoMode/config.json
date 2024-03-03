@@ -250,6 +250,15 @@
           "type": "header"
         },
         {
+          "id": "bCustomPhotoFolder:Screenshots",
+          "text": "$PM_CustomPhotoFolder_Text",
+          "type": "toggle",
+          "help": "$PM_CustomPhotoFolder_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
           "id": "bAutoHideMenus:Screenshots",
           "text": "$PM_AutoHideMenus_Text",
           "type": "toggle",

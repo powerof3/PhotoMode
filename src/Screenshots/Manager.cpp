@@ -13,6 +13,8 @@ namespace Screenshot
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
+		takeScreenshotAsPNG = a_ini.GetBoolValue("Screenshots", "bCustomPhotoFolder", takeScreenshotAsPNG);
+		
 		autoHideMenus = a_ini.GetBoolValue("Screenshots", "bAutoHideMenus", autoHideMenus);
 		allowMultiScreenshots = a_ini.GetBoolValue("Screenshots", "bMultiScreenshots", allowMultiScreenshots);
 		takeScreenshotAsDDS = a_ini.GetBoolValue("Screenshots", "bLoadScreenPics", takeScreenshotAsDDS);
@@ -147,8 +149,6 @@ namespace Screenshot
 		ID3D11Texture2D*                  texture2D{ renderer->renderTargets[RE::RENDER_TARGET::kSCREENSHOT].texture };
 
 		if (auto result = DirectX::CaptureTexture(device.Get(), deviceContext.Get(), texture2D, inputImage); result == S_OK) {
-			skipVanillaScreenshot = true;
-
 			std::string pngPath = std::format("{}\\Screenshot{}.png", std::filesystem::exists(photoPath) ? photoPath.string() : a_fallbackPath, GetIndex());
 
 			// apply overlay
@@ -165,16 +165,26 @@ namespace Screenshot
 				Texture::AlphaBlendImage(inputImage.GetImages(), overlayImage.GetImages(), blendedImage, alpha);
 
 				TakeScreenshotAsTexture(blendedImage, inputImage);
-				Texture::SaveToPNG(blendedImage, pngPath);
-
+				
+				if (takeScreenshotAsPNG) {
+					skipVanillaScreenshot = true;
+					Texture::SaveToPNG(blendedImage, pngPath);
+				}
+				
 				overlayImage.Release();
 				blendedImage.Release();
 			} else {
 				TakeScreenshotAsTexture(inputImage, inputImage);
-				Texture::SaveToPNG(inputImage, pngPath);
+				
+				if (takeScreenshotAsPNG) {
+					skipVanillaScreenshot = true;
+					Texture::SaveToPNG(inputImage, pngPath);
+				}
 			}
 
-			RE::DebugNotification("$PM_ScreenshotNotif"_T);
+			if (takeScreenshotAsPNG) {
+				RE::DebugNotification("$PM_ScreenshotNotif"_T);
+			}
 
 			IncrementIndex();
 		}
