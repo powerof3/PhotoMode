@@ -14,7 +14,7 @@ namespace Screenshot
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
 		takeScreenshotAsPNG = a_ini.GetBoolValue("Screenshots", "bCustomPhotoFolder", takeScreenshotAsPNG);
-		
+
 		autoHideMenus = a_ini.GetBoolValue("Screenshots", "bAutoHideMenus", autoHideMenus);
 		allowMultiScreenshots = a_ini.GetBoolValue("Screenshots", "bMultiScreenshots", allowMultiScreenshots);
 		takeScreenshotAsDDS = a_ini.GetBoolValue("Screenshots", "bLoadScreenPics", takeScreenshotAsDDS);
@@ -165,17 +165,17 @@ namespace Screenshot
 				Texture::AlphaBlendImage(inputImage.GetImages(), overlayImage.GetImages(), blendedImage, alpha);
 
 				TakeScreenshotAsTexture(blendedImage, inputImage);
-				
+
 				if (takeScreenshotAsPNG) {
 					skipVanillaScreenshot = true;
 					Texture::SaveToPNG(blendedImage, pngPath);
 				}
-				
+
 				overlayImage.Release();
 				blendedImage.Release();
 			} else {
 				TakeScreenshotAsTexture(inputImage, inputImage);
-				
+
 				if (takeScreenshotAsPNG) {
 					skipVanillaScreenshot = true;
 					Texture::SaveToPNG(inputImage, pngPath);
