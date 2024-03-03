@@ -148,7 +148,7 @@ namespace Screenshot
 
 		if (auto result = DirectX::CaptureTexture(device.Get(), deviceContext.Get(), texture2D, inputImage); result == S_OK) {
 			skipVanillaScreenshot = true;
-			
+
 			std::string pngPath = std::format("{}\\Screenshot{}.png", std::filesystem::exists(photoPath) ? photoPath.string() : a_fallbackPath, GetIndex());
 
 			// apply overlay

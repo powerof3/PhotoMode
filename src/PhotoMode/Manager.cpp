@@ -85,7 +85,7 @@ namespace PhotoMode
 	}
 
 	void Manager::Activate()
-	{	
+	{
 		cameraTab.GetOriginalState();
 		timeTab.GetOriginalState();
 
