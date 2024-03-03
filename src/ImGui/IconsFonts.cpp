@@ -9,7 +9,7 @@
 namespace IconFont
 {
 	IconData::IconData(std::wstring_view a_iconName) :
-		ImageData(LR"(Data\Interface\PhotoMode\Icons\)", a_iconName)
+		ImageData(LR"(Data\Interface\ImGui Icons\)", a_iconName)
 	{}
 
 	bool IconData::Load(bool a_resizeToScreenRes)
@@ -17,10 +17,8 @@ namespace IconFont
 		const bool result = ImageData::Load(a_resizeToScreenRes);
 
 		if (result) {
-			imageSize = size;
-
-			Resize();
-
+			// store original size
+			imageSize = size;		
 			// don't need this
 			if (image) {
 				image.reset();
@@ -30,9 +28,9 @@ namespace IconFont
 		return result;
 	}
 
-	void IconData::Resize()
+	void IconData::Resize(float a_scale)
 	{
-		auto scale = ImGui::GetUserStyleVar(ImGui::USER_STYLE::kIconScale) / 1080;  // standard window height
+		auto scale = a_scale / 1080;  // standard window height
 		size = imageSize * (scale * RE::BSGraphics::Renderer::GetScreenSize().height);
 	}
 
@@ -87,8 +85,9 @@ namespace IconFont
 		auto& io = ImGui::GetIO();
 		io.Fonts->Clear();
 
-		ImVector<ImWchar>               ranges;
-		static ImFontGlyphRangesBuilder builder;
+		ImVector<ImWchar> ranges;
+
+		ImFontGlyphRangesBuilder builder;
 		builder.AddText(RE::BSScaleformManager::GetSingleton()->validNameChars.c_str());
 		builder.AddChar(0xf030);  // CAMERA
 		builder.AddChar(0xf017);  // CLOCK
@@ -108,29 +107,34 @@ namespace IconFont
 
 	void Manager::ResizeIcons()
 	{
-		unknownKey.Resize();
+		float buttonScale = ImGui::GetUserStyleVar(ImGui::USER_STYLE::kButtons);
+		float checkboxScale = ImGui::GetUserStyleVar(ImGui::USER_STYLE::kCheckbox);
+		float stepperScale = ImGui::GetUserStyleVar(ImGui::USER_STYLE::kStepper);
+		
+		unknownKey.Resize(buttonScale);
 
-		upKey.Resize();
-		downKey.Resize();
-		leftKey.Resize();
-		rightKey.Resize();
+		upKey.Resize(buttonScale);
+		downKey.Resize(buttonScale);
+		leftKey.Resize(buttonScale);
+		rightKey.Resize(buttonScale);
 
-		std::for_each(keyboard.begin(), keyboard.end(), [](auto& IconData) {
-			IconData.second.Resize();
+		std::for_each(keyboard.begin(), keyboard.end(), [&](auto& IconData) {
+			IconData.second.Resize(buttonScale);
 		});
-		std::for_each(gamePad.begin(), gamePad.end(), [](auto& IconData) {
+		std::for_each(gamePad.begin(), gamePad.end(), [&](auto& IconData) {
 			auto& [xbox, ps4] = IconData.second;
-			xbox.Resize();
-			ps4.Resize();
+			xbox.Resize(buttonScale);
+			ps4.Resize(buttonScale);
 		});
-		std::for_each(mouse.begin(), mouse.end(), [](auto& IconData) {
-			IconData.second.Resize();
+		std::for_each(mouse.begin(), mouse.end(), [&](auto& IconData) {
+			IconData.second.Resize(buttonScale);
 		});
 
-		stepperLeft.Resize();
-		stepperRight.Resize();
-		checkbox.Resize();
-		checkboxFilled.Resize();
+		stepperLeft.Resize(stepperScale);
+		stepperRight.Resize(stepperScale);
+
+		checkbox.Resize(checkboxScale);
+		checkboxFilled.Resize(checkboxScale);
 	}
 
 	ImFont* Manager::LoadFontIconSet(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const

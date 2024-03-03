@@ -12,7 +12,7 @@ namespace IconFont
 		~IconData() override = default;
 
 		bool Load(bool a_resizeToScreenRes = false) override;
-		void Resize();
+		void Resize(float a_scale);
 
 		// members
 		ImVec2 imageSize{};

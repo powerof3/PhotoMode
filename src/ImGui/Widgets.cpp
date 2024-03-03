@@ -88,8 +88,8 @@ namespace ImGui
 			memset(pattern_buffer, 0, IM_ARRAYSIZE(pattern_buffer));
 		}
 
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, GetUserStyleColorVec4(USER_STYLE::kFrameBG_ComboBox));
-		ImGui::PushStyleColor(ImGuiCol_Text, GetUserStyleColorVec4(USER_STYLE::kText_ComboBox));
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, GetUserStyleColorVec4(USER_STYLE::kComboBoxTextBox));
+		ImGui::PushStyleColor(ImGuiCol_Text, GetUserStyleColorVec4(USER_STYLE::kComboBoxText));
 		ImGui::PushStyleColor(ImGuiCol_NavHighlight, ImVec4(0, 0, 0, 0));
 
 		ImGui::PushItemWidth(-FLT_MIN);
@@ -135,7 +135,7 @@ namespace ImGui
 		size.x = 0.0f;
 		size.y = GetTextLineHeightWithSpacing() * height_in_items_f + g.Style.FramePadding.y * 2.0f;
 
-		ImGui::PushStyleColor(ImGuiCol_NavHighlight, ImVec4(0,0,0,0));
+		ImGui::PushStyleColor(ImGuiCol_NavHighlight, ImVec4(0, 0, 0, 0));
 		if (ImGui::BeginListBox("##ComboWithFilter_itemList", size)) {
 			for (int i = 0; i < show_count; i++) {
 				int idx = is_filtering ? itemScoreVector[i].first : i;
@@ -220,7 +220,7 @@ namespace ImGui
 		static auto leftArrow = MANAGER(IconFont)->GetStepperLeft();
 		static auto rightArrow = MANAGER(IconFont)->GetStepperRight();
 
-		const auto color = isHovered ? GetColorU32(ImGuiCol_Text) : GetColorU32(ImGuiCol_TextDisabled);
+		const auto color = isHovered ? IM_COL32(255, 255, 255, 255) : GetUserStyleColorU32(USER_STYLE::kIconDisabled);
 
 		AlignedImage(leftArrow->srView.Get(), leftArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(0, 0.5f), color);
 		AlignedImage(rightArrow->srView.Get(), rightArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(1.0, 0.5f), color);
@@ -245,7 +245,7 @@ namespace ImGui
 
 		auto& colors = GetStyle().Colors;
 		ImageButton(newLabel.c_str(), *a_toggle ? checkboxFilled->srView.Get() : checkbox->srView.Get(), checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
-			GetFocusID() == GetCurrentWindow()->GetID(newLabel.c_str()) ? ImVec4(1, 1, 1, 1) : colors[ImGuiCol_TextDisabled]);
+			GetFocusID() == GetCurrentWindow()->GetID(newLabel.c_str()) ? ImVec4(1, 1, 1, 1) : GetUserStyleColorVec4(USER_STYLE::kIconDisabled));
 
 		PopStyleColor(3);
 
@@ -439,12 +439,10 @@ namespace ImGui
 		if (value_changed)
 			MarkItemEdited(id);
 
-		ImRect draw_bb = frame_bb;
-		if (sliderThickness != 1.0f) {
-			const auto shrink_amount = static_cast<float>(static_cast<int>((frame_bb.Max.y - frame_bb.Min.y) * 0.5f * (1.0f - sliderThickness)));
-			draw_bb.Min.y += shrink_amount;
-			draw_bb.Max.y -= shrink_amount;
-		}
+		ImRect     draw_bb = frame_bb;
+		const auto shrink_amount = static_cast<float>(static_cast<int>((frame_bb.Max.y - frame_bb.Min.y) * 0.5f * (1.0f - sliderThickness)));
+		draw_bb.Min.y += shrink_amount;
+		draw_bb.Max.y -= shrink_amount;
 
 		// Render track
 		const bool isHovered = GetFocusID() == id;
@@ -584,7 +582,7 @@ namespace ImGui
 		bool    wasActive = *active_tab == id;
 
 		if (!wasActive)
-			ImGui::PushStyleColor(ImGuiCol_Text, GetStyle().Colors[ImGuiCol_TextDisabled]);
+			ImGui::PushStyleColor(ImGuiCol_Text, GetStyleColorVec4(ImGuiCol_TextDisabled));
 
 		const bool isActive = ImGui::BeginTabItem(label, p_open, flags);
 

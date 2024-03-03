@@ -10,34 +10,41 @@ namespace ImGui
 	{
 		bgAlpha = 0.68f;
 		disabledAlpha = 0.30f;
-		windowBorderSize = 3.5f;
+		borderSize = 3.5f;
 		separatorThickness = 3.5f;
 		gridThickness = 2.5f;
-		iconScale = 0.5f;
+
+		buttonScale = 0.5f;
+		checkboxScale = 0.5f;
+		stepperScale = 0.5f;
+
+		iconDisabled = ImVec4(1.0f, 1.0f, 1.0f, disabledAlpha);
 
 		background = ImVec4(0.0f, 0.0f, 0.0f, bgAlpha);
 		border = ImVec4(0.396f, 0.404f, 0.412f, bgAlpha);
 		separator = ImVec4(0.396f, 0.404f, 0.412f, bgAlpha);
 
+		comboBoxText = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
+		comboBoxTextBox = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+
 		text = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 		textDisabled = ImVec4(1.0f, 1.0f, 1.0f, disabledAlpha);
-		textComboBox = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
 
 		frameBG = ImVec4(0.2f, 0.2f, 0.2f, bgAlpha);
 		frameBG_Widget = ImVec4(1.0f, 1.0f, 1.0f, 0.06275f);
 		frameBG_WidgetActive = ImVec4(1.0f, 1.0f, 1.0f, 0.2f);
-		frameBG_ComboBox = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 		sliderGrab = ImVec4(1.0f, 1.0f, 1.0f, 0.245f);
 		sliderGrabActive = ImVec4(1.0f, 1.0f, 1.0f, 0.531f);
+		sliderBorder = ImVec4(1.0f, 1.0f, 1.0f, 0.2431f);
+		sliderBorderActive = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
+
 		button = ImVec4(0.0f, 0.0f, 0.0f, bgAlpha);
 		header = ImVec4(1.0f, 1.0f, 1.0f, 0.1f);
 		tab = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 		tabHovered = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
 
 		gridLines = ImVec4(1.0f, 1.0f, 1.0f, 0.3333f);
-		sliderBorder = ImVec4(1.0f, 1.0f, 1.0f, 0.2431f);
-		sliderBorderActive = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
 
 		ConvertVec4StylesToU32();
 	}
@@ -49,11 +56,14 @@ namespace ImGui
 		gridLinesU32 = ColorConvertFloat4ToU32(gridLines);
 		sliderBorderU32 = ColorConvertFloat4ToU32(sliderBorder);
 		sliderBorderActiveU32 = ColorConvertFloat4ToU32(sliderBorderActive);
+		iconDisabledU32 = ColorConvertFloat4ToU32(iconDisabled);
 	}
 
 	ImU32 Styles::GetColorU32(USER_STYLE a_style) const
 	{
 		switch (a_style) {
+		case USER_STYLE::kIconDisabled:
+			return iconDisabledU32;
 		case USER_STYLE::kGridLines:
 			return gridLinesU32;
 		case USER_STYLE::kSliderBorder:
@@ -72,10 +82,12 @@ namespace ImGui
 	ImVec4 Styles::GetColorVec4(USER_STYLE a_style) const
 	{
 		switch (a_style) {
-		case USER_STYLE::kText_ComboBox:
-			return textComboBox;
-		case USER_STYLE::kFrameBG_ComboBox:
-			return frameBG_ComboBox;
+		case USER_STYLE::kIconDisabled:
+			return iconDisabled;
+		case USER_STYLE::kComboBoxTextBox:
+			return comboBoxTextBox;
+		case USER_STYLE::kComboBoxText:
+			return comboBoxText;
 		default:
 			return ImVec4();
 		}
@@ -84,8 +96,12 @@ namespace ImGui
 	float Styles::GetVar(USER_STYLE a_style) const
 	{
 		switch (a_style) {
-		case USER_STYLE::kIconScale:
-			return iconScale;
+		case USER_STYLE::kButtons:
+			return buttonScale;
+		case USER_STYLE::kCheckbox:
+			return checkboxScale;
+		case USER_STYLE::kStepper:
+			return stepperScale;
 		case USER_STYLE::kSeparatorThickness:
 			return separatorThickness;
 		case USER_STYLE::kGridLines:
@@ -109,37 +125,37 @@ namespace ImGui
 			a_ini.SetValue(a_section, a_key, ToString(a_value).c_str());
 		};
 
-		get_value(iconScale, "Icon", "fScale");
+		get_value(iconDisabled, "Icon", "rDisabledColor");
+		get_value(buttonScale, "Icon", "fButtonScale");
+		get_value(checkboxScale, "Icon", "fCheckboxScale");
+		get_value(stepperScale, "Icon", "fStepperScale");
 
-		get_value(background, "Window", "rBackground");
-		get_value(border, "Window", "rBorder");
-		get_value(windowBorderSize, "Window", "fBorderSize");
+		get_value(background, "Window", "rBackgroundColor");
+		get_value(border, "Window", "rBorderColor");
+		get_value(borderSize, "Window", "fBorderSize");
 
-		get_value(frameBG, "Frame", "rBackground");
-		get_value(frameBG_Widget, "Frame", "rBackgroundWidget");
-		get_value(frameBG_WidgetActive, "Frame", "rBackgroundWidgetActive");
-		get_value(frameBG_ComboBox, "Frame", "rBackgroundComboBox");
+		get_value(comboBoxTextBox, "ComboBox", "rTextBoxColor");
+		get_value(frameBG, "ComboBox", "rListBoxColor");
+		get_value(comboBoxText, "ComboBox", "rTextColor");
+		get_value(button, "ComboBox", "rArrowButtonColor");
 
-		get_value(gridLines, "Grid", "rGrid");
-		get_value(gridThickness, "Grid", "fThickness");
+		get_value(sliderGrab, "Slider", "rColor");
+		get_value(sliderGrabActive, "Slider", "rActiveColor");
+		get_value(sliderBorder, "Slider", "rBorderColor");
+		get_value(sliderBorderActive, "Slider", "rBorderActiveColor");
 
-		get_value(separator, "Separator", "rSeparator");
-		get_value(separatorThickness, "Separator", "fThickness");
-
-		get_value(sliderGrab, "Slider", "rSlider");
-		get_value(sliderGrabActive, "Slider", "rSliderActive");
-		get_value(sliderBorder, "Slider", "rBorder");
-		get_value(sliderBorderActive, "Slider", "rBorderActive");
-
-		get_value(tab, "Tab", "rTab");
-		get_value(tabHovered, "Tab", "rTabActive");
-
-		get_value(text, "Text", "rText");
-		get_value(textDisabled, "Text", "rTextDisabled");
-		get_value(textComboBox, "Text", "rTextComboBox");
-
-		get_value(button, "Widget", "rButton");
-		get_value(header, "Widget", "rHeader");
+		get_value(text, "Text", "rColor");
+		get_value(textDisabled, "Text", "rDisabledColor");
+	
+		get_value(frameBG_Widget, "Widget", "rBackgroundColor");
+		get_value(frameBG_WidgetActive, "Widget", "rBackgroundActiveColor");
+		get_value(header, "Widget", "rHighlightColor");
+		get_value(gridLines, "Widget", "rGridColor");
+		get_value(gridThickness, "Widget", "fGridThickness");
+		get_value(separator, "Widget", "rSeparatorColor");
+		get_value(separatorThickness, "Widget", "fSeparatorThickness");
+		get_value(tab, "Widget", "rTabColor");
+		get_value(tabHovered, "Widget", "rTabActiveColor");
 
 		ConvertVec4StylesToU32();
 	}
@@ -155,7 +171,7 @@ namespace ImGui
 		auto& style = GetStyle();
 		auto& colors = style.Colors;
 
-		style.WindowBorderSize = windowBorderSize;
+		style.WindowBorderSize = borderSize;
 		style.TabRounding = 0.0f;
 
 		colors[ImGuiCol_WindowBg] = background;

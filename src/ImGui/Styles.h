@@ -4,15 +4,18 @@ namespace ImGui
 {
 	enum class USER_STYLE
 	{
-		kIconScale,
+		kIconDisabled,
+		kButtons,
+		kCheckbox,
+		kStepper,
 		kSeparatorThickness,
 		kGridLines,
 		kSliderBorder,
 		kSliderBorderActive,
 		kFrameBG_Widget,
 		kFrameBG_WidgetActive,
-		kFrameBG_ComboBox,
-		kText_ComboBox
+		kComboBoxTextBox,
+		kComboBoxText
 	};
 
 	class Styles : public ISingleton<Styles>
@@ -40,44 +43,56 @@ namespace ImGui
 		std::string ToString(const T& a_style);
 
 		// members
+		// unused, helpers
 		float bgAlpha{ 0.68f };
 		float disabledAlpha{ 0.30f };
-		float windowBorderSize{ 3.5f };
-		float gridThickness{ 2.5f };
-		float separatorThickness{ 3.5f };
-		float iconScale{ 0.5f };
+		
+		float buttonScale{ 0.5f };
+		float checkboxScale{ 0.5f };
+		float stepperScale{ 0.5f };
+
+		ImVec4 iconDisabled{ 1.0f, 1.0f, 1.0f, disabledAlpha };
 
 		ImVec4 background{ 0.0f, 0.0f, 0.0f, bgAlpha };
+		
 		ImVec4 border{ 0.396f, 0.404f, 0.412f, bgAlpha };
-		ImVec4 separator{ 0.396f, 0.404f, 0.412f, bgAlpha };
+		float  borderSize{ 3.5f };
 
 		ImVec4 text{ 1.0f, 1.0f, 1.0f, 1.0f };
 		ImVec4 textDisabled{ 1.0f, 1.0f, 1.0f, disabledAlpha };
-		ImVec4 textComboBox{ 1.0f, 1.0f, 1.0f, 0.8f };
+
+		ImVec4 comboBoxText{ 1.0f, 1.0f, 1.0f, 0.8f };
+		ImVec4 comboBoxTextBox{ 0.0f, 0.0f, 0.0f, 1.0f };
+		ImVec4 button{ 0.0f, 0.0f, 0.0f, bgAlpha };	// arrow button
 
 		ImVec4 frameBG{ 0.2f, 0.2f, 0.2f, bgAlpha };
 		ImVec4 frameBG_Widget{ 1.0f, 1.0f, 1.0f, 0.06275f };
 		ImVec4 frameBG_WidgetActive{ 1.0f, 1.0f, 1.0f, 0.2f };
-		ImVec4 frameBG_ComboBox{ 0.0f, 0.0f, 0.0f, 1.0f };
 
 		ImVec4 sliderGrab{ 1.0f, 1.0f, 1.0f, 0.245f };
 		ImVec4 sliderGrabActive{ 1.0f, 1.0f, 1.0f, 0.531f };
-		ImVec4 button{ 0.0f, 0.0f, 0.0f, bgAlpha };
-		ImVec4 header{ 1.0f, 1.0f, 1.0f, 0.1f };
+
+		ImVec4 header{ 1.0f, 1.0f, 1.0f, 0.1f }; // select highlight
 		ImVec4 tab{ 0.0f, 0.0f, 0.0f, 0.0f };
 		ImVec4 tabHovered{ 0.2f, 0.2f, 0.2f, 1.0f };
 
 		ImVec4 gridLines{ 1.0f, 1.0f, 1.0f, 0.3333f };
+		float  gridThickness{ 2.5f };
+
+		ImVec4 separator{ 0.396f, 0.404f, 0.412f, bgAlpha };
+		float separatorThickness{ 3.5f };
+
 		ImVec4 sliderBorder{ 1.0f, 1.0f, 1.0f, 0.2431f };
 		ImVec4 sliderBorderActive{ 1.0f, 1.0f, 1.0f, 0.8f };
 
 		// for values that require ImU32 colours
 		// can't read directly, repeated (ARGB -> RGBA -> ARGB) conversion is broken
-		ImU32 frameBG_WidgetU32{ ColorConvertFloat4ToU32(frameBG_Widget) };
-		ImU32 frameBG_WidgetActiveU32{ ColorConvertFloat4ToU32(frameBG_WidgetActive) };
-		ImU32 gridLinesU32{ ColorConvertFloat4ToU32(gridLines) };
-		ImU32 sliderBorderU32{ ColorConvertFloat4ToU32(sliderBorder) };
-		ImU32 sliderBorderActiveU32{ ColorConvertFloat4ToU32(sliderBorderActive) };
+		ImU32 frameBG_WidgetU32;
+		ImU32 frameBG_WidgetActiveU32;
+		ImU32 gridLinesU32;
+		ImU32 sliderBorderU32;
+		ImU32 sliderBorderActiveU32;
+		ImU32 iconDisabledU32;
 
 		bool refreshStyle{ false };
 	};
@@ -111,7 +126,7 @@ namespace ImGui
 		if constexpr (std::is_same_v<ImVec4, T>) {
 			return std::format("{},{},{},{}", std::round(255.0f * a_style.x), std::round(255.0f * a_style.y), std::round(255.0f * a_style.z), std::round(255.0f * a_style.w));
 		} else {
-			return std::format("{:03}", a_style);
+			return std::format("{:.2f}", a_style);
 		}
 	}
 }

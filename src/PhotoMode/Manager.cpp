@@ -371,7 +371,7 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(ImVec2(center.x + third_width, center.y + third_height * 0.8f), ImGuiCond_Always, ImVec2(0.5, 0.5));
 		ImGui::SetNextWindowSize(ImVec2(size.x / 3.25f, size.y / 3.125f));
 
-		constexpr auto windowFlags = ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoDecoration;
+		constexpr auto windowFlags = ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoDecoration;
 
 		ImGui::Begin("$PM_Title_Menu"_T, nullptr, windowFlags);
 		{
