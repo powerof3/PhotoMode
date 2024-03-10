@@ -2,7 +2,7 @@
 
 namespace IconFont
 {
-	struct IconData;
+	struct IconTexture;
 }
 
 namespace PhotoMode::Hotkeys
@@ -22,14 +22,14 @@ namespace PhotoMode::Hotkeys
 		std::uint32_t        FreezeTimeKey() const;
 		static std::uint32_t EscapeKey();
 
-		const IconFont::IconData* ResetIcon() const;
-		const IconFont::IconData* TakePhotoIcon() const;
-		const IconFont::IconData* ToggleMenusIcon() const;
-		const IconFont::IconData* NextTabIcon() const;
-		const IconFont::IconData* PreviousTabIcon() const;
-		const IconFont::IconData* FreezeTimeIcon() const;
+		const IconFont::IconTexture* ResetIcon() const;
+		const IconFont::IconTexture* TakePhotoIcon() const;
+		const IconFont::IconTexture* ToggleMenusIcon() const;
+		const IconFont::IconTexture* NextTabIcon() const;
+		const IconFont::IconTexture* PreviousTabIcon() const;
+		const IconFont::IconTexture* FreezeTimeIcon() const;
 
-		std::set<const IconFont::IconData*> TogglePhotoModeIcons() const;
+		std::set<const IconFont::IconTexture*> TogglePhotoModeIcons() const;
 
 	private:
 		struct Key

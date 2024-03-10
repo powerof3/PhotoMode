@@ -35,12 +35,6 @@ void Settings::LoadSettings() const
 		ImGui::Renderer::LoadSettings(ini);  // display tweaks scaling
 	});
 
-	SerializeINI(
-		fontsPath, [](auto& ini) {
-			MANAGER(IconFont)->LoadSettings(ini);  // fonts, icons
-		},
-		true);
-
 	LoadMCMSettings();
 }
 
@@ -69,4 +63,9 @@ void Settings::SerializeMCM(std::function<void(CSimpleIniA&)> a_func)
 void Settings::SerializeStyles(std::function<void(CSimpleIniA&)> a_func) const
 {
 	SerializeINI(stylesPath, a_func, true);
+}
+
+void Settings::SerializeFonts(std::function<void(CSimpleIniA&)> a_func) const
+{
+	SerializeINI(fontsPath, a_func, true);
 }

@@ -7,6 +7,7 @@ set(headers ${headers}
 	src/Graphics.h
 	src/Hooks.h
 	src/ImGui/FormComboBox.h
+	src/ImGui/Graphics.h
 	src/ImGui/IconsFontAwesome6.h
 	src/ImGui/IconsFonts.h
 	src/ImGui/Renderer.h

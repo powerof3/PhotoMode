@@ -157,37 +157,37 @@ namespace PhotoMode::Hotkeys
 		return (device == Input::DEVICE::kKeyboard || device == Input::DEVICE::kMouse) ? KEY::kEscape : SKSE::InputMap::kGamepadButtonOffset_B;
 	}
 
-	const IconFont::IconData* Manager::ResetIcon() const
+	const IconFont::IconTexture* Manager::ResetIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(reset.GetKey());
 	}
 
-	const IconFont::IconData* Manager::TakePhotoIcon() const
+	const IconFont::IconTexture* Manager::TakePhotoIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(takePhoto.GetKey());
 	}
 
-	const IconFont::IconData* Manager::ToggleMenusIcon() const
+	const IconFont::IconTexture* Manager::ToggleMenusIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(toggleMenus.GetKey());
 	}
 
-	const IconFont::IconData* Manager::NextTabIcon() const
+	const IconFont::IconTexture* Manager::NextTabIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(nextTab.GetKey());
 	}
 
-	const IconFont::IconData* Manager::PreviousTabIcon() const
+	const IconFont::IconTexture* Manager::PreviousTabIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(previousTab.GetKey());
 	}
 
-	const IconFont::IconData* Manager::FreezeTimeIcon() const
+	const IconFont::IconTexture* Manager::FreezeTimeIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(freezeTime.GetKey());
 	}
 
-	std::set<const IconFont::IconData*> Manager::TogglePhotoModeIcons() const
+	std::set<const IconFont::IconTexture*> Manager::TogglePhotoModeIcons() const
 	{
 		return MANAGER(IconFont)->GetIcons(togglePhotoMode.GetKeys());
 	}

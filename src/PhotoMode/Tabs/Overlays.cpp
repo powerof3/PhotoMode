@@ -31,8 +31,8 @@ namespace PhotoMode
 
 		for (auto& [folder, files] : imagePaths) {
 			for (auto& [path, fileName] : files) {
-				Texture::ImageData imageData(path);
-				overlays[folder].emplace(fileName, Texture::ImageData(path));
+				ImGui::Texture imageData(path);
+				overlays[folder].emplace(fileName, ImGui::Texture(path));
 			}
 		}
 
@@ -73,7 +73,7 @@ namespace PhotoMode
 		alpha = 1.0f;
 	}
 
-	Texture::ImageData* Overlays::UpdateOverlay()
+	ImGui::Texture* Overlays::UpdateOverlay()
 	{
 		if (const auto it = overlays.find(folders.get_file()); it != overlays.end()) {
 			const auto file = GetFiles().get_file();
@@ -85,7 +85,7 @@ namespace PhotoMode
 		return nullptr;
 	}
 
-	std::pair<Texture::ImageData*, float> Overlays::GetCurrentOverlay() const
+	std::pair<ImGui::Texture*, float> Overlays::GetCurrentOverlay() const
 	{
 		return { cachedOverlay, alpha };
 	}

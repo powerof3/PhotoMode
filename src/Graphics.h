@@ -2,23 +2,6 @@
 
 namespace Texture
 {
-	struct ImageData
-	{
-		ImageData() = delete;
-		ImageData(std::wstring_view a_folder, std::wstring_view a_textureName);
-		ImageData(std::wstring_view a_path);
-
-		virtual ~ImageData();
-
-		virtual bool Load(bool a_resizeToScreenRes);
-
-		// members
-		std::wstring                           path{};
-		ComPtr<ID3D11ShaderResourceView>       srView{ nullptr };
-		std::shared_ptr<DirectX::ScratchImage> image{ nullptr };
-		ImVec2                                 size{};
-	};
-
 	std::string Sanitize(std::string& a_path);
 
 	void AlphaBlendImage(const DirectX::Image* a_baseImg, const DirectX::Image* a_overlayImg, DirectX::ScratchImage& resultImg, float a_intensity);

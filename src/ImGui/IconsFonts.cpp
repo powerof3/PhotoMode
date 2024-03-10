@@ -3,18 +3,19 @@
 #include "IconsFontAwesome6.h"
 #include "Input.h"
 #include "Renderer.h"
+#include "Settings.h"
 #include "Styles.h"
 #include "Util.h"
 
 namespace IconFont
 {
-	IconData::IconData(std::wstring_view a_iconName) :
-		ImageData(LR"(Data\Interface\ImGui Icons\)", a_iconName)
+	IconTexture::IconTexture(std::wstring_view a_iconName) :
+		ImGui::Texture(LR"(Data/Interface/ImGui_Lib/Icons/)", a_iconName)
 	{}
 
-	bool IconData::Load(bool a_resizeToScreenRes)
+	bool IconTexture::Load(bool a_resizeToScreenRes)
 	{
-		const bool result = ImageData::Load(a_resizeToScreenRes);
+		const bool result = ImGui::Texture::Load(a_resizeToScreenRes);
 
 		if (result) {
 			// store original size
@@ -28,24 +29,28 @@ namespace IconFont
 		return result;
 	}
 
-	void IconData::Resize(float a_scale)
+	void IconTexture::Resize(float a_scale)
 	{
 		auto scale = a_scale / 1080;  // standard window height
 		size = imageSize * (scale * RE::BSGraphics::Renderer::GetScreenSize().height);
 	}
 
-	void Manager::LoadSettings(CSimpleIniA& a_ini)
+	void Manager::LoadFontSettings(CSimpleIniA& a_ini)
 	{
-		ini::get_value(a_ini, fontName, "Fonts", "Font", nullptr);
-		fontName = R"(Data\Interface\PhotoMode\Fonts\)" + fontName;
+		ini::get_value(a_ini, fontName, "Fonts", "sFont", nullptr);
+		fontName = R"(Data\Interface\ImGui_Lib\Fonts\)" + fontName;
 
 		const auto resolutionScale = ImGui::Renderer::GetResolutionScale();
 
-		fontSize = static_cast<float>(a_ini.GetLongValue("Fonts", "FontSize", fontSize)) * resolutionScale;
-		largeFontSize = static_cast<float>(a_ini.GetLongValue("Fonts", "LargeFontSize", largeFontSize)) * resolutionScale;
+		fontSize = static_cast<float>(a_ini.GetLongValue("Fonts", "iFontSize", fontSize)) * resolutionScale;
+		largeFontSize = static_cast<float>(a_ini.GetLongValue("Fonts", "iLargeFontSize", largeFontSize)) * resolutionScale;
+		iconSize = static_cast<float>(a_ini.GetLongValue("Fonts", "iIconSize", iconSize)) * resolutionScale;
+		largeIconSize = static_cast<float>(a_ini.GetLongValue("Fonts", "iLargeIconSize", largeIconSize)) * resolutionScale;
+	}
 
-		iconSize = static_cast<float>(a_ini.GetLongValue("Fonts", "IconSize", iconSize)) * resolutionScale;
-		largeIconSize = static_cast<float>(a_ini.GetLongValue("Fonts", "LargeIconSize", largeIconSize)) * resolutionScale;
+	void Manager::LoadSettings()
+	{
+		Settings::GetSingleton()->SerializeFonts([this](auto& ini) { LoadFontSettings(ini); });
 	}
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
@@ -62,16 +67,16 @@ namespace IconFont
 		leftKey.Load();
 		rightKey.Load();
 
-		std::for_each(keyboard.begin(), keyboard.end(), [](auto& IconData) {
-			IconData.second.Load();
+		std::for_each(keyboard.begin(), keyboard.end(), [](auto& IconTexture) {
+			IconTexture.second.Load();
 		});
-		std::for_each(gamePad.begin(), gamePad.end(), [](auto& IconData) {
-			auto& [xbox, ps4] = IconData.second;
+		std::for_each(gamePad.begin(), gamePad.end(), [](auto& IconTexture) {
+			auto& [xbox, ps4] = IconTexture.second;
 			xbox.Load();
 			ps4.Load();
 		});
-		std::for_each(mouse.begin(), mouse.end(), [](auto& IconData) {
-			IconData.second.Load();
+		std::for_each(mouse.begin(), mouse.end(), [](auto& IconTexture) {
+			IconTexture.second.Load();
 		});
 
 		stepperLeft.Load();
@@ -118,16 +123,16 @@ namespace IconFont
 		leftKey.Resize(buttonScale);
 		rightKey.Resize(buttonScale);
 
-		std::for_each(keyboard.begin(), keyboard.end(), [&](auto& IconData) {
-			IconData.second.Resize(buttonScale);
+		std::for_each(keyboard.begin(), keyboard.end(), [&](auto& IconTexture) {
+			IconTexture.second.Resize(buttonScale);
 		});
-		std::for_each(gamePad.begin(), gamePad.end(), [&](auto& IconData) {
-			auto& [xbox, ps4] = IconData.second;
+		std::for_each(gamePad.begin(), gamePad.end(), [&](auto& IconTexture) {
+			auto& [xbox, ps4] = IconTexture.second;
 			xbox.Resize(buttonScale);
 			ps4.Resize(buttonScale);
 		});
-		std::for_each(mouse.begin(), mouse.end(), [&](auto& IconData) {
-			IconData.second.Resize(buttonScale);
+		std::for_each(mouse.begin(), mouse.end(), [&](auto& IconTexture) {
+			IconTexture.second.Resize(buttonScale);
 		});
 
 		stepperLeft.Resize(stepperScale);
@@ -148,7 +153,7 @@ namespace IconFont
 		icon_config.PixelSnapH = true;
 		icon_config.OversampleH = icon_config.OversampleV = 1;
 
-		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\PhotoMode\Fonts\)" FONT_ICON_FILE_NAME_FAS, a_iconSize, &icon_config, a_ranges.Data);
+		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\ImGui_Lib\Fonts\)" FONT_ICON_FILE_NAME_FAS, a_iconSize, &icon_config, a_ranges.Data);
 
 		return font;
 	}
@@ -158,25 +163,25 @@ namespace IconFont
 		return largeFont;
 	}
 
-	const IconData* Manager::GetStepperLeft() const
+	const IconTexture* Manager::GetStepperLeft() const
 	{
 		return &stepperLeft;
 	}
-	const IconData* Manager::GetStepperRight() const
+	const IconTexture* Manager::GetStepperRight() const
 	{
 		return &stepperRight;
 	}
 
-	const IconData* Manager::GetCheckbox() const
+	const IconTexture* Manager::GetCheckbox() const
 	{
 		return &checkbox;
 	}
-	const IconData* Manager::GetCheckboxFilled() const
+	const IconTexture* Manager::GetCheckboxFilled() const
 	{
 		return &checkboxFilled;
 	}
 
-	const IconData* Manager::GetIcon(std::uint32_t key)
+	const IconTexture* Manager::GetIcon(std::uint32_t key)
 	{
 		switch (key) {
 		case KEY::kUp:
@@ -211,9 +216,9 @@ namespace IconFont
 		}
 	}
 
-	std::set<const IconData*> Manager::GetIcons(const std::set<std::uint32_t>& keys)
+	std::set<const IconTexture*> Manager::GetIcons(const std::set<std::uint32_t>& keys)
 	{
-		std::set<const IconData*> icons{};
+		std::set<const IconTexture*> icons{};
 		if (keys.empty()) {
 			icons.insert(&unknownKey);
 		} else {
@@ -224,7 +229,7 @@ namespace IconFont
 		return icons;
 	}
 
-	const IconData* Manager::GetGamePadIcon(const GamepadIcon& a_icons) const
+	const IconTexture* Manager::GetGamePadIcon(const GamepadIcon& a_icons) const
 	{
 		switch (buttonScheme) {
 		case BUTTON_SCHEME::kAutoDetect:
@@ -241,42 +246,42 @@ namespace IconFont
 
 ImVec2 ImGui::ButtonIcon(std::uint32_t a_key)
 {
-	const auto IconData = MANAGER(IconFont)->GetIcon(a_key);
-	return ButtonIcon(IconData, false);
+	const auto IconTexture = MANAGER(IconFont)->GetIcon(a_key);
+	return ButtonIcon(IconTexture, false);
 }
 
-ImVec2 ImGui::ButtonIcon(const IconFont::IconData* a_IconData, bool a_centerIcon)
+ImVec2 ImGui::ButtonIcon(const IconFont::IconTexture* a_texture, bool a_centerIcon)
 {
 	if (a_centerIcon) {
 		const float height = ImGui::GetWindowSize().y;
-		ImGui::SetCursorPosY((height - a_IconData->size.y) / 2);
+		ImGui::SetCursorPosY((height - a_texture->size.y) / 2);
 	}
-	ImGui::Image(a_IconData->srView.Get(), a_IconData->size);
+	ImGui::Image(a_texture->srView.Get(), a_texture->size);
 
-	return a_IconData->size;
+	return a_texture->size;
 }
 
-void ImGui::ButtonIcon(const std::set<const IconFont::IconData*>& a_IconData, bool a_centerIcon)
+void ImGui::ButtonIcon(const std::set<const IconFont::IconTexture*>& a_texture, bool a_centerIcon)
 {
 	BeginGroup();
-	for (auto& IconData : a_IconData) {
+	for (auto& IconTexture : a_texture) {
 		auto       pos = ImGui::GetCursorPos();
-		const auto size = ImGui::ButtonIcon(IconData, a_centerIcon);
+		const auto size = ImGui::ButtonIcon(IconTexture, a_centerIcon);
 		ImGui::SetCursorPos({ pos.x + size.x, pos.y });
 	}
 	EndGroup();
 }
 
-void ImGui::ButtonIconWithLabel(const char* a_text, const IconFont::IconData* a_IconData, bool a_centerIcon)
+void ImGui::ButtonIconWithLabel(const char* a_text, const IconFont::IconTexture* a_texture, bool a_centerIcon)
 {
-	ImGui::ButtonIcon(a_IconData, a_centerIcon);
+	ImGui::ButtonIcon(a_texture, a_centerIcon);
 	ImGui::SameLine();
 	ImGui::CenteredText(a_text, true);
 }
 
-void ImGui::ButtonIconWithLabel(const char* a_text, const std::set<const IconFont::IconData*>& a_IconData, bool a_centerIcon)
+void ImGui::ButtonIconWithLabel(const char* a_text, const std::set<const IconFont::IconTexture*>& a_texture, bool a_centerIcon)
 {
-	ImGui::ButtonIcon(a_IconData, a_centerIcon);
+	ImGui::ButtonIcon(a_texture, a_centerIcon);
 	ImGui::SameLine();
 	ImGui::CenteredText(a_text, true);
 }

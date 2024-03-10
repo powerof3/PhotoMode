@@ -327,7 +327,7 @@ namespace PhotoMode
 		resetRootIdle = RE::TESForm::LookupByEditorID<RE::TESIdleForm>("ResetRoot");
 	}
 
-	std::pair<Texture::ImageData*, float> Manager::GetOverlay() const
+	std::pair<ImGui::Texture*, float> Manager::GetOverlay() const
 	{
 		return overlaysTab.GetCurrentOverlay();
 	}
@@ -526,7 +526,7 @@ namespace PhotoMode
 
 			float width = 0.0f;
 
-			const auto calc_width = [&](const IconFont::IconData* a_icon, const char* a_textLabel) {
+			const auto calc_width = [&](const IconFont::IconTexture* a_icon, const char* a_textLabel) {
 				width += a_icon->size.x;
 				width += style.ItemSpacing.x;
 				width += ImGui::CalcTextSize(a_textLabel).x;
@@ -548,7 +548,7 @@ namespace PhotoMode
 			ImGui::AlignForWidth(width);
 
 			// draw
-			constexpr auto draw_button = [](const IconFont::IconData* a_icon, const char* a_textLabel) {
+			constexpr auto draw_button = [](const IconFont::IconTexture* a_icon, const char* a_textLabel) {
 				ImGui::ButtonIconWithLabel(a_textLabel, a_icon, true);
 				ImGui::SameLine();
 			};

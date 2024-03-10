@@ -43,8 +43,8 @@ namespace PhotoMode
 		void UpdateENBParams();
 		void RevertENBParams();
 
-		void                                  OnDataLoad();
-		std::pair<Texture::ImageData*, float> GetOverlay() const;
+		void                              OnDataLoad();
+		std::pair<ImGui::Texture*, float> GetOverlay() const;
 
 	private:
 		enum TAB_TYPE : std::int32_t

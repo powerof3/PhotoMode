@@ -1,75 +1,7 @@
 #include "Graphics.h"
 
-#include "ImGui/Renderer.h"
-
 namespace Texture
 {
-	ImageData::ImageData(std::wstring_view a_path) :
-		path(a_path)
-	{}
-
-	ImageData::ImageData(std::wstring_view a_folder, std::wstring_view a_textureName)
-	{
-		path.append(a_folder).append(a_textureName).append(L".png");
-	}
-
-	ImageData::~ImageData()
-	{
-		if (srView) {
-			srView.Reset();
-		}
-		if (image) {
-			image.reset();
-		}
-	}
-
-	bool ImageData::Load(bool a_resizeToScreenRes)
-	{
-		bool result = false;
-
-		image = std::make_shared<DirectX::ScratchImage>();
-		HRESULT hr = DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, *image);
-
-		if (SUCCEEDED(hr)) {
-			if (auto renderer = RE::BSGraphics::Renderer::GetSingleton()) {
-				if (a_resizeToScreenRes) {
-					auto screenSize = RE::BSGraphics::Renderer::GetScreenSize();
-					auto height = screenSize.height * ImGui::Renderer::GetResolutionScale();
-					auto width = screenSize.width * ImGui::Renderer::GetResolutionScale();
-
-					if (height != image->GetMetadata().height && height != image->GetMetadata().width) {
-						DirectX::ScratchImage tmpImage;
-						DirectX::Resize(*image->GetImage(0, 0, 0), width, height, DirectX::TEX_FILTER_CUBIC, tmpImage);
-
-						image.reset();  // is this needed
-						image = std::make_shared<DirectX::ScratchImage>(std::move(tmpImage));
-					}
-				}
-
-				ComPtr<ID3D11Resource> pTexture{};
-				hr = DirectX::CreateTexture(renderer->data.forwarder, image->GetImages(), 1, image->GetMetadata(), &pTexture);
-
-				if (SUCCEEDED(hr)) {
-					D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-					srvDesc.Format = image->GetMetadata().format;
-					srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-					srvDesc.Texture2D.MipLevels = 1;
-					srvDesc.Texture2D.MostDetailedMip = 0;
-
-					hr = renderer->data.forwarder->CreateShaderResourceView(pTexture.Get(), &srvDesc, &srView);
-					result = SUCCEEDED(hr);
-				}
-
-				size.x = static_cast<float>(image->GetMetadata().width);
-				size.y = static_cast<float>(image->GetMetadata().height);
-
-				pTexture.Reset();
-			}
-		}
-
-		return result;
-	}
-
 	std::string Sanitize(std::string& a_path)
 	{
 		a_path = clib_util::string::tolower(a_path);

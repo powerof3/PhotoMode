@@ -23,16 +23,13 @@ namespace ImGui
 	public:
 		ImU32  GetColorU32(USER_STYLE a_style) const;
 		ImVec4 GetColorVec4(USER_STYLE a_style) const;
-
-		float GetVar(USER_STYLE a_style) const;
+		float  GetVar(USER_STYLE a_style) const;
 
 		void LoadStyles();
 		void LoadStyles(CSimpleIniA& a_ini);
 
 		void OnStyleRefresh();
 		void RefreshStyle();
-
-		void RestoreVanillaStyle();
 
 	private:
 		void ConvertVec4StylesToU32();

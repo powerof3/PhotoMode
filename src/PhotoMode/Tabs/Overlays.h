@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics.h"
+#include "ImGui/Graphics.h"
 
 namespace PhotoMode
 {
@@ -10,8 +10,8 @@ namespace PhotoMode
 		void LoadOverlays();
 		void RevertOverlays();
 
-		Texture::ImageData*                   UpdateOverlay();
-		std::pair<Texture::ImageData*, float> GetCurrentOverlay() const;
+		ImGui::Texture*                   UpdateOverlay();
+		std::pair<ImGui::Texture*, float> GetCurrentOverlay() const;
 
 		void Draw();
 		void DrawOverlays();
@@ -36,10 +36,10 @@ namespace PhotoMode
 		}
 
 		// folder, file
-		StringMap<StringMap<Texture::ImageData>> overlays{};
-		Texture::ImageData*                      cachedOverlay{ nullptr };
-		bool                                     updateOverlay{ false };
-		bool                                     hasOverlays{ false };
+		StringMap<StringMap<ImGui::Texture>> overlays{};
+		ImGui::Texture*                      cachedOverlay{ nullptr };
+		bool                                 updateOverlay{ false };
+		bool                                 hasOverlays{ false };
 
 		FileIndex                     folders{};
 		Map<std::uint32_t, FileIndex> folderFiles{};

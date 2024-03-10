@@ -6,49 +6,6 @@
 
 namespace ImGui
 {
-	void Styles::RestoreVanillaStyle()
-	{
-		bgAlpha = 0.68f;
-		disabledAlpha = 0.30f;
-		borderSize = 3.5f;
-		separatorThickness = 3.5f;
-		gridThickness = 2.5f;
-
-		buttonScale = 0.5f;
-		checkboxScale = 0.5f;
-		stepperScale = 0.5f;
-
-		iconDisabled = ImVec4(1.0f, 1.0f, 1.0f, disabledAlpha);
-
-		background = ImVec4(0.0f, 0.0f, 0.0f, bgAlpha);
-		border = ImVec4(0.396f, 0.404f, 0.412f, bgAlpha);
-		separator = ImVec4(0.396f, 0.404f, 0.412f, bgAlpha);
-
-		comboBoxText = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
-		comboBoxTextBox = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
-
-		text = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-		textDisabled = ImVec4(1.0f, 1.0f, 1.0f, disabledAlpha);
-
-		frameBG = ImVec4(0.2f, 0.2f, 0.2f, bgAlpha);
-		frameBG_Widget = ImVec4(1.0f, 1.0f, 1.0f, 0.06275f);
-		frameBG_WidgetActive = ImVec4(1.0f, 1.0f, 1.0f, 0.2f);
-
-		sliderGrab = ImVec4(1.0f, 1.0f, 1.0f, 0.245f);
-		sliderGrabActive = ImVec4(1.0f, 1.0f, 1.0f, 0.531f);
-		sliderBorder = ImVec4(1.0f, 1.0f, 1.0f, 0.2431f);
-		sliderBorderActive = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
-
-		button = ImVec4(0.0f, 0.0f, 0.0f, bgAlpha);
-		header = ImVec4(1.0f, 1.0f, 1.0f, 0.1f);
-		tab = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-		tabHovered = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
-
-		gridLines = ImVec4(1.0f, 1.0f, 1.0f, 0.3333f);
-
-		ConvertVec4StylesToU32();
-	}
-
 	void Styles::ConvertVec4StylesToU32()
 	{
 		frameBG_WidgetU32 = ColorConvertFloat4ToU32(frameBG_Widget);
@@ -209,7 +166,9 @@ namespace ImGui
 		style.ScaleAllSizes(Renderer::GetResolutionScale());
 
 		// reload fonts/icons
-
+	
+		MANAGER(IconFont)->LoadSettings();
+		
 		MANAGER(IconFont)->ReloadFonts();
 		MANAGER(IconFont)->ResizeIcons();
 

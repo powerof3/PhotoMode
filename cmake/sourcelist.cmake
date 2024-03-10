@@ -1,6 +1,7 @@
 set(sources ${sources}
 	src/Graphics.cpp
 	src/Hooks.cpp
+	src/ImGui/Graphics.cpp
 	src/ImGui/IconsFonts.cpp
 	src/ImGui/Renderer.cpp
 	src/ImGui/Styles.cpp
