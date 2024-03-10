@@ -166,9 +166,9 @@ namespace ImGui
 		style.ScaleAllSizes(Renderer::GetResolutionScale());
 
 		// reload fonts/icons
-	
+
 		MANAGER(IconFont)->LoadSettings();
-		
+
 		MANAGER(IconFont)->ReloadFonts();
 		MANAGER(IconFont)->ResizeIcons();
 
