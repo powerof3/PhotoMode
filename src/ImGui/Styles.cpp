@@ -125,8 +125,8 @@ namespace ImGui
 
 		LoadStyles();
 
-		auto& style = GetStyle();
-		auto& colors = style.Colors;
+		ImGuiStyle style;
+		auto&      colors = style.Colors;
 
 		style.WindowBorderSize = borderSize;
 		style.TabRounding = 0.0f;
@@ -164,6 +164,7 @@ namespace ImGui
 		colors[ImGuiCol_NavHighlight] = ImVec4();
 
 		style.ScaleAllSizes(Renderer::GetResolutionScale());
+		ImGui::GetStyle() = style;
 
 		// reload fonts/icons
 

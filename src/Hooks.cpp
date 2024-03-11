@@ -29,7 +29,7 @@ namespace PhotoMode
 			return func(a_this, a_str);
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
-		static inline constexpr std::size_t            size{ 0x33 };
+		static inline constexpr std::size_t            idx{ 0x33 };
 	};
 
 	void InstallHooks()

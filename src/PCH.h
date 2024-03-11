@@ -91,7 +91,7 @@ namespace stl
 	void write_vfunc()
 	{
 		REL::Relocation<std::uintptr_t> vtbl{ F::VTABLE[0] };
-		T::func = vtbl.write_vfunc(T::size, T::thunk);
+		T::func = vtbl.write_vfunc(T::idx, T::thunk);
 	}
 }
 

@@ -31,7 +31,6 @@ namespace PhotoMode
 
 		for (auto& [folder, files] : imagePaths) {
 			for (auto& [path, fileName] : files) {
-				ImGui::Texture imageData(path);
 				overlays[folder].emplace(fileName, ImGui::Texture(path));
 			}
 		}
