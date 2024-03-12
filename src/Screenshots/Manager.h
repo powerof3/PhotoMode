@@ -19,7 +19,7 @@ namespace Screenshot
 		void LoadMCMSettings(const CSimpleIniA& a_ini);
 		void LoadScreenshots();
 
-		bool TakeScreenshot(const char* a_fallbackPath);
+		bool TakeScreenshot();
 
 		std::uint32_t GetIndex() const;
 		void          IncrementIndex();
@@ -54,7 +54,7 @@ namespace Screenshot
 		bool allowMultiScreenshots{ true };
 		bool autoHideMenus{ true };
 
-		bool                  takeScreenshotAsPNG{ true };
-		std::filesystem::path photoPath{};
+		bool                  useCustomFolderDirectory{ true };
+		std::filesystem::path photoDirectory{};
 	};
 }

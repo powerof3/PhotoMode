@@ -13,8 +13,7 @@ namespace Screenshot
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
-		takeScreenshotAsPNG = a_ini.GetBoolValue("Screenshots", "bCustomPhotoFolder", takeScreenshotAsPNG);
-
+		useCustomFolderDirectory = a_ini.GetBoolValue("Screenshots", "bCustomPhotoFolder", useCustomFolderDirectory);
 		autoHideMenus = a_ini.GetBoolValue("Screenshots", "bAutoHideMenus", autoHideMenus);
 		allowMultiScreenshots = a_ini.GetBoolValue("Screenshots", "bMultiScreenshots", allowMultiScreenshots);
 		takeScreenshotAsDDS = a_ini.GetBoolValue("Screenshots", "bLoadScreenPics", takeScreenshotAsDDS);
@@ -33,14 +32,14 @@ namespace Screenshot
 		if (auto directory = logger::log_directory()) {
 			directory->remove_filename();
 			*directory /= "Photos";
-			photoPath = *directory;
+			photoDirectory = *directory;
 		}
 
-		if (!std::filesystem::exists(photoPath)) {
-			std::filesystem::create_directory(photoPath);
+		if (!std::filesystem::exists(photoDirectory)) {
+			std::filesystem::create_directory(photoDirectory);
 		}
 
-		logger::info("\tScreenshot directory : {}", photoPath.string());
+		logger::info("\tScreenshot directory : {}", photoDirectory.string());
 		logger::info("\tScreenshot textures : {}", screenshotFolder);
 		logger::info("\tPainting textures : {}", paintingFolder);
 
@@ -132,7 +131,7 @@ namespace Screenshot
 		return takeScreenshotAsDDS && (!screenshots.empty() || !paintings.empty());
 	}
 
-	bool Manager::TakeScreenshot(const char* a_fallbackPath)
+	bool Manager::TakeScreenshot()
 	{
 		bool skipVanillaScreenshot = false;
 
@@ -149,7 +148,10 @@ namespace Screenshot
 		ID3D11Texture2D*                  texture2D{ renderer->renderTargets[RE::RENDER_TARGET::kSCREENSHOT].texture };
 
 		if (auto result = DirectX::CaptureTexture(device.Get(), deviceContext.Get(), texture2D, inputImage); result == S_OK) {
-			std::string pngPath = std::format("{}\\Screenshot{}.png", std::filesystem::exists(photoPath) ? photoPath.string() : a_fallbackPath, GetIndex());
+			skipVanillaScreenshot = true;
+
+			auto        vanillaScreenshotIndex = RE::GetINISetting("iScreenShotIndex:Display");
+			std::string pngPath = useCustomFolderDirectory ? std::format("{}\\Screenshot{}.png", photoDirectory.string(), GetIndex()) : std::format("{}{}.png", RE::GetINISetting("sScreenShotBaseName:Display")->GetString(), vanillaScreenshotIndex->GetSInt());
 
 			// apply overlay
 			if (const auto [overlay, alpha] = MANAGER(PhotoMode)->GetOverlay(); overlay) {
@@ -165,27 +167,18 @@ namespace Screenshot
 				Texture::AlphaBlendImage(inputImage.GetImages(), overlayImage.GetImages(), blendedImage, alpha);
 
 				TakeScreenshotAsTexture(blendedImage, inputImage);
-
-				if (takeScreenshotAsPNG) {
-					skipVanillaScreenshot = true;
-					Texture::SaveToPNG(blendedImage, pngPath);
-				}
+				Texture::SaveToPNG(blendedImage, pngPath);
 
 				overlayImage.Release();
 				blendedImage.Release();
 			} else {
 				TakeScreenshotAsTexture(inputImage, inputImage);
-
-				if (takeScreenshotAsPNG) {
-					skipVanillaScreenshot = true;
-					Texture::SaveToPNG(inputImage, pngPath);
-				}
+				Texture::SaveToPNG(inputImage, pngPath);
 			}
 
-			if (takeScreenshotAsPNG) {
-				RE::DebugNotification("$PM_ScreenshotNotif"_T);
+			if (!useCustomFolderDirectory) {
+				++vanillaScreenshotIndex->data.i;
 			}
-
 			IncrementIndex();
 		}
 

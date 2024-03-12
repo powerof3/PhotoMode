@@ -50,7 +50,7 @@ namespace Screenshot
 			bool skipVanillaScreenshot = false;
 
 			if (MANAGER(Input)->IsScreenshotQueued()) {
-				skipVanillaScreenshot = MANAGER(Screenshot)->TakeScreenshot(a_path);
+				skipVanillaScreenshot = MANAGER(Screenshot)->TakeScreenshot();
 			}
 
 			if (!skipVanillaScreenshot) {
@@ -58,6 +58,10 @@ namespace Screenshot
 			}
 
 			MANAGER(Input)->OnScreenshotFinish();
+
+			if (skipVanillaScreenshot) {
+				RE::DebugNotification("$PM_ScreenshotNotif"_T);
+			}
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
 	};
