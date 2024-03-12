@@ -9,7 +9,7 @@ namespace ImGui::Renderer
 	float GetResolutionScale()
 	{
 		static auto height = RE::BSGraphics::Renderer::GetScreenSize().height;
-		return DisplayTweaks::borderlessUpscale ? DisplayTweaks::resolutionScale : height/1080.0f;
+		return DisplayTweaks::borderlessUpscale ? DisplayTweaks::resolutionScale : height / 1080.0f;
 	}
 
 	void LoadSettings(const CSimpleIniA& a_ini)
