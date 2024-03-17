@@ -4,10 +4,8 @@ namespace Translation
 {
 	std::string Manager::GetGameLanguage()
 	{
-		const auto iniSettingCollection = RE::INISettingCollection::GetSingleton();
-		const auto setting = iniSettingCollection ? iniSettingCollection->GetSetting("sLanguage:General") : nullptr;
-
-		return (setting && setting->GetType() == RE::Setting::Type::kString) ? clib_util::string::toupper(setting->data.s) : "ENGLISH"s;
+		const auto setting = RE::GetINISetting("sLanguage:General");
+		return (setting && setting->GetType() == RE::Setting::Type::kString) ? string::toupper(setting->GetString()) : "ENGLISH"s;
 	}
 
 	void Manager::BuildTranslationMap()

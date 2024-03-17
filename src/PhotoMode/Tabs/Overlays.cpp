@@ -92,7 +92,7 @@ namespace PhotoMode
 	void Overlays::Draw()
 	{
 		if (!hasOverlays) {
-			ImGui::Text("$PM_NoOverlaysInstalled"_T);
+			ImGui::TextUnformatted("$PM_NoOverlaysInstalled"_T);
 		} else {
 			if (ImGui::EnumSlider("$PM_Category"_T, &folders.index, folders.names, false)) {
 				// reset others to NONE

@@ -140,6 +140,4 @@ namespace PhotoMode
 		bool vfxPlayed{ false };
 		bool idlePlayed{ false };
 	};
-
-	void InstallHook();
 }

@@ -70,7 +70,7 @@ namespace ImGui
 		if (!hovered) {
 			PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TextDisabled));
 		}
-		Text(label);
+		TextUnformatted(label);
 		if (!hovered) {
 			PopStyleColor();
 		}
@@ -93,7 +93,7 @@ namespace ImGui
 			ImGui::SetCursorPosX((windowSize.x - textSize.x) * 0.5f);
 		}
 
-		ImGui::Text(label);
+		ImGui::TextUnformatted(label);
 	}
 
 	bool ActivateOnHover()
