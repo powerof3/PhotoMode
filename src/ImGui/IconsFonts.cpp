@@ -10,7 +10,7 @@
 namespace IconFont
 {
 	IconTexture::IconTexture(std::wstring_view a_iconName) :
-		ImGui::Texture(LR"(Data/Interface/ImGui_Lib/Icons/)", a_iconName)
+		ImGui::Texture(LR"(Data/Interface/ImGuiIcons/Icons/)", a_iconName)
 	{}
 
 	bool IconTexture::Load(bool a_resizeToScreenRes)
@@ -38,7 +38,7 @@ namespace IconFont
 	void Manager::LoadFontSettings(CSimpleIniA& a_ini)
 	{
 		ini::get_value(a_ini, fontName, "Fonts", "sFont", nullptr);
-		fontName = R"(Data\Interface\ImGui_Lib\Fonts\)" + fontName;
+		fontName = R"(Data\Interface\ImGuiIcons\Fonts\)" + fontName;
 
 		const auto resolutionScale = ImGui::Renderer::GetResolutionScale();
 
@@ -153,7 +153,7 @@ namespace IconFont
 		icon_config.PixelSnapH = true;
 		icon_config.OversampleH = icon_config.OversampleV = 1;
 
-		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\ImGui_Lib\Fonts\)" FONT_ICON_FILE_NAME_FAS, a_iconSize, &icon_config, a_ranges.Data);
+		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\ImGuiIcons\Fonts\)" FONT_ICON_FILE_NAME_FAS, a_iconSize, &icon_config, a_ranges.Data);
 
 		return font;
 	}
