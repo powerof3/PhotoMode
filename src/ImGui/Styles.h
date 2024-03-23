@@ -83,7 +83,7 @@ namespace ImGui
 			ImVec4 sliderBorder{ 1.0f, 1.0f, 1.0f, 0.2431f };
 			ImVec4 sliderBorderActive{ 1.0f, 1.0f, 1.0f, 0.8f };
 		};
-		
+
 		// members
 		Style def;
 		Style user;
