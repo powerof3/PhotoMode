@@ -18,7 +18,7 @@ namespace ImGui
 
 		std::size_t uIndex;
 		if constexpr (std::is_enum_v<E>) {
-			uIndex = stl::to_underlying(*index);
+			uIndex = std::to_underlying(*index);
 		} else {
 			uIndex = *index;
 		}

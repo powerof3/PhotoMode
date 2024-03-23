@@ -143,8 +143,8 @@ namespace Screenshot
 		// capture screenshot
 		DirectX::ScratchImage inputImage{};
 
-		const ComPtr<ID3D11Device>        device{ renderer->forwarder };
-		const ComPtr<ID3D11DeviceContext> deviceContext{ renderer->context };
+		const ComPtr<ID3D11Device>        device{ (ID3D11Device*)renderer->forwarder };
+		const ComPtr<ID3D11DeviceContext> deviceContext{ (ID3D11DeviceContext*)renderer->context };
 		ID3D11Texture2D*                  texture2D{ renderer->renderTargets[RE::RENDER_TARGET::kSCREENSHOT].texture };
 
 		if (auto result = DirectX::CaptureTexture(device.Get(), deviceContext.Get(), texture2D, inputImage); result == S_OK) {

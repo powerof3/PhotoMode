@@ -158,7 +158,7 @@ namespace Texture
 	void CompressTexture(const RE::BSGraphics::Renderer* a_this, const DirectX::ScratchImage& a_inputImage, DirectX::ScratchImage& a_outputImage)
 	{
 		// Compress texture
-		const ComPtr<ID3D11Device> device{ a_this->data.forwarder };
+		const ComPtr<ID3D11Device> device{ (ID3D11Device*)a_this->data.forwarder };
 
 		auto hr = DirectX::Compress(device.Get(), a_inputImage.GetImages(), 1, a_inputImage.GetMetadata(),
 			DXGI_FORMAT_BC7_UNORM,
