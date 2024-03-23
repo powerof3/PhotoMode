@@ -8,12 +8,12 @@ namespace ImGui
 {
 	void Styles::ConvertVec4StylesToU32()
 	{
-		frameBG_WidgetU32 = ColorConvertFloat4ToU32(frameBG_Widget);
-		frameBG_WidgetActiveU32 = ColorConvertFloat4ToU32(frameBG_WidgetActive);
-		gridLinesU32 = ColorConvertFloat4ToU32(gridLines);
-		sliderBorderU32 = ColorConvertFloat4ToU32(sliderBorder);
-		sliderBorderActiveU32 = ColorConvertFloat4ToU32(sliderBorderActive);
-		iconDisabledU32 = ColorConvertFloat4ToU32(iconDisabled);
+		frameBG_WidgetU32 = ColorConvertFloat4ToU32(user.frameBG_Widget);
+		frameBG_WidgetActiveU32 = ColorConvertFloat4ToU32(user.frameBG_WidgetActive);
+		gridLinesU32 = ColorConvertFloat4ToU32(user.gridLines);
+		sliderBorderU32 = ColorConvertFloat4ToU32(user.sliderBorder);
+		sliderBorderActiveU32 = ColorConvertFloat4ToU32(user.sliderBorderActive);
+		iconDisabledU32 = ColorConvertFloat4ToU32(user.iconDisabled);
 	}
 
 	ImU32 Styles::GetColorU32(USER_STYLE a_style) const
@@ -40,11 +40,11 @@ namespace ImGui
 	{
 		switch (a_style) {
 		case USER_STYLE::kIconDisabled:
-			return iconDisabled;
+			return user.iconDisabled;
 		case USER_STYLE::kComboBoxTextBox:
-			return comboBoxTextBox;
+			return user.comboBoxTextBox;
 		case USER_STYLE::kComboBoxText:
-			return comboBoxText;
+			return user.comboBoxText;
 		default:
 			return ImVec4();
 		}
@@ -54,15 +54,15 @@ namespace ImGui
 	{
 		switch (a_style) {
 		case USER_STYLE::kButtons:
-			return buttonScale;
+			return user.buttonScale;
 		case USER_STYLE::kCheckbox:
-			return checkboxScale;
+			return user.checkboxScale;
 		case USER_STYLE::kStepper:
-			return stepperScale;
+			return user.stepperScale;
 		case USER_STYLE::kSeparatorThickness:
-			return separatorThickness;
+			return user.separatorThickness;
 		case USER_STYLE::kGridLines:
-			return gridThickness;
+			return user.gridThickness;
 		default:
 			return 1.0f;
 		}
@@ -77,42 +77,44 @@ namespace ImGui
 
 	void Styles::LoadStyles(CSimpleIniA& a_ini)
 	{
-		auto get_value = [&]<typename T>(T& a_value, const char* a_section, const char* a_key) {
-			a_value = ToStyle<T>(a_ini.GetValue(a_section, a_key, ToString(a_value).c_str()));
-			a_ini.SetValue(a_section, a_key, ToString(a_value).c_str());
-		};
+#define GET_VALUE(a_value, a_section, a_key)                                                                                                        \
+	bool a_value##_hex = false;                                                                                                                     \
+	std::tie(user.a_value, a_value##_hex) = ToStyle<decltype(user.a_value)>(a_ini.GetValue(a_section, a_key, ToString(def.a_value, true).c_str())); \
+	a_ini.SetValue(a_section, a_key, ToString(user.a_value, a_value##_hex).c_str());
 
-		get_value(iconDisabled, "Icon", "rDisabledColor");
-		get_value(buttonScale, "Icon", "fButtonScale");
-		get_value(checkboxScale, "Icon", "fCheckboxScale");
-		get_value(stepperScale, "Icon", "fStepperScale");
+		GET_VALUE(iconDisabled, "Icon", "rDisabledColor");
+		GET_VALUE(buttonScale, "Icon", "fButtonScale");
+		GET_VALUE(checkboxScale, "Icon", "fCheckboxScale");
+		GET_VALUE(stepperScale, "Icon", "fStepperScale");
 
-		get_value(background, "Window", "rBackgroundColor");
-		get_value(border, "Window", "rBorderColor");
-		get_value(borderSize, "Window", "fBorderSize");
+		GET_VALUE(background, "Window", "rBackgroundColor");
+		GET_VALUE(border, "Window", "rBorderColor");
+		GET_VALUE(borderSize, "Window", "fBorderSize");
 
-		get_value(comboBoxTextBox, "ComboBox", "rTextBoxColor");
-		get_value(frameBG, "ComboBox", "rListBoxColor");
-		get_value(comboBoxText, "ComboBox", "rTextColor");
-		get_value(button, "ComboBox", "rArrowButtonColor");
+		GET_VALUE(comboBoxTextBox, "ComboBox", "rTextBoxColor");
+		GET_VALUE(frameBG, "ComboBox", "rListBoxColor");
+		GET_VALUE(comboBoxText, "ComboBox", "rTextColor");
+		GET_VALUE(button, "ComboBox", "rArrowButtonColor");
 
-		get_value(sliderGrab, "Slider", "rColor");
-		get_value(sliderGrabActive, "Slider", "rActiveColor");
-		get_value(sliderBorder, "Slider", "rBorderColor");
-		get_value(sliderBorderActive, "Slider", "rBorderActiveColor");
+		GET_VALUE(sliderGrab, "Slider", "rColor");
+		GET_VALUE(sliderGrabActive, "Slider", "rActiveColor");
+		GET_VALUE(sliderBorder, "Slider", "rBorderColor");
+		GET_VALUE(sliderBorderActive, "Slider", "rBorderActiveColor");
 
-		get_value(text, "Text", "rColor");
-		get_value(textDisabled, "Text", "rDisabledColor");
+		GET_VALUE(text, "Text", "rColor");
+		GET_VALUE(textDisabled, "Text", "rDisabledColor");
 
-		get_value(frameBG_Widget, "Widget", "rBackgroundColor");
-		get_value(frameBG_WidgetActive, "Widget", "rBackgroundActiveColor");
-		get_value(header, "Widget", "rHighlightColor");
-		get_value(gridLines, "Widget", "rGridColor");
-		get_value(gridThickness, "Widget", "fGridThickness");
-		get_value(separator, "Widget", "rSeparatorColor");
-		get_value(separatorThickness, "Widget", "fSeparatorThickness");
-		get_value(tab, "Widget", "rTabColor");
-		get_value(tabHovered, "Widget", "rTabActiveColor");
+		GET_VALUE(frameBG_Widget, "Widget", "rBackgroundColor");
+		GET_VALUE(frameBG_WidgetActive, "Widget", "rBackgroundActiveColor");
+		GET_VALUE(header, "Widget", "rHighlightColor");
+		GET_VALUE(gridLines, "Widget", "rGridColor");
+		GET_VALUE(gridThickness, "Widget", "fGridThickness");
+		GET_VALUE(separator, "Widget", "rSeparatorColor");
+		GET_VALUE(separatorThickness, "Widget", "fSeparatorThickness");
+		GET_VALUE(tab, "Widget", "rTabColor");
+		GET_VALUE(tabHovered, "Widget", "rTabActiveColor");
+
+#undef GET_VALUE
 
 		ConvertVec4StylesToU32();
 	}
@@ -128,35 +130,35 @@ namespace ImGui
 		ImGuiStyle style;
 		auto&      colors = style.Colors;
 
-		style.WindowBorderSize = borderSize;
+		style.WindowBorderSize = user.borderSize;
 		style.TabRounding = 0.0f;
 
-		colors[ImGuiCol_WindowBg] = background;
-		colors[ImGuiCol_ChildBg] = background;
+		colors[ImGuiCol_WindowBg] = user.background;
+		colors[ImGuiCol_ChildBg] = user.background;
 
-		colors[ImGuiCol_Border] = border;
-		colors[ImGuiCol_Separator] = separator;
+		colors[ImGuiCol_Border] = user.border;
+		colors[ImGuiCol_Separator] = user.separator;
 
-		colors[ImGuiCol_Text] = text;
-		colors[ImGuiCol_TextDisabled] = textDisabled;
+		colors[ImGuiCol_Text] = user.text;
+		colors[ImGuiCol_TextDisabled] = user.textDisabled;
 
-		colors[ImGuiCol_FrameBg] = frameBG;
+		colors[ImGuiCol_FrameBg] = user.frameBG;
 		colors[ImGuiCol_FrameBgHovered] = colors[ImGuiCol_FrameBg];
 		colors[ImGuiCol_FrameBgActive] = colors[ImGuiCol_FrameBg];
 
-		colors[ImGuiCol_SliderGrab] = sliderGrab;
-		colors[ImGuiCol_SliderGrabActive] = sliderGrabActive;
+		colors[ImGuiCol_SliderGrab] = user.sliderGrab;
+		colors[ImGuiCol_SliderGrabActive] = user.sliderGrabActive;
 
-		colors[ImGuiCol_Button] = button;
+		colors[ImGuiCol_Button] = user.button;
 		colors[ImGuiCol_ButtonHovered] = colors[ImGuiCol_Button];
 		colors[ImGuiCol_ButtonActive] = colors[ImGuiCol_Button];
 
-		colors[ImGuiCol_Header] = header;
+		colors[ImGuiCol_Header] = user.header;
 		colors[ImGuiCol_HeaderHovered] = colors[ImGuiCol_Header];
 		colors[ImGuiCol_HeaderActive] = colors[ImGuiCol_Header];
 
-		colors[ImGuiCol_Tab] = tab;
-		colors[ImGuiCol_TabHovered] = tabHovered;
+		colors[ImGuiCol_Tab] = user.tab;
+		colors[ImGuiCol_TabHovered] = user.tabHovered;
 		colors[ImGuiCol_TabActive] = colors[ImGuiCol_TabHovered];
 		colors[ImGuiCol_TabUnfocused] = colors[ImGuiCol_Tab];
 		colors[ImGuiCol_TabUnfocusedActive] = colors[ImGuiCol_TabHovered];

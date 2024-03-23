@@ -35,52 +35,58 @@ namespace ImGui
 		void ConvertVec4StylesToU32();
 
 		template <class T>
-		T ToStyle(const std::string& a_str);
+		std::pair<T, bool> ToStyle(const std::string& a_str);
 		template <class T>
-		std::string ToString(const T& a_style);
+		std::string ToString(const T& a_style, bool a_hex);
 
+		struct Style
+		{
+			// unused, helpers
+			float bgAlpha{ 0.68f };
+			float disabledAlpha{ 0.30f };
+
+			float buttonScale{ 0.5f };
+			float checkboxScale{ 0.5f };
+			float stepperScale{ 0.5f };
+
+			ImVec4 iconDisabled{ 1.0f, 1.0f, 1.0f, disabledAlpha };
+
+			ImVec4 background{ 0.0f, 0.0f, 0.0f, bgAlpha };
+
+			ImVec4 border{ 0.569f, 0.545f, 0.506f, bgAlpha };
+			float  borderSize{ 3.5f };
+
+			ImVec4 text{ 1.0f, 1.0f, 1.0f, 1.0f };
+			ImVec4 textDisabled{ 1.0f, 1.0f, 1.0f, disabledAlpha };
+
+			ImVec4 comboBoxText{ 1.0f, 1.0f, 1.0f, 0.8f };
+			ImVec4 comboBoxTextBox{ 0.0f, 0.0f, 0.0f, 1.0f };
+			ImVec4 button{ 0.0f, 0.0f, 0.0f, bgAlpha };  // arrow button
+
+			ImVec4 frameBG{ 0.2f, 0.2f, 0.2f, bgAlpha };
+			ImVec4 frameBG_Widget{ 1.0f, 1.0f, 1.0f, 0.06275f };
+			ImVec4 frameBG_WidgetActive{ 1.0f, 1.0f, 1.0f, 0.2f };
+
+			ImVec4 sliderGrab{ 1.0f, 1.0f, 1.0f, 0.245f };
+			ImVec4 sliderGrabActive{ 1.0f, 1.0f, 1.0f, 0.531f };
+
+			ImVec4 header{ 1.0f, 1.0f, 1.0f, 0.1f };  // select highlight
+			ImVec4 tab{ 0.0f, 0.0f, 0.0f, 0.0f };
+			ImVec4 tabHovered{ 0.2f, 0.2f, 0.2f, 1.0f };
+
+			ImVec4 gridLines{ 1.0f, 1.0f, 1.0f, 0.3333f };
+			float  gridThickness{ 2.5f };
+
+			ImVec4 separator{ 0.569f, 0.545f, 0.506f, bgAlpha };
+			float  separatorThickness{ 3.5f };
+
+			ImVec4 sliderBorder{ 1.0f, 1.0f, 1.0f, 0.2431f };
+			ImVec4 sliderBorderActive{ 1.0f, 1.0f, 1.0f, 0.8f };
+		};
+		
 		// members
-		// unused, helpers
-		float bgAlpha{ 0.68f };
-		float disabledAlpha{ 0.30f };
-
-		float buttonScale{ 0.5f };
-		float checkboxScale{ 0.5f };
-		float stepperScale{ 0.5f };
-
-		ImVec4 iconDisabled{ 1.0f, 1.0f, 1.0f, disabledAlpha };
-
-		ImVec4 background{ 0.0f, 0.0f, 0.0f, bgAlpha };
-
-		ImVec4 border{ 0.396f, 0.404f, 0.412f, bgAlpha };
-		float  borderSize{ 3.5f };
-
-		ImVec4 text{ 1.0f, 1.0f, 1.0f, 1.0f };
-		ImVec4 textDisabled{ 1.0f, 1.0f, 1.0f, disabledAlpha };
-
-		ImVec4 comboBoxText{ 1.0f, 1.0f, 1.0f, 0.8f };
-		ImVec4 comboBoxTextBox{ 0.0f, 0.0f, 0.0f, 1.0f };
-		ImVec4 button{ 0.0f, 0.0f, 0.0f, bgAlpha };  // arrow button
-
-		ImVec4 frameBG{ 0.2f, 0.2f, 0.2f, bgAlpha };
-		ImVec4 frameBG_Widget{ 1.0f, 1.0f, 1.0f, 0.06275f };
-		ImVec4 frameBG_WidgetActive{ 1.0f, 1.0f, 1.0f, 0.2f };
-
-		ImVec4 sliderGrab{ 1.0f, 1.0f, 1.0f, 0.245f };
-		ImVec4 sliderGrabActive{ 1.0f, 1.0f, 1.0f, 0.531f };
-
-		ImVec4 header{ 1.0f, 1.0f, 1.0f, 0.1f };  // select highlight
-		ImVec4 tab{ 0.0f, 0.0f, 0.0f, 0.0f };
-		ImVec4 tabHovered{ 0.2f, 0.2f, 0.2f, 1.0f };
-
-		ImVec4 gridLines{ 1.0f, 1.0f, 1.0f, 0.3333f };
-		float  gridThickness{ 2.5f };
-
-		ImVec4 separator{ 0.396f, 0.404f, 0.412f, bgAlpha };
-		float  separatorThickness{ 3.5f };
-
-		ImVec4 sliderBorder{ 1.0f, 1.0f, 1.0f, 0.2431f };
-		ImVec4 sliderBorderActive{ 1.0f, 1.0f, 1.0f, 0.8f };
+		Style def;
+		Style user;
 
 		// for values that require ImU32 colours
 		// can't read directly, repeated (ARGB -> RGBA -> ARGB) conversion is broken
@@ -99,31 +105,47 @@ namespace ImGui
 	float  GetUserStyleVar(USER_STYLE a_style);
 
 	template <class T>
-	inline T Styles::ToStyle(const std::string& a_str)
+	inline std::pair<T, bool> Styles::ToStyle(const std::string& a_str)
 	{
 		if constexpr (std::is_same_v<ImVec4, T>) {
-			static srell::regex pattern("([0-9]+),([0-9]+),([0-9]+),([0-9]+)");
-			srell::smatch       matches;
-			if (srell::regex_match(a_str, matches, pattern)) {
-				auto red = std::stoi(matches[1]);
-				auto green = std::stoi(matches[2]);
-				auto blue = std::stoi(matches[3]);
-				auto alpha = std::stoi(matches[4]);
-				return { red / 255.0f, green / 255.0f, blue / 255.0f, alpha / 255.0f };
+			static srell::regex rgb_pattern("([0-9]+),([0-9]+),([0-9]+),([0-9]+)");
+			static srell::regex hex_pattern("#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})");
+
+			srell::smatch rgb_matches;
+			srell::smatch hex_matches;
+
+			if (srell::regex_match(a_str, rgb_matches, rgb_pattern)) {
+				auto red = std::stoi(rgb_matches[1]);
+				auto green = std::stoi(rgb_matches[2]);
+				auto blue = std::stoi(rgb_matches[3]);
+				auto alpha = std::stoi(rgb_matches[4]);
+
+				return { { red / 255.0f, green / 255.0f, blue / 255.0f, alpha / 255.0f }, false };
+			} else if (srell::regex_match(a_str, hex_matches, hex_pattern)) {
+				auto red = std::stoi(hex_matches[1], 0, 16);
+				auto green = std::stoi(hex_matches[2], 0, 16);
+				auto blue = std::stoi(hex_matches[3], 0, 16);
+				auto alpha = std::stoi(hex_matches[4], 0, 16);
+
+				return { { red / 255.0f, green / 255.0f, blue / 255.0f, alpha / 255.0f }, true };
 			}
-			return T{};
+
+			return { T(), false };
 		} else {
-			return string::to_num<T>(a_str);
+			return { string::to_num<T>(a_str), false };
 		}
 	}
 
 	template <class T>
-	inline std::string Styles::ToString(const T& a_style)
+	inline std::string Styles::ToString(const T& a_style, bool a_hex)
 	{
 		if constexpr (std::is_same_v<ImVec4, T>) {
-			return std::format("{},{},{},{}", std::round(255.0f * a_style.x), std::round(255.0f * a_style.y), std::round(255.0f * a_style.z), std::round(255.0f * a_style.w));
+			if (a_hex) {
+				return std::format("#{:02X}{:02X}{:02X}{:02X}", std::uint8_t(255.0f * a_style.x), std::uint8_t(255.0f * a_style.y), std::uint8_t(255.0f * a_style.z), std::uint8_t(255.0f * a_style.w));
+			}
+			return std::format("{},{},{},{}", std::uint8_t(255.0f * a_style.x), std::uint8_t(255.0f * a_style.y), std::uint8_t(255.0f * a_style.z), std::uint8_t(255.0f * a_style.w));
 		} else {
-			return std::format("{:.2f}", a_style);
+			return std::format("{:.3f}", a_style);
 		}
 	}
 }
