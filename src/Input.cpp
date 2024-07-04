@@ -461,7 +461,7 @@ namespace Input
 					if (userEvent == "WorldZUp" || userEvent == "WorldZDown") {
 						continue;
 					}
-					
+
 					const auto key = buttonEvent->GetIDCode();
 					const auto device = event->GetDevice();
 					auto       hotKey = key;
