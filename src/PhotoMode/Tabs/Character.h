@@ -61,9 +61,9 @@ namespace PhotoMode
 			"$PM_LookUp",
 			"$PM_SquintLeft",
 			"$PM_SquintRight",
-			"$PM_HeadPitch",
-			"$PM_HeadRoll",
-			"$PM_HeadYaw"
+			//"$PM_HeadPitch",
+			//"$PM_HeadRoll",
+			//"$PM_HeadYaw"
 		};
 
 		class Data
