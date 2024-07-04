@@ -360,8 +360,6 @@ namespace PhotoMode
 
 	void Manager::DrawControls()
 	{
-		const auto& io = ImGui::GetIO();
-
 		const static auto center = ImGui::GetNativeViewportCenter();
 		const static auto size = ImGui::GetNativeViewportSize();
 
