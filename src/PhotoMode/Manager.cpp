@@ -109,7 +109,7 @@ namespace PhotoMode
 		// toggle freecam
 		if (originalcameraState != RE::CameraState::kFree) {
 			pcCamera->ToggleFreeCameraMode(false);
-			//RE::ControlMap::GetSingleton()->PushInputContext(RE::ControlMap::InputContextID::kTFCMode);
+			RE::ControlMap::GetSingleton()->PushInputContext(RE::ControlMap::InputContextID::kTFCMode);
 		}
 
 		// disable controls
@@ -143,7 +143,7 @@ namespace PhotoMode
 			pcControls->sneakHandler->SetInputEventHandlingEnabled(a_enable);
 			pcControls->autoMoveHandler->SetInputEventHandlingEnabled(a_enable);
 			pcControls->shoutHandler->SetInputEventHandlingEnabled(a_enable);
-			pcControls->attackBlockHandler->SetInputEventHandlingEnabled(a_enable);
+			//pcControls->attackBlockHandler->SetInputEventHandlingEnabled(a_enable);
 		}
 	}
 
@@ -182,7 +182,7 @@ namespace PhotoMode
 		// reset camera
 		if (originalcameraState != RE::CameraState::kFree) {
 			RE::PlayerCamera::GetSingleton()->ToggleFreeCameraMode(false);
-			//RE::ControlMap::GetSingleton()->PopInputContext(RE::ControlMap::InputContextID::kTFCMode);
+			RE::ControlMap::GetSingleton()->PopInputContext(RE::ControlMap::InputContextID::kTFCMode);
 		}
 
 		// reset controls
@@ -360,7 +360,7 @@ namespace PhotoMode
 
 	void Manager::DrawControls()
 	{
-		const auto io = ImGui::GetIO();
+		const auto& io = ImGui::GetIO();
 
 		const static auto center = ImGui::GetNativeViewportCenter();
 		const static auto size = ImGui::GetNativeViewportSize();

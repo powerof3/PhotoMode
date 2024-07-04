@@ -274,7 +274,7 @@ namespace ImGui
 		const ImGuiID     id = window->GetID(label);
 		const float       w = CalcItemWidth();
 
-		const ImVec2 label_size = CalcTextSize(label, NULL, true);
+		const ImVec2 label_size = CalcTextSize(label, nullptr, true);
 		const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
 		const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 
@@ -284,14 +284,14 @@ namespace ImGui
 			return false;
 
 		// Default format string when passing NULL
-		if (format == NULL)
+		if (format == nullptr)
 			format = DataTypeGetInfo(data_type)->PrintFmt;
 
 		const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.InFlags);
 		bool       temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
 		if (!temp_input_is_active) {
 			// Tabbing or CTRL-clicking on Drag turns it into an InputText
-			const bool clicked = hovered && IsMouseClicked(0, id);
+			const bool clicked = hovered && IsMouseClicked(0, ImGuiInputFlags_None, id);
 			const bool double_clicked = (hovered && g.IO.MouseClickedCount[0] == 2 && TestKeyOwner(ImGuiKey_MouseLeft, id));
 			const bool make_active = (clicked || double_clicked || g.NavActivateId == id);
 			if (make_active && (clicked || double_clicked))
@@ -394,29 +394,20 @@ namespace ImGui
 		const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.InFlags);
 		bool       temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
 		if (!temp_input_is_active) {
-			// Tabbing or CTRL-clicking on Drag turns it into an InputText
-			const bool clicked = hovered && IsMouseClicked(0, id);
-			const bool double_clicked = (hovered && g.IO.MouseClickedCount[0] == 2 && TestKeyOwner(ImGuiKey_MouseLeft, id));
-			const bool make_active = (clicked || double_clicked || g.NavActivateId == id);
-			if (make_active && (clicked || double_clicked))
+			// Tabbing or CTRL-clicking on Slider turns it into an input box
+			const bool clicked = hovered && IsMouseClicked(0, ImGuiInputFlags_None, id);
+			const bool make_active = (clicked || g.NavActivateId == id);
+			if (make_active && clicked)
 				SetKeyOwner(ImGuiKey_MouseLeft, id);
 			if (make_active && temp_input_allowed)
-				if ((clicked && g.IO.KeyCtrl) || double_clicked || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
+				if ((clicked && g.IO.KeyCtrl) || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
 					temp_input_is_active = true;
-
-			// (Optional) simple click (without moving) turns Drag into an InputText
-			if (g.IO.ConfigDragClickToInputText && temp_input_allowed && !temp_input_is_active)
-				if (g.ActiveId == id && hovered && g.IO.MouseReleased[0] && !IsMouseDragPastThreshold(0, g.IO.MouseDragThreshold * 0.50f)) {
-					g.NavActivateId = id;
-					g.NavActivateFlags = ImGuiActivateFlags_PreferInput;
-					temp_input_is_active = true;
-				}
 
 			if (make_active && !temp_input_is_active) {
 				SetActiveID(id, window);
 				SetFocusID(id, window);
 				FocusWindow(window);
-				g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
+				g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
 			}
 		}
 

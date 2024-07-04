@@ -455,6 +455,13 @@ namespace Input
 				if (const auto charEvent = event->AsCharEvent()) {
 					io.AddInputCharacter(charEvent->keycode);
 				} else if (const auto buttonEvent = event->AsButtonEvent()) {
+					const auto& userEvent = buttonEvent->QUserEvent();
+
+					// vertical pan event
+					if (userEvent == "WorldZUp" || userEvent == "WorldZDown") {
+						continue;
+					}
+					
 					const auto key = buttonEvent->GetIDCode();
 					const auto device = event->GetDevice();
 					auto       hotKey = key;
