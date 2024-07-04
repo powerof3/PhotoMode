@@ -108,7 +108,7 @@ namespace PhotoMode
 		currentState.pos = RE::NiPoint3();
 
 		if (rotationChanged) {
-			character->SetRotationZ(originalState.rotZ);
+			character->SetHeading(originalState.rotZ);
 		}
 		if (positionChanged) {
 			character->SetPosition(originalState.pos, true);
@@ -269,7 +269,7 @@ namespace PhotoMode
 				if (ImGui::OpenTabOnHover("$PM_Transforms"_T)) {
 					currentState.rotZ = RE::rad_to_deg(character->GetAngleZ());
 					if (ImGui::Slider("$PM_Rotation"_T, &currentState.rotZ, 0.0f, 360.0f)) {
-						character->SetRotationZ(RE::deg_to_rad(currentState.rotZ));
+						character->SetHeading(RE::deg_to_rad(currentState.rotZ));
 						rotationChanged = true;
 					}
 
