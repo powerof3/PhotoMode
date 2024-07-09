@@ -485,7 +485,7 @@ namespace Input
 					}
 
 					// recreate vertical pan event for mouse
-					if (inputDevice == DEVICE::kMouse && RE::PlayerCamera::GetSingleton()->IsInFreeCameraMode()) { // redundant check??
+					if (inputDevice == DEVICE::kMouse && RE::PlayerCamera::GetSingleton()->IsInFreeCameraMode()) {  // redundant check??
 						if (auto freeCameraState = static_cast<RE::FreeCameraState*>(RE::PlayerCamera::GetSingleton()->currentState.get())) {
 							if (key == MOUSE::kLeftButton) {
 								std::uint16_t value = (value & 0x00ff) | (0 << 8);
