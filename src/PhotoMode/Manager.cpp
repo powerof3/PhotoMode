@@ -143,7 +143,7 @@ namespace PhotoMode
 			pcControls->sneakHandler->SetInputEventHandlingEnabled(a_enable);
 			pcControls->autoMoveHandler->SetInputEventHandlingEnabled(a_enable);
 			pcControls->shoutHandler->SetInputEventHandlingEnabled(a_enable);
-			//pcControls->attackBlockHandler->SetInputEventHandlingEnabled(a_enable);
+			pcControls->attackBlockHandler->SetInputEventHandlingEnabled(a_enable);
 		}
 	}
 
