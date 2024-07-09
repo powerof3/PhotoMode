@@ -455,13 +455,6 @@ namespace Input
 				if (const auto charEvent = event->AsCharEvent()) {
 					io.AddInputCharacter(charEvent->keycode);
 				} else if (const auto buttonEvent = event->AsButtonEvent()) {
-					const auto& userEvent = buttonEvent->QUserEvent();
-
-					// vertical pan event
-					if (userEvent == "WorldZUp" || userEvent == "WorldZDown") {
-						continue;
-					}
-
 					const auto key = buttonEvent->GetIDCode();
 					const auto device = event->GetDevice();
 					auto       hotKey = key;
@@ -489,6 +482,31 @@ namespace Input
 						break;
 					default:
 						continue;
+					}
+
+					// recreate vertical pan event for mouse
+					if (inputDevice == DEVICE::kMouse && RE::PlayerCamera::GetSingleton()->IsInFreeCameraMode()) { // redundant check??
+						if (auto freeCameraState = static_cast<RE::FreeCameraState*>(RE::PlayerCamera::GetSingleton()->currentState.get())) {
+							if (key == MOUSE::kLeftButton) {
+								std::uint16_t value = (value & 0x00ff) | (0 << 8);
+								bool          released = true;
+								if (buttonEvent->value != 0.0 || buttonEvent->heldDownSecs < 0.0) {
+									released = false;
+								}
+								value = (value & 0xff00) | (released == false);
+								freeCameraState->verticalDirection = value;
+
+								continue;
+							} else if (key == MOUSE::kRightButton) {
+								if (buttonEvent->value == 0.0 && buttonEvent->heldDownSecs >= 0.0) {
+									freeCameraState->verticalDirection = 0;
+								} else {
+									freeCameraState->verticalDirection = -1;
+								}
+
+								continue;
+							}
+						}
 					}
 
 					if (!io.WantTextInput) {

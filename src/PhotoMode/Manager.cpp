@@ -109,7 +109,7 @@ namespace PhotoMode
 		// toggle freecam
 		if (originalcameraState != RE::CameraState::kFree) {
 			pcCamera->ToggleFreeCameraMode(false);
-			RE::ControlMap::GetSingleton()->PushInputContext(RE::ControlMap::InputContextID::kTFCMode);
+			//RE::ControlMap::GetSingleton()->PushInputContext(RE::ControlMap::InputContextID::kTFCMode);
 		}
 
 		// disable controls
@@ -182,7 +182,7 @@ namespace PhotoMode
 		// reset camera
 		if (originalcameraState != RE::CameraState::kFree) {
 			RE::PlayerCamera::GetSingleton()->ToggleFreeCameraMode(false);
-			RE::ControlMap::GetSingleton()->PopInputContext(RE::ControlMap::InputContextID::kTFCMode);
+			//RE::ControlMap::GetSingleton()->PopInputContext(RE::ControlMap::InputContextID::kTFCMode);
 		}
 
 		// reset controls
