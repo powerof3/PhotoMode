@@ -685,4 +685,3 @@ namespace PhotoMode
 		return EventResult::kContinue;
 	}
 }
-
