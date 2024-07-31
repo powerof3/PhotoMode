@@ -348,7 +348,7 @@ namespace PhotoMode
 				DrawControls();
 			}
 
-			if (ImGui::IsKeyReleased(ImGuiKey_Escape) || ImGui::IsKeyReleased(ImGuiKey_NavGamepadCancel)) {
+			if (ImGui::IsKeyReleased(ImGuiKey_Escape) || ImGui::IsKeyReleased(ImGuiKey_GamepadFaceRight)) {
 				if (IsHidden() || noItemsFocused) {
 					Deactivate();
 					RE::PlaySound("UIMenuCancel");
@@ -685,3 +685,4 @@ namespace PhotoMode
 		return EventResult::kContinue;
 	}
 }
+

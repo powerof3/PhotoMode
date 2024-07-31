@@ -6,9 +6,27 @@
 
 namespace Screenshot
 {
-	Paths::Paths(std::uint32_t index) :
-		screenshot(std::format("{}/Screenshot{}.dds", screenshotFolder, index)),
-		painting(std::format("{}/Screenshot{}.dds", paintingFolder, index))
+	Image::Image(std::string& a_path, std::uint32_t a_index) :
+		path(Texture::Sanitize(a_path)),
+		index(a_index)
+	{}
+
+	Image::Image(std::string& a_path) :
+		path(Texture::Sanitize(a_path))
+	{
+		srell::smatch       matches;
+		static srell::regex screenshotPattern{ R"(screenshot(\d+))" };
+		if (srell::regex_search(path, matches, screenshotPattern)) {
+			if (matches.size() > 1) {
+				index = string::to_num<std::int32_t>(matches[1].str());
+			}
+		}
+	}
+
+	LoadScreenImage::LoadScreenImage(std::uint32_t a_index) :
+		index(a_index),
+		screenshot(std::format("{}/Screenshot{}.dds", screenshotFolder, a_index)),
+		painting(std::format("{}/Screenshot{}.dds", paintingFolder, a_index))
 	{}
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
@@ -43,7 +61,7 @@ namespace Screenshot
 		logger::info("\tScreenshot textures : {}", screenshotFolder);
 		logger::info("\tPainting textures : {}", paintingFolder);
 
-		constexpr auto get_textures = [](std::string_view a_folder, std::vector<std::string>& a_textures) {
+		constexpr auto get_textures = [](std::string_view a_folder, std::vector<Image>& a_textures) {
 			const std::filesystem::directory_entry folder{ a_folder };
 			if (!folder.exists()) {
 				std::filesystem::create_directory(a_folder);
@@ -65,10 +83,12 @@ namespace Screenshot
 							continue;
 						}
 
-						a_textures.push_back(Texture::Sanitize(pathStr));
+						a_textures.push_back(pathStr);
 					}
 				}
 			}
+
+			std::sort(a_textures.begin(), a_textures.end());
 
 			for (auto& badTexture : badTextures) {
 				logger::info("\tDeleting invalid texture ({})", badTexture);
@@ -80,11 +100,9 @@ namespace Screenshot
 		get_textures(paintingFolder, paintings);
 
 		Settings::GetSingleton()->SerializeMCM([this](auto& ini) {
-			index = ini.GetLongValue("Screenshots", "iScreenshotIndex", this->index);
-			if (index == -1) {
-				index = RE::GetINISetting("iScreenShotIndex:Display")->GetSInt();
-			}
-			ini.SetLongValue("Screenshots", "iScreenshotIndex", this->index);
+			index = ini.GetLongValue("Screenshots", "iScreenshotIndex", index);
+			AssignHighestPossibleIndex();
+			ini.SetLongValue("Screenshots", "iScreenshotIndex", index);
 		});
 
 		logger::info("\t{} screenshots", screenshots.size());
@@ -92,10 +110,11 @@ namespace Screenshot
 		logger::info("\tscreenshot index : {}", index);
 	}
 
-	void Manager::AddScreenshotPaths(Paths& a_paths)
+
+	void Manager::AddLoadScreenImages(LoadScreenImage& a_images)
 	{
-		screenshots.push_back(Texture::Sanitize(a_paths.screenshot));
-		paintings.push_back(Texture::Sanitize(a_paths.painting));
+		screenshots.emplace_back(a_images.screenshot, a_images.index);
+		paintings.emplace_back(a_images.painting, a_images.index);
 	}
 
 	std::uint32_t Manager::GetIndex() const
@@ -103,11 +122,53 @@ namespace Screenshot
 		return index;
 	}
 
+	void Manager::AssignHighestPossibleIndex()
+	{
+		constexpr auto extract_texture_index = [](const std::vector<Image>& a_files) {
+			if (a_files.empty()) {
+				return -1;
+			}
+			return a_files.back().index + 1;
+		};
+
+		const auto get_photos_index = [this]() {
+			std::vector<Image> photos{};
+			for (const auto& entry : std::filesystem::directory_iterator(photoDirectory)) {
+				if (entry.is_regular_file()) {
+					if (const auto& path = entry.path(); path.extension() == ".png") {
+						auto pathStr = entry.path().string();
+						photos.push_back(pathStr);
+					}
+				}
+			}
+			std::sort(photos.begin(), photos.end());
+			return extract_texture_index(photos);
+		};
+
+		auto mcmIndex = index;
+		auto photosIndex = get_photos_index();
+		auto vanillaScreenshotIndex = RE::GetINISetting("iScreenShotIndex:Display")->GetSInt();
+		auto screenshotsIndex = extract_texture_index(screenshots);
+		auto paintingsIndex = extract_texture_index(paintings);
+
+		logger::info("\tAssigning highest screenshot index...");
+		logger::info("\t\tmcm index: {}", mcmIndex);
+		logger::info("\t\tphoto directory index: {}", photosIndex);
+		logger::info("\t\tvanilla directory index: {}", vanillaScreenshotIndex);
+		logger::info("\t\tscreenshot textures index: {}", screenshotsIndex);
+		logger::info("\t\tpainting textures index: {}", paintingsIndex);
+
+		std::set<std::int32_t> indices;
+		indices.insert({ mcmIndex, photosIndex, vanillaScreenshotIndex, screenshotsIndex, paintingsIndex });
+
+		index = *indices.rbegin();
+	}
+
 	void Manager::IncrementIndex()
 	{
 		index++;
 		Settings::GetSingleton()->SerializeMCM([this](auto& ini) {
-			ini.SetLongValue("Screenshots", "iScreenshotIndex", this->index);
+			ini.SetLongValue("Screenshots", "iScreenshotIndex", index);
 		});
 	}
 
@@ -193,7 +254,7 @@ namespace Screenshot
 			return;
 		}
 
-		Paths      ssPaths(GetIndex());
+		LoadScreenImage      ssImages(GetIndex());
 		const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
 
 		// regular
@@ -201,11 +262,11 @@ namespace Screenshot
 			DirectX::ScratchImage outputImage;
 
 			Texture::CompressTexture(renderer, a_ssImage, outputImage);
-			Texture::SaveToDDS(outputImage, ssPaths.screenshot);
+			Texture::SaveToDDS(outputImage, ssImages.screenshot);
 
 			outputImage.Release();
 		} else {
-			Texture::SaveToDDS(a_ssImage, ssPaths.screenshot);
+			Texture::SaveToDDS(a_ssImage, ssImages.screenshot);
 		}
 
 		// painting
@@ -216,16 +277,16 @@ namespace Screenshot
 			if (compressTextures) {
 				DirectX::ScratchImage compressedImage;
 				Texture::CompressTexture(renderer, outputImage, compressedImage);  // NOLINT(readability-suspicious-call-argument)
-				Texture::SaveToDDS(compressedImage, ssPaths.painting);
+				Texture::SaveToDDS(compressedImage, ssImages.painting);
 				compressedImage.Release();
 			} else {
-				Texture::SaveToDDS(outputImage, ssPaths.painting);
+				Texture::SaveToDDS(outputImage, ssImages.painting);
 			}
 
 			outputImage.Release();
 		}
 
-		AddScreenshotPaths(ssPaths);
+		AddLoadScreenImages(ssImages);
 	}
 
 	std::string Manager::GetRandomScreenshot()
@@ -234,7 +295,7 @@ namespace Screenshot
 			return {};
 		}
 
-		return screenshots[RNG().generate<std::size_t>(0, screenshots.size() - 1)];
+		return screenshots[RNG().generate<std::size_t>(0, screenshots.size() - 1)].path;
 	}
 
 	std::string Manager::GetRandomPainting()
@@ -244,6 +305,6 @@ namespace Screenshot
 			return GetRandomScreenshot();
 		}
 
-		return paintings[RNG().generate<std::size_t>(0, paintings.size() - 1)];
+		return paintings[RNG().generate<std::size_t>(0, paintings.size() - 1)].path;
 	}
 }

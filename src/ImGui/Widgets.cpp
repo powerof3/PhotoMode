@@ -249,7 +249,7 @@ namespace ImGui
 		PopStyleColor(3);
 
 		if (IsItemFocused()) {
-			if (IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_NavGamepadActivate)) {
+			if (IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_GamepadFaceDown)) {
 				*a_toggle = !*a_toggle;
 				selected = true;
 			} else {
