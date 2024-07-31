@@ -45,13 +45,18 @@ namespace LoadScreen
 		if (Screenshot::Manager::GetSingleton()->CanDisplayScreenshotInLoadScreen()) {
 			auto rng = RNG();
 
-			// process fullscreen art first
-			if (fullscreenChance > 0 && rng.generate<std::int32_t>(0, 100) <= fullscreenChance) {
-				return Type::kFullScreen;
+			// do a coin flip if both chances are equal
+			std::int32_t coinFlip = rng.generate<std::int32_t>(0, 1);
+
+			if (coinFlip == 1) {
+				if (paintingChance > 0 && rng.generate<std::int32_t>(0, 100) <= paintingChance) {
+					return Type::kPainting;
+				}
 			}
 
-			if (paintingChance > 0 && rng.generate<std::int32_t>(0, 100) <= paintingChance) {
-				return Type::kPainting;
+			// fallback to fullscreen
+			if (fullscreenChance > 0 && rng.generate<std::int32_t>(0, 100) <= fullscreenChance) {
+				return Type::kFullScreen;
 			}
 		}
 

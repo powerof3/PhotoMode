@@ -87,7 +87,8 @@ namespace Screenshot
 
 	const std::string& Collection::GetRandomPath()
 	{
-		return images[GetRandomIndex()].path;
+		auto idx = GetRandomIndex();
+		return images[idx].path;
 	}
 
 	std::int32_t Collection::GetHighestIndex() const
@@ -235,7 +236,8 @@ namespace Screenshot
 			skipVanillaScreenshot = true;
 
 			auto        vanillaScreenshotIndex = RE::GetINISetting("iScreenShotIndex:Display");
-			std::string pngPath = useCustomFolderDirectory ? std::format("{}\\Screenshot{}.png", photoDirectory.string(), GetIndex()) : std::format("{}{}.png", RE::GetINISetting("sScreenShotBaseName:Display")->GetString(), vanillaScreenshotIndex->GetSInt());
+			std::string pngPath = useCustomFolderDirectory ? std::format("{}\\Screenshot{}.png", photoDirectory.string(), GetIndex()) :
+			                                                 std::format("{}{}.png", RE::GetINISetting("sScreenShotBaseName:Display")->GetString(), vanillaScreenshotIndex->GetSInt());
 
 			// apply overlay
 			if (const auto [overlay, alpha] = MANAGER(PhotoMode)->GetOverlay(); overlay) {
