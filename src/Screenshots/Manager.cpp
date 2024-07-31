@@ -6,9 +6,9 @@
 
 namespace Screenshot
 {
-	Image::Image(std::string& a_path, std::uint32_t a_index) :
-		path(Texture::Sanitize(a_path)),
-		index(a_index)
+	Image::Image(std::string_view a_path, std::uint32_t a_index) :
+		index(a_index),
+		path(std::format("{}/screenshot{}.dds", a_path, a_index))
 	{}
 
 	Image::Image(std::string& a_path) :
@@ -23,11 +23,80 @@ namespace Screenshot
 		}
 	}
 
-	LoadScreenImage::LoadScreenImage(std::uint32_t a_index) :
-		index(a_index),
-		screenshot(std::format("{}/Screenshot{}.dds", screenshotFolder, a_index)),
-		painting(std::format("{}/Screenshot{}.dds", paintingFolder, a_index))
-	{}
+	void Collection::LoadImages(std::string_view a_folder)
+	{
+		const std::filesystem::directory_entry folder{ a_folder };
+		if (!folder.exists()) {
+			std::filesystem::create_directory(a_folder);
+			return;
+		}
+
+		std::vector<std::string> badTextures{};
+
+		for (const auto& entry : std::filesystem::directory_iterator(a_folder)) {
+			if (entry.is_regular_file()) {
+				if (const auto& path = entry.path(); path.extension() == ".dds") {
+					auto pathStr = entry.path().string();
+
+					DirectX::TexMetadata info;
+					GetMetadataFromDDSFile(stl::utf8_to_utf16(pathStr)->c_str(), DirectX::DDS_FLAGS_NONE, info);
+
+					if (info.width % 4 != 0 || info.height % 4 != 0) {
+						badTextures.push_back(pathStr);
+						continue;
+					}
+
+					images.push_back(pathStr);
+				}
+			}
+		}
+
+		std::sort(images.begin(), images.end());
+
+		for (auto& badTexture : badTextures) {
+			logger::info("\tDeleting invalid texture ({})", badTexture);
+			std::filesystem::remove(badTexture);
+		}
+	}
+
+	void Collection::AddImage(Image& a_image)
+	{
+		images.emplace_back(a_image);
+	}
+
+	std::size_t Collection::GetRandomIndex()
+	{
+		auto maxIndex = images.size();
+
+		if (maxIndex <= 1) {
+			previousIndex[0] = 0;
+			previousIndex[1] = 0;
+			return 0;
+		}
+
+		std::size_t idx;
+		do {
+			idx = RNG().generate<std::size_t>(0, maxIndex - 1);
+		} while (idx == previousIndex[0] || idx == previousIndex[1]);
+
+		previousIndex[1] = previousIndex[0];
+		previousIndex[0] = idx;
+
+		return idx;
+	}
+
+	const std::string& Collection::GetRandomPath()
+	{
+		return images[GetRandomIndex()].path;
+	}
+
+	std::int32_t Collection::GetHighestIndex() const
+	{
+		if (images.empty()) {
+			return -1;
+		}
+		return images.back().index + 1;
+	}
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
@@ -61,43 +130,8 @@ namespace Screenshot
 		logger::info("\tScreenshot textures : {}", screenshotFolder);
 		logger::info("\tPainting textures : {}", paintingFolder);
 
-		constexpr auto get_textures = [](std::string_view a_folder, std::vector<Image>& a_textures) {
-			const std::filesystem::directory_entry folder{ a_folder };
-			if (!folder.exists()) {
-				std::filesystem::create_directory(a_folder);
-				return;
-			}
-
-			std::vector<std::string> badTextures{};
-
-			for (const auto& entry : std::filesystem::directory_iterator(a_folder)) {
-				if (entry.is_regular_file()) {
-					if (const auto& path = entry.path(); path.extension() == ".dds") {
-						auto pathStr = entry.path().string();
-
-						DirectX::TexMetadata info;
-						GetMetadataFromDDSFile(stl::utf8_to_utf16(pathStr)->c_str(), DirectX::DDS_FLAGS_NONE, info);
-
-						if (info.width % 4 != 0 || info.height % 4 != 0) {
-							badTextures.push_back(pathStr);
-							continue;
-						}
-
-						a_textures.push_back(pathStr);
-					}
-				}
-			}
-
-			std::sort(a_textures.begin(), a_textures.end());
-
-			for (auto& badTexture : badTextures) {
-				logger::info("\tDeleting invalid texture ({})", badTexture);
-				std::filesystem::remove(badTexture);
-			}
-		};
-
-		get_textures(screenshotFolder, screenshots);
-		get_textures(paintingFolder, paintings);
+		screenshots.LoadImages(screenshotFolder);
+		paintings.LoadImages(paintingFolder);
 
 		Settings::GetSingleton()->SerializeMCM([this](auto& ini) {
 			index = ini.GetLongValue("Screenshots", "iScreenshotIndex", index);
@@ -110,13 +144,6 @@ namespace Screenshot
 		logger::info("\tscreenshot index : {}", index);
 	}
 
-
-	void Manager::AddLoadScreenImages(LoadScreenImage& a_images)
-	{
-		screenshots.emplace_back(a_images.screenshot, a_images.index);
-		paintings.emplace_back(a_images.painting, a_images.index);
-	}
-
 	std::uint32_t Manager::GetIndex() const
 	{
 		return index;
@@ -124,13 +151,6 @@ namespace Screenshot
 
 	void Manager::AssignHighestPossibleIndex()
 	{
-		constexpr auto extract_texture_index = [](const std::vector<Image>& a_files) {
-			if (a_files.empty()) {
-				return -1;
-			}
-			return a_files.back().index + 1;
-		};
-
 		const auto get_photos_index = [this]() {
 			std::vector<Image> photos{};
 			for (const auto& entry : std::filesystem::directory_iterator(photoDirectory)) {
@@ -141,15 +161,18 @@ namespace Screenshot
 					}
 				}
 			}
+			if (photos.empty()) {
+				return -1;
+			}
 			std::sort(photos.begin(), photos.end());
-			return extract_texture_index(photos);
+			return photos.back().index + 1;
 		};
 
 		auto mcmIndex = index;
 		auto photosIndex = get_photos_index();
 		auto vanillaScreenshotIndex = RE::GetINISetting("iScreenShotIndex:Display")->GetSInt();
-		auto screenshotsIndex = extract_texture_index(screenshots);
-		auto paintingsIndex = extract_texture_index(paintings);
+		auto screenshotsIndex = screenshots.GetHighestIndex();
+		auto paintingsIndex = paintings.GetHighestIndex();
 
 		logger::info("\tAssigning highest screenshot index...");
 		logger::info("\t\tmcm index: {}", mcmIndex);
@@ -254,7 +277,9 @@ namespace Screenshot
 			return;
 		}
 
-		LoadScreenImage      ssImages(GetIndex());
+		Image screenshotImage(screenshotFolder, GetIndex());
+		Image paintingImage(paintingFolder, GetIndex());
+
 		const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
 
 		// regular
@@ -262,11 +287,11 @@ namespace Screenshot
 			DirectX::ScratchImage outputImage;
 
 			Texture::CompressTexture(renderer, a_ssImage, outputImage);
-			Texture::SaveToDDS(outputImage, ssImages.screenshot);
+			Texture::SaveToDDS(outputImage, screenshotImage.path);
 
 			outputImage.Release();
 		} else {
-			Texture::SaveToDDS(a_ssImage, ssImages.screenshot);
+			Texture::SaveToDDS(a_ssImage, screenshotImage.path);
 		}
 
 		// painting
@@ -277,16 +302,17 @@ namespace Screenshot
 			if (compressTextures) {
 				DirectX::ScratchImage compressedImage;
 				Texture::CompressTexture(renderer, outputImage, compressedImage);  // NOLINT(readability-suspicious-call-argument)
-				Texture::SaveToDDS(compressedImage, ssImages.painting);
+				Texture::SaveToDDS(compressedImage, paintingImage.path);
 				compressedImage.Release();
 			} else {
-				Texture::SaveToDDS(outputImage, ssImages.painting);
+				Texture::SaveToDDS(outputImage, paintingImage.path);
 			}
 
 			outputImage.Release();
 		}
 
-		AddLoadScreenImages(ssImages);
+		screenshots.AddImage(screenshotImage);
+		paintings.AddImage(paintingImage);
 	}
 
 	std::string Manager::GetRandomScreenshot()
@@ -295,7 +321,7 @@ namespace Screenshot
 			return {};
 		}
 
-		return screenshots[RNG().generate<std::size_t>(0, screenshots.size() - 1)].path;
+		return screenshots.GetRandomPath();
 	}
 
 	std::string Manager::GetRandomPainting()
@@ -305,6 +331,6 @@ namespace Screenshot
 			return GetRandomScreenshot();
 		}
 
-		return paintings[RNG().generate<std::size_t>(0, paintings.size() - 1)].path;
+		return paintings.GetRandomPath();
 	}
 }

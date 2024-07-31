@@ -2,13 +2,14 @@
 
 namespace Screenshot
 {
-	inline std::string_view screenshotFolder{ "Data\\Textures\\PhotoMode\\Screenshots"sv };
-	inline std::string_view paintingFolder{ "Data\\Textures\\PhotoMode\\Screenshots\\Paintings"sv };
+	inline std::string_view screenshotFolder{ "data\\textures\\photomode\\screenshots"sv };
+	inline std::string_view paintingFolder{ "data\\textures\\photomode\\screenshots\\paintings"sv };
 
+	// .../Screenshot48.dds, 48
 	struct Image
 	{
 		Image() = default;
-		Image(std::string& a_path, std::uint32_t a_index);
+		Image(std::string_view a_path, std::uint32_t a_index);
 		Image(std::string& a_path);
 
 		bool operator<(const Image& a_rhs) const
@@ -21,14 +22,24 @@ namespace Screenshot
 		std::int32_t index{ -1 };
 	};
 
-	struct LoadScreenImage
+	// Collection of photo textures to be displayed on loading screens.
+	// Avoids consecutive screenshots in a row
+	struct Collection
 	{
-		LoadScreenImage(std::uint32_t index);
+		bool        empty() const { return images.empty(); }
+		std::size_t size() const { return images.size(); }
+
+		void               LoadImages(std::string_view a_folder);
+		void               AddImage(Image& a_image);
+		const std::string& GetRandomPath();
+		std::int32_t       GetHighestIndex() const;
 
 		// members
-		std::uint32_t index;
-		std::string   screenshot;
-		std::string   painting;
+		std::vector<Image>         images{};
+		std::array<std::size_t, 2> previousIndex{ std::numeric_limits<std::size_t>::max() };
+
+	private:
+		std::size_t GetRandomIndex();
 	};
 
 	class Manager final : public ISingleton<Manager>
@@ -43,7 +54,7 @@ namespace Screenshot
 		void          AssignHighestPossibleIndex();
 		void          IncrementIndex();
 
-		bool        CanDisplayScreenshotInLoadScreen() const;	
+		bool        CanDisplayScreenshotInLoadScreen() const;
 		std::string GetRandomScreenshot();
 		std::string GetRandomPainting();
 
@@ -52,13 +63,12 @@ namespace Screenshot
 		bool CanApplyPaintFilter() const;
 
 	private:
-		void AddLoadScreenImages(LoadScreenImage& a_images);
 		void TakeScreenshotAsTexture(const DirectX::ScratchImage& a_ssImage, const DirectX::ScratchImage& a_paintingImage);
 
 		// members
-		std::vector<Image> screenshots{};
-		std::vector<Image> paintings{};
-		std::int32_t       index{ -1 };
+		Collection   screenshots{};
+		Collection   paintings{};
+		std::int32_t index{ -1 };
 
 		bool takeScreenshotAsDDS{ true };
 		bool compressTextures{ true };
