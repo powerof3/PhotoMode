@@ -131,7 +131,7 @@ namespace PhotoMode
 		}
 
 		if (cachedOverlay) {
-			drawList->AddImage(cachedOverlay->srView.Get(), topLeft, bottomRight, ImVec2(0, 0), ImVec2(1, 1), static_cast<ImU32>(ImColor(1.0f, 1.0f, 1.0f, alpha)));
+			drawList->AddImage((ImTextureID)cachedOverlay->srView.Get(), topLeft, bottomRight, ImVec2(0, 0), ImVec2(1, 1), static_cast<ImU32>(ImColor(1.0f, 1.0f, 1.0f, alpha)));
 		}
 	}
 }

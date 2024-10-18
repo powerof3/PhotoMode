@@ -48,8 +48,6 @@ namespace ImGui
 		return value_changed;
 	}
 
-	bool BeginTabBarCustom(const char* str_id, ImGuiTabBarFlags flags);
-
 	bool OpenTabOnHover(const char* a_label, ImGuiTabItemFlags flags = 0);
 
 	bool DragFloatEx(const char* label, float* v, float v_speed, float v_min, float v_max, const char* format, ImGuiSliderFlags flags);

@@ -222,8 +222,8 @@ namespace ImGui
 
 		const auto color = isHovered ? IM_COL32(255, 255, 255, 255) : GetUserStyleColorU32(USER_STYLE::kIconDisabled);
 
-		AlignedImage(leftArrow->srView.Get(), leftArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(0, 0.5f), color);
-		AlignedImage(rightArrow->srView.Get(), rightArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(1.0, 0.5f), color);
+		AlignedImage((ImTextureID)leftArrow->srView.Get(), leftArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(0, 0.5f), color);
+		AlignedImage((ImTextureID)rightArrow->srView.Get(), rightArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(1.0, 0.5f), color);
 
 		return isHovered;
 	}
@@ -243,7 +243,7 @@ namespace ImGui
 		PushStyleColor(ImGuiCol_ButtonActive, ImVec4());
 		PushStyleColor(ImGuiCol_ButtonHovered, ImVec4());
 
-		ImageButton(newLabel.c_str(), *a_toggle ? checkboxFilled->srView.Get() : checkbox->srView.Get(), checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
+		ImageButton(newLabel.c_str(), (ImTextureID)(*a_toggle ? checkboxFilled->srView.Get() : checkbox->srView.Get()), checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
 			GetFocusID() == GetCurrentWindow()->GetID(newLabel.c_str()) ? ImVec4(1, 1, 1, 1) : GetUserStyleColorVec4(USER_STYLE::kIconDisabled));
 
 		PopStyleColor(3);
@@ -287,7 +287,7 @@ namespace ImGui
 		if (format == nullptr)
 			format = DataTypeGetInfo(data_type)->PrintFmt;
 
-		const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.InFlags);
+		const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.ItemFlags);
 		bool       temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
 		if (!temp_input_is_active) {
 			// Tabbing or CTRL-clicking on Drag turns it into an InputText
@@ -302,7 +302,7 @@ namespace ImGui
 
 			// (Optional) simple click (without moving) turns Drag into an InputText
 			if (g.IO.ConfigDragClickToInputText && temp_input_allowed && !temp_input_is_active)
-				if (g.ActiveId == id && hovered && g.IO.MouseReleased[0] && !IsMouseDragPastThreshold(0, g.IO.MouseDragThreshold * 0.50f)) {
+				if (g.ActiveId == id && hovered && g.IO.MouseReleased[0] && !IsMouseDragPastThreshold(0, g.IO.MouseDragThreshold * 0.5f)) {
 					g.NavActivateId = id;
 					g.NavActivateFlags = ImGuiActivateFlags_PreferInput;
 					temp_input_is_active = true;
@@ -391,7 +391,7 @@ namespace ImGui
 		if (format == nullptr)
 			format = DataTypeGetInfo(data_type)->PrintFmt;
 
-		const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.InFlags);
+		const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.ItemFlags);
 		bool       temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
 		if (!temp_input_is_active) {
 			// Tabbing or CTRL-clicking on Slider turns it into an input box
@@ -476,94 +476,6 @@ namespace ImGui
 	bool ThinSliderInt(const char* label, int* v, int v_min, int v_max, const char* format, ImGuiSliderFlags flags)
 	{
 		return ThinSliderScalar(label, ImGuiDataType_S32, v, &v_min, &v_max, format, flags, 0.5f);
-	}
-
-	// Copied from imgui_widgets.cpp
-	static ImGuiPtrOrIndex GetTabBarRefFromTabBar(ImGuiTabBar* tab_bar)
-	{
-		ImGuiContext& g = *GImGui;
-		if (g.TabBars.Contains(tab_bar))
-			return ImGuiPtrOrIndex(g.TabBars.GetIndex(tab_bar));
-		return ImGuiPtrOrIndex(tab_bar);
-	}
-
-	// Copied from imgui_widgets.cpp
-	static int TabItemComparerByBeginOrder(const void* lhs, const void* rhs)
-	{
-		const ImGuiTabItem* a = (const ImGuiTabItem*)lhs;
-		const ImGuiTabItem* b = (const ImGuiTabItem*)rhs;
-		return (int)(a->BeginOrder - b->BeginOrder);
-	}
-
-	// Copy of BeginTabBar but with custom separator
-	bool BeginTabBarCustomEx(ImGuiTabBar* tab_bar, const ImRect& tab_bar_bb, ImGuiTabBarFlags flags)
-	{
-		ImGuiContext& g = *GImGui;
-		ImGuiWindow*  window = g.CurrentWindow;
-		if (window->SkipItems)
-			return false;
-
-		// Add to stack
-		g.CurrentTabBarStack.push_back(GetTabBarRefFromTabBar(tab_bar));
-		g.CurrentTabBar = tab_bar;
-
-		// Append with multiple BeginTabBar()/EndTabBar() pairs.
-		tab_bar->BackupCursorPos = window->DC.CursorPos;
-		if (tab_bar->CurrFrameVisible == g.FrameCount) {
-			window->DC.CursorPos = ImVec2(tab_bar->BarRect.Min.x, tab_bar->BarRect.Max.y + tab_bar->ItemSpacingY);
-			tab_bar->BeginCount++;
-			return true;
-		}
-
-		// Ensure correct ordering when toggling ImGuiTabBarFlags_Reorderable flag, or when a new tab was added while being not reorderable
-		if ((flags & ImGuiTabBarFlags_Reorderable) != (tab_bar->Flags & ImGuiTabBarFlags_Reorderable) || (tab_bar->TabsAddedNew && !(flags & ImGuiTabBarFlags_Reorderable)))
-			ImQsort(tab_bar->Tabs.Data, tab_bar->Tabs.Size, sizeof(ImGuiTabItem), TabItemComparerByBeginOrder);
-		tab_bar->TabsAddedNew = false;
-
-		// Flags
-		if ((flags & ImGuiTabBarFlags_FittingPolicyMask_) == 0)
-			flags |= ImGuiTabBarFlags_FittingPolicyDefault_;
-
-		tab_bar->Flags = flags;
-		tab_bar->BarRect = tab_bar_bb;
-		tab_bar->WantLayout = true;  // Layout will be done on the first call to ItemTab()
-		tab_bar->PrevFrameVisible = tab_bar->CurrFrameVisible;
-		tab_bar->CurrFrameVisible = g.FrameCount;
-		tab_bar->PrevTabsContentsHeight = tab_bar->CurrTabsContentsHeight;
-		tab_bar->CurrTabsContentsHeight = 0.0f;
-		tab_bar->ItemSpacingY = g.Style.ItemSpacing.y;
-		tab_bar->FramePadding = g.Style.FramePadding;
-		tab_bar->TabsActiveCount = 0;
-		tab_bar->LastTabItemIdx = -1;
-		tab_bar->BeginCount = 1;
-
-		// Set cursor pos in a way which only be used in the off-chance the user erroneously submits item before BeginTabItem(): items will overlap
-		window->DC.CursorPos = ImVec2(tab_bar->BarRect.Min.x, tab_bar->BarRect.Max.y + tab_bar->ItemSpacingY);
-
-		// Draw separator using ImGuiCol_Separator
-		const ImU32 col = GetColorU32(ImGuiCol_Separator);
-		const float y = tab_bar->BarRect.Max.y - 1.0f;
-		{
-			const float separator_min_x = tab_bar->BarRect.Min.x - IM_FLOOR(window->WindowPadding.x * 0.5f);
-			const float separator_max_x = tab_bar->BarRect.Max.x + IM_FLOOR(window->WindowPadding.x * 0.5f);
-			window->DrawList->AddLine(ImVec2(separator_min_x, y), ImVec2(separator_max_x, y), col, 2.0f);
-		}
-		return true;
-	}
-
-	// Copy of BeginTabBar but with custom separator
-	bool BeginTabBarCustom(const char* str_id, ImGuiTabBarFlags flags)
-	{
-		ImGuiContext& g = *GImGui;
-		ImGuiWindow*  window = g.CurrentWindow;
-		if (window->SkipItems)
-			return false;
-
-		ImGuiID      id = window->GetID(str_id);
-		ImGuiTabBar* tab_bar = g.TabBars.GetOrAddByKey(id);
-		ImRect       tab_bar_bb = ImRect(window->DC.CursorPos.x, window->DC.CursorPos.y, window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);
-		tab_bar->ID = id;
-		return BeginTabBarCustomEx(tab_bar, tab_bar_bb, flags | ImGuiTabBarFlags_IsFocused);
 	}
 
 	bool BeginTabItemEx(const char* label, ImGuiID* active_tab, bool* p_open = nullptr, ImGuiTabItemFlags flags = 0)

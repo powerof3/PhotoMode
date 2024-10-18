@@ -131,6 +131,7 @@ namespace ImGui
 		auto&      colors = style.Colors;
 
 		style.WindowBorderSize = user.borderSize;
+		style.TabBarBorderSize = user.borderSize;
 		style.TabRounding = 0.0f;
 
 		colors[ImGuiCol_WindowBg] = user.background;

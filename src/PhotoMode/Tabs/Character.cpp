@@ -179,7 +179,7 @@ namespace PhotoMode
 
 		ImGui::BeginDisabled(!currentState.visible);
 		{
-			if (ImGui::BeginTabBarCustom("Player#TopBar", 0)) {
+			if (ImGui::BeginTabBar("Player#TopBar", 0)) {
 				// ugly af, improve later
 				const float width = ImGui::GetContentRegionAvail().x / 4;
 

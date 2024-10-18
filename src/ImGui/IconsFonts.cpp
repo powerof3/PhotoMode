@@ -256,7 +256,7 @@ ImVec2 ImGui::ButtonIcon(const IconFont::IconTexture* a_texture, bool a_centerIc
 		const float height = ImGui::GetWindowSize().y;
 		ImGui::SetCursorPosY((height - a_texture->size.y) / 2);
 	}
-	ImGui::Image(a_texture->srView.Get(), a_texture->size);
+	ImGui::Image((ImTextureID)a_texture->srView.Get(), a_texture->size);
 
 	return a_texture->size;
 }
