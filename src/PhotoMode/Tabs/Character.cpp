@@ -69,9 +69,12 @@ namespace PhotoMode
 
 	void Character::RevertIdle() const
 	{
-		if (const auto currentProcess = character ? character->currentProcess : nullptr) {
-			currentProcess->StopCurrentIdle(character, true);
-			currentProcess->PlayIdle(character, resetRootIdle, nullptr);
+		if (character) {
+			character->StopInteractingQuick(true);
+			if (const auto currentProcess = character->currentProcess) {
+				currentProcess->StopCurrentIdle(character, true);
+				currentProcess->PlayIdle(character, resetRootIdle, nullptr);
+			}
 		}
 	}
 
