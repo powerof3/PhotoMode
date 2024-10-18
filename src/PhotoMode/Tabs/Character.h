@@ -77,7 +77,7 @@ namespace PhotoMode
 				void ApplyExpression(RE::Actor* a_actor) const;
 
 				std::int32_t modifier{ 0 };  // 0 is NONE
-				std::int32_t strength{ 0 };
+				std::int32_t strength{ 100 };
 			};
 			struct Modifier
 			{
