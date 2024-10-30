@@ -20,7 +20,9 @@ namespace Translation
 
 	bool Manager::LoadTranslation(const std::filesystem::path& a_path)
 	{
-		if (!std::filesystem::exists(a_path)) {
+		std::error_code ec;
+		if (!std::filesystem::exists(a_path, ec)) {
+			logger::info("Unable to load translations ({})", ec.message());
 			return false;
 		}
 

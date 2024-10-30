@@ -8,7 +8,9 @@ namespace PhotoMode
 	{
 		const std::filesystem::path overlaysPath(R"(Data\Interface\PhotoMode\Overlays)");
 
-		if (!std::filesystem::exists(overlaysPath)) {
+		std::error_code ec;
+		if (!std::filesystem::exists(overlaysPath, ec)) {
+			logger::info("Unable to load overlays ({})", ec.message());
 			return;
 		}
 

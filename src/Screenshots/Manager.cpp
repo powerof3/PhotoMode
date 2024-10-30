@@ -26,7 +26,10 @@ namespace Screenshot
 	void Collection::LoadImages(std::string_view a_folder)
 	{
 		const std::filesystem::directory_entry folder{ a_folder };
-		if (!folder.exists()) {
+		
+		std::error_code ec;
+		if (!folder.exists(ec)) {
+			logger::info("{} folder not found, creating it ({})", a_folder, ec.message());
 			std::filesystem::create_directory(a_folder);
 			return;
 		}
@@ -123,7 +126,9 @@ namespace Screenshot
 			photoDirectory = *directory;
 		}
 
-		if (!std::filesystem::exists(photoDirectory)) {
+		std::error_code ec;
+		if (!std::filesystem::exists(photoDirectory, ec)) {
+			logger::info("\tPhoto directory does not exist, creating it... ({})", ec.message());
 			std::filesystem::create_directory(photoDirectory);
 		}
 
