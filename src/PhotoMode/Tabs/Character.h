@@ -139,5 +139,6 @@ namespace PhotoMode
 		bool effectsPlayed{ false };
 		bool vfxPlayed{ false };
 		bool idlePlayed{ false };
+		bool mfgEdited{ false };
 	};
 }

@@ -128,7 +128,10 @@ namespace PhotoMode
 		}
 
 		// reset expressions
-		mfgData.Revert(character);
+		if (mfgEdited) {
+			mfgData.Revert(character);
+			mfgEdited = false;
+		}
 
 		// revert idles
 		idles.Reset();
@@ -195,6 +198,7 @@ namespace PhotoMode
 						if (ImGui::EnumSlider("$PM_Expression"_T, &mfgData.expressionData.modifier, expressions)) {
 							if (mfgData.expressionData.strength > 0) {
 								mfgData.expressionData.ApplyExpression(character);
+								mfgEdited = true;
 							}
 						}
 						ImGui::Indent();
@@ -203,6 +207,7 @@ namespace PhotoMode
 							{
 								if (ImGui::Slider("$PM_Intensity"_T, &mfgData.expressionData.strength, 0, 100)) {
 									mfgData.expressionData.ApplyExpression(character);
+									mfgEdited = true;
 								}
 							}
 							ImGui::EndDisabled();
@@ -215,6 +220,7 @@ namespace PhotoMode
 							for (std::uint32_t i = 0; i < phonemes.size(); i++) {
 								if (ImGui::Slider(TRANSLATE(phonemes[i]), &mfgData.phonemeData[i].strength, 0, 100)) {
 									mfgData.phonemeData[i].ApplyPhenome(i, character);
+									mfgEdited = true;
 								}
 							}
 							ImGui::TreePop();
@@ -224,6 +230,7 @@ namespace PhotoMode
 							for (std::uint32_t i = 0; i < modifiers.size(); i++) {
 								if (ImGui::Slider(TRANSLATE(modifiers[i]), &mfgData.modifierData[i].strength, 0, 100)) {
 									mfgData.modifierData[i].ApplyModifier(i, character);
+									mfgEdited = true;
 								}
 							}
 							ImGui::TreePop();
