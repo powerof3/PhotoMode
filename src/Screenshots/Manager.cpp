@@ -26,7 +26,7 @@ namespace Screenshot
 	void Collection::LoadImages(std::string_view a_folder)
 	{
 		const std::filesystem::directory_entry folder{ a_folder };
-		
+
 		std::error_code ec;
 		if (!folder.exists(ec)) {
 			logger::info("{} folder not found, creating it ({})", a_folder, ec.message());
