@@ -49,7 +49,7 @@ namespace PhotoMode
 			return false;
 		}
 
-		if (RE::MenuControls::GetSingleton()->InBeastForm() || RE::VATS::GetSingleton()->VATSMode == RE::VATS::VATS_MODE::kKillCam) {
+		if (RE::MenuControls::GetSingleton()->InBeastForm() || RE::VATS::GetSingleton()->mode == RE::VATS::VATS_MODE::kKillCam) {
 			return false;
 		}
 

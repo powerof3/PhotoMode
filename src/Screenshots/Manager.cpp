@@ -110,7 +110,7 @@ namespace Screenshot
 		takeScreenshotAsDDS = a_ini.GetBoolValue("Screenshots", "bLoadScreenPics", takeScreenshotAsDDS);
 
 		applyPaintFilter = a_ini.GetBoolValue("Screenshots", "bPaintFilter", applyPaintFilter);
-		paintFilter.intensity = a_ini.GetDoubleValue("Screenshots", "fPaintIntensity", paintFilter.intensity);
+		paintFilter.intensity = static_cast<float>(a_ini.GetDoubleValue("Screenshots", "fPaintIntensity", paintFilter.intensity));
 		paintFilter.radius = a_ini.GetLongValue("Screenshots", "iPaintRadius", paintFilter.radius);
 
 		compressTextures = a_ini.GetBoolValue("Screenshots", "bCompressTextures", compressTextures);
