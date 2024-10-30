@@ -385,7 +385,7 @@ namespace Input
 		}
 	}
 
-	void Manager::SendKeyEvent(std::uint32_t a_key, std::uint32_t a_value, bool a_keyPressed) const
+	void Manager::SendKeyEvent(std::uint32_t a_key, float a_value, bool a_keyPressed) const
 	{
 		auto& io = ImGui::GetIO();
 

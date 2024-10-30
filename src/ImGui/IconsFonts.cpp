@@ -42,10 +42,10 @@ namespace IconFont
 
 		const auto resolutionScale = ImGui::Renderer::GetResolutionScale();
 
-		fontSize = static_cast<float>(a_ini.GetLongValue("Fonts", "iFontSize", fontSize)) * resolutionScale;
-		largeFontSize = static_cast<float>(a_ini.GetLongValue("Fonts", "iLargeFontSize", largeFontSize)) * resolutionScale;
-		iconSize = static_cast<float>(a_ini.GetLongValue("Fonts", "iIconSize", iconSize)) * resolutionScale;
-		largeIconSize = static_cast<float>(a_ini.GetLongValue("Fonts", "iLargeIconSize", largeIconSize)) * resolutionScale;
+		fontSize = static_cast<float>(a_ini.GetDoubleValue("Fonts", "iFontSize", fontSize)) * resolutionScale;
+		largeFontSize = static_cast<float>(a_ini.GetDoubleValue("Fonts", "iLargeFontSize", largeFontSize)) * resolutionScale;
+		iconSize = static_cast<float>(a_ini.GetDoubleValue("Fonts", "iIconSize", iconSize)) * resolutionScale;
+		largeIconSize = static_cast<float>(a_ini.GetDoubleValue("Fonts", "iLargeIconSize", largeIconSize)) * resolutionScale;
 	}
 
 	void Manager::LoadSettings()

@@ -32,7 +32,7 @@ namespace Input
 		static ImGuiKey ToImGuiKey(KEY a_key);
 		static ImGuiKey ToImGuiKey(GAMEPAD_DIRECTX a_key);
 		static ImGuiKey ToImGuiKey(GAMEPAD_ORBIS a_key);
-		void            SendKeyEvent(std::uint32_t a_key, std::uint32_t a_value, bool a_keyPressed) const;
+		void            SendKeyEvent(std::uint32_t a_key, float a_value, bool a_keyPressed) const;
 
 		EventResult ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*) override;
 
