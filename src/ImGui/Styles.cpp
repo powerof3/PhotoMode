@@ -164,7 +164,7 @@ namespace ImGui
 		colors[ImGuiCol_TabUnfocused] = colors[ImGuiCol_Tab];
 		colors[ImGuiCol_TabUnfocusedActive] = colors[ImGuiCol_TabHovered];
 
-		colors[ImGuiCol_NavHighlight] = ImVec4();
+		colors[ImGuiCol_NavCursor] = ImVec4();
 
 		style.ScaleAllSizes(Renderer::GetResolutionScale());
 		ImGui::GetStyle() = style;

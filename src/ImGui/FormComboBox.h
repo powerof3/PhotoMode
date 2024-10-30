@@ -155,7 +155,7 @@ namespace ImGui
 			{
 				ImGui::SeparatorText(name.c_str());
 
-				ImGui::PushStyleColor(ImGuiCol_NavHighlight, GetUserStyleColorVec4(USER_STYLE::kComboBoxText));
+				ImGui::PushStyleColor(ImGuiCol_NavCursor, GetUserStyleColorVec4(USER_STYLE::kComboBoxText));
 				ImGui::PushStyleColor(ImGuiCol_Header, GetColorU32(ImGuiCol_TextDisabled));
 
 				ImGui::PushID(name.c_str());

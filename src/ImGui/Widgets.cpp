@@ -90,7 +90,7 @@ namespace ImGui
 
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, GetUserStyleColorVec4(USER_STYLE::kComboBoxTextBox));
 		ImGui::PushStyleColor(ImGuiCol_Text, GetUserStyleColorVec4(USER_STYLE::kComboBoxText));
-		ImGui::PushStyleColor(ImGuiCol_NavHighlight, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_NavCursor, ImVec4(0, 0, 0, 0));
 
 		ImGui::PushItemWidth(-FLT_MIN);
 		// Filter input
@@ -135,7 +135,7 @@ namespace ImGui
 		size.x = 0.0f;
 		size.y = GetTextLineHeightWithSpacing() * height_in_items_f + g.Style.FramePadding.y * 2.0f;
 
-		ImGui::PushStyleColor(ImGuiCol_NavHighlight, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_NavCursor, ImVec4(0, 0, 0, 0));
 		if (ImGui::BeginListBox("##ComboWithFilter_itemList", size)) {
 			for (int i = 0; i < show_count; i++) {
 				int idx = is_filtering ? itemScoreVector[i].first : i;
