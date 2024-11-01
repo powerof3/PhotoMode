@@ -65,12 +65,6 @@ namespace PhotoMode
 			//"$PM_HeadRoll",
 			//"$PM_HeadYaw"
 		};
-		inline constexpr std::array skipModifiers{
-			"$PM_LookDown",
-			"$PM_LookLeft",
-			"$PM_LookRight",
-			"$PM_LookUp"
-		};
 
 		class Data
 		{

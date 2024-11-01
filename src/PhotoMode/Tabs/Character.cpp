@@ -228,9 +228,6 @@ namespace PhotoMode
 
 						if (ImGui::TreeNode("$PM_Modifier"_T)) {
 							for (std::uint32_t i = 0; i < modifiers.size(); i++) {
-								if (std::ranges::find(skipModifiers, modifiers[i]) != skipModifiers.end()) {
-									continue;
-								}
 								if (ImGui::Slider(TRANSLATE(modifiers[i]), &mfgData.modifierData[i].strength, 0, 100)) {
 									mfgData.modifierData[i].ApplyModifier(i, character);
 									mfgEdited = true;
