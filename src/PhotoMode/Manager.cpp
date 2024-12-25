@@ -666,6 +666,9 @@ namespace PhotoMode
 
 		if (a_evn->menuName == RE::Console::MENU_NAME) {
 			blockInput = a_evn->opening;
+			if (a_evn->opening && IsHidden()) {
+				ToggleUI();
+			}
 		} else if (a_evn->opening) {
 			if (a_evn->menuName == RE::JournalMenu::MENU_NAME) {
 				if (openFromPauseMenu) {
