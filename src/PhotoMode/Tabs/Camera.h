@@ -19,10 +19,10 @@ namespace PhotoMode
 		// very, very basic support
 		struct ENBDOF
 		{
-			enum TYPE : std::uint32_t
+			enum TYPE : std::uint8_t
 			{
-				kNone,
-				kEnable = 1 << 0,
+				kNone = 0,
+				kEnable,
 				kAll
 			};
 
@@ -67,7 +67,7 @@ namespace PhotoMode
 
 	namespace CameraGrid
 	{
-		enum GridType
+		enum GridType : std::uint8_t
 		{
 			kDisabled,
 			kRuleOfThirds,

@@ -2,7 +2,7 @@
 
 namespace LoadScreen
 {
-	enum class Type : std::uint32_t
+	enum class Type : std::uint8_t
 	{
 		kNone,
 		kFullScreen,

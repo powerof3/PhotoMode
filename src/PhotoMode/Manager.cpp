@@ -45,7 +45,7 @@ namespace PhotoMode
 		}
 
 		auto context_id = controlMap->contextPriorityStack.back();
-		if (!(context_id == RE::UserEvents::INPUT_CONTEXT_ID::kGameplay || context_id == RE::UserEvents::INPUT_CONTEXT_ID::kTFCMode || context_id == RE::UserEvents::INPUT_CONTEXT_ID::kConsole)) {
+		if (context_id != RE::UserEvents::INPUT_CONTEXT_ID::kGameplay && context_id != RE::UserEvents::INPUT_CONTEXT_ID::kTFCMode && context_id != RE::UserEvents::INPUT_CONTEXT_ID::kConsole) {
 			return false;
 		}
 
@@ -86,6 +86,8 @@ namespace PhotoMode
 
 	void Manager::Activate()
 	{
+		RE::PlaySound("UIMenuOK");
+
 		cameraTab.GetOriginalState();
 		timeTab.GetOriginalState();
 
@@ -206,19 +208,19 @@ namespace PhotoMode
 		if (activeGlobal) {
 			activeGlobal->value = 0.0f;
 		}
+
+		RE::PlaySound("UIMenuCancel");
 	}
 
 	void Manager::ToggleActive()
 	{
 		if (!IsActive()) {
 			if (IsValid() && !ShouldBlockInput()) {
-				RE::PlaySound("UIMenuOK");
 				Activate();
 			}
 		} else {
 			if (!ImGui::GetIO().WantTextInput && !ShouldBlockInput()) {
 				Deactivate();
-				RE::PlaySound("UIMenuCancel");
 			}
 		}
 	}
@@ -246,7 +248,7 @@ namespace PhotoMode
 				characterTab[cachedCharacter->GetFormID()].RevertState();
 			}
 		} else if (tabIndex == -1) {
-			std::for_each(characterTab.begin(), characterTab.end(), [](auto& data) {
+			std::ranges::for_each(characterTab, [](auto& data) {
 				data.second.RevertState();
 			});
 		}
@@ -589,7 +591,7 @@ namespace PhotoMode
 					});
 
 					RE::GFxValue showModMenu;
-					if (page.GetMember("_showModMenu", &showModMenu) && showModMenu.GetBool() == false) {
+					if (page.GetMember("_showModMenu", &showModMenu) && !showModMenu.GetBool()) {
 						page.SetMember("_showModMenu", true);
 					} else {
 						std::erase(elements, "$MOD MANAGER");
@@ -614,7 +616,7 @@ namespace PhotoMode
 
 		} else {
 			RE::GFxValue showModMenu;
-			if (page.GetMember("_showModMenu", &showModMenu) && showModMenu.GetBool() == false) {
+			if (page.GetMember("_showModMenu", &showModMenu) && !showModMenu.GetBool()) {
 				std::array<RE::GFxValue, 1> args;
 				args[0] = true;
 				if (!page.Invoke("SetShowMod", nullptr, args.data(), args.size())) {
@@ -676,7 +678,6 @@ namespace PhotoMode
 					msgQueue->AddMessage(RE::ModManagerMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
 					msgQueue->AddMessage(RE::JournalMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
 
-					RE::PlaySound("UIMenuOK");
 					Activate();
 				}
 			}

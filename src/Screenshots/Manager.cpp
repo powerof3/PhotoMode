@@ -7,8 +7,8 @@
 namespace Screenshot
 {
 	Image::Image(std::string_view a_path, std::uint32_t a_index) :
-		index(a_index),
-		path(std::format("{}/screenshot{}.dds", a_path, a_index))
+		path(std::format("{}/screenshot{}.dds", a_path, a_index)),
+		index(a_index)
 	{}
 
 	Image::Image(std::string& a_path) :
@@ -233,8 +233,8 @@ namespace Screenshot
 		// capture screenshot
 		DirectX::ScratchImage inputImage{};
 
-		const ComPtr<ID3D11Device>        device{ (ID3D11Device*)renderer->forwarder };
-		const ComPtr<ID3D11DeviceContext> deviceContext{ (ID3D11DeviceContext*)renderer->context };
+		const ComPtr<ID3D11Device>        device{ reinterpret_cast<ID3D11Device*>(renderer->forwarder) };
+		const ComPtr<ID3D11DeviceContext> deviceContext{ reinterpret_cast<ID3D11DeviceContext*>(renderer->context) };
 		ID3D11Texture2D*                  texture2D{ renderer->renderTargets[RE::RENDER_TARGET::kSCREENSHOT].texture };
 
 		if (auto result = DirectX::CaptureTexture(device.Get(), deviceContext.Get(), texture2D, inputImage); result == S_OK) {

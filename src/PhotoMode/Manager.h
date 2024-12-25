@@ -47,7 +47,7 @@ namespace PhotoMode
 		std::pair<ImGui::Texture*, float> GetOverlay() const;
 
 	private:
-		enum TAB_TYPE : std::int32_t
+		enum TAB_TYPE : std::int8_t
 		{
 			kCamera,
 			kTime,

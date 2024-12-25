@@ -40,8 +40,8 @@ namespace PhotoMode
 		hasOverlays = !overlays.empty();
 
 		if (hasOverlays) {
-			for (auto& [folder, files] : overlays) {
-				for (auto& [path, overlay] : files) {
+			for (auto& files : overlays | std::views::values) {
+				for (auto& overlay : files | std::views::values) {
 					overlay.Load(true);
 				}
 			}
@@ -67,7 +67,7 @@ namespace PhotoMode
 		updateOverlay = false;
 
 		folders.index = 0;
-		for (auto& [index, files] : folderFiles) {
+		for (auto& files : folderFiles | std::views::values) {
 			files.index = 0;
 		}
 

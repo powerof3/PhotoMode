@@ -46,7 +46,7 @@ namespace ImGui
 		case USER_STYLE::kComboBoxText:
 			return user.comboBoxText;
 		default:
-			return ImVec4();
+			return {};
 		}
 	}
 

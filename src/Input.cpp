@@ -85,6 +85,66 @@ namespace Input
 		}
 	}
 
+	bool Manager::SetInputDevice(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey)
+	{
+		// get input type
+		switch (a_device) {
+		case RE::INPUT_DEVICE::kKeyboard:
+			inputDevice = DEVICE::kKeyboard;
+			break;
+		case RE::INPUT_DEVICE::kMouse:
+			{
+				a_hotkey += SKSE::InputMap::kMacro_MouseButtonOffset;
+				inputDevice = DEVICE::kMouse;
+			}
+			break;
+		case RE::INPUT_DEVICE::kGamepad:
+			{
+				a_hotkey = SKSE::InputMap::GamepadMaskToKeycode(a_hotkey);
+				if (RE::ControlMap::GetSingleton()->GetGamePadType() == RE::PC_GAMEPAD_TYPE::kOrbis) {
+					inputDevice = DEVICE::kGamepadOrbis;
+				} else {
+					inputDevice = DEVICE::kGamepadDirectX;
+				}
+			}
+			break;
+		default:
+			return false;
+		}
+
+		return true;
+	}
+
+	bool Manager::PanWithMouse(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const
+	{
+		// recreate vertical pan event for mouse
+		if (inputDevice == DEVICE::kMouse && RE::PlayerCamera::GetSingleton()->IsInFreeCameraMode()) {  // redundant check??
+			if (const auto freeCameraState = static_cast<RE::FreeCameraState*>(RE::PlayerCamera::GetSingleton()->currentState.get())) {
+				if (a_key == MOUSE::kLeftButton) {
+					std::uint16_t value = (value & 0x00ff) | (0 << 8);
+					bool          released = true;
+					if (a_buttonEvent->value != 0.0 || a_buttonEvent->heldDownSecs < 0.0) {
+						released = false;
+					}
+					value = (value & 0xff00) | (!released);
+					freeCameraState->verticalDirection = value;
+
+					return true;
+				}
+				if (a_key == MOUSE::kRightButton) {
+					if (a_buttonEvent->value == 0.0 && a_buttonEvent->heldDownSecs >= 0.0) {
+						freeCameraState->verticalDirection = 0;
+					} else {
+						freeCameraState->verticalDirection = -1;
+					}
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	ImGuiKey Manager::ToImGuiKey(KEY a_key)
 	{
 		switch (a_key) {
@@ -438,8 +498,6 @@ namespace Input
 			return EventResult::kContinue;
 		}
 
-		auto& io = ImGui::GetIO();
-
 		const auto photoMode = MANAGER(PhotoMode);
 		const auto hotKeys = MANAGER(PhotoMode::Hotkeys);
 
@@ -450,73 +508,30 @@ namespace Input
 				return EventResult::kContinue;
 			}
 
+			auto& io = ImGui::GetIO();
+
 			for (auto event = *a_evn; event; event = event->next) {
 				// process inputs
 				if (const auto charEvent = event->AsCharEvent()) {
 					io.AddInputCharacter(charEvent->keycode);
 				} else if (const auto buttonEvent = event->AsButtonEvent()) {
 					const auto key = buttonEvent->GetIDCode();
-					const auto device = event->GetDevice();
 					auto       hotKey = key;
 
-					// get input type
-					switch (device) {
-					case RE::INPUT_DEVICE::kKeyboard:
-						inputDevice = DEVICE::kKeyboard;
-						break;
-					case RE::INPUT_DEVICE::kMouse:
-						{
-							hotKey += SKSE::InputMap::kMacro_MouseButtonOffset;
-							inputDevice = DEVICE::kMouse;
-						}
-						break;
-					case RE::INPUT_DEVICE::kGamepad:
-						{
-							hotKey = SKSE::InputMap::GamepadMaskToKeycode(hotKey);
-							if (RE::ControlMap::GetSingleton()->GetGamePadType() == RE::PC_GAMEPAD_TYPE::kOrbis) {
-								inputDevice = DEVICE::kGamepadOrbis;
-							} else {
-								inputDevice = DEVICE::kGamepadDirectX;
-							}
-						}
-						break;
-					default:
+					if (!SetInputDevice(event->GetDevice(), hotKey) || PanWithMouse(buttonEvent, key)) {
 						continue;
 					}
 
-					// recreate vertical pan event for mouse
-					if (inputDevice == DEVICE::kMouse && RE::PlayerCamera::GetSingleton()->IsInFreeCameraMode()) {  // redundant check??
-						if (auto freeCameraState = static_cast<RE::FreeCameraState*>(RE::PlayerCamera::GetSingleton()->currentState.get())) {
-							if (key == MOUSE::kLeftButton) {
-								std::uint16_t value = (value & 0x00ff) | (0 << 8);
-								bool          released = true;
-								if (buttonEvent->value != 0.0 || buttonEvent->heldDownSecs < 0.0) {
-									released = false;
-								}
-								value = (value & 0xff00) | (released == false);
-								freeCameraState->verticalDirection = value;
-
-								continue;
-							} else if (key == MOUSE::kRightButton) {
-								if (buttonEvent->value == 0.0 && buttonEvent->heldDownSecs >= 0.0) {
-									freeCameraState->verticalDirection = 0;
-								} else {
-									freeCameraState->verticalDirection = -1;
-								}
-
-								continue;
-							}
-						}
-					}
-
 					if (!io.WantTextInput) {
-						if (hotKey == hotKeys->ToggleMenusKey() && buttonEvent->IsDown()) {
-							photoMode->ToggleUI();
-						} else if (hotKey == hotKeys->TakePhotoKey()) {
+						if (hotKey == hotKeys->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
 								QueueScreenshot(hotKey != GetDefaultScreenshotKey());
 							} else if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > keyHeldDuration) {
 								QueueScreenshot(true);
+							}
+						} else if (hotKey == hotKeys->ToggleMenusKey()) {
+							if (buttonEvent->IsDown()) {
+								photoMode->ToggleUI();
 							}
 						} else if (!photoMode->IsHidden()) {
 							if (hotKey == hotKeys->NextTabKey() && buttonEvent->IsDown()) {
@@ -533,10 +548,10 @@ namespace Input
 								}
 							}
 						}
-					}
 
-					if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {
-						SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
+						if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {
+							SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
+						}
 					}
 				}
 			}

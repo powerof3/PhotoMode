@@ -2,8 +2,8 @@
 
 namespace Screenshot
 {
-	inline std::string_view screenshotFolder{ "data\\textures\\photomode\\screenshots"sv };
-	inline std::string_view paintingFolder{ "data\\textures\\photomode\\screenshots\\paintings"sv };
+	inline std::string_view screenshotFolder{ R"(data\textures\photomode\screenshots)" };
+	inline std::string_view paintingFolder{ R"(data\textures\photomode\screenshots\paintings)" };
 
 	// .../Screenshot48.dds, 48
 	struct Image

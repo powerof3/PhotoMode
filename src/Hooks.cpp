@@ -22,7 +22,7 @@ namespace PhotoMode
 		static bool thunk(RE::TESIdleForm* a_this, const char* a_str)
 		{
 			if (!clib_util::string::is_empty(a_str)) {
-				if (const std::string str(a_str); !str.starts_with("pa_")) {  // paired anims
+				if (const std::string_view str(a_str); !str.starts_with("pa_")) {  // paired anims
 					cachedIdles.emplace(a_str, a_this);
 				}
 			}

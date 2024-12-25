@@ -46,7 +46,6 @@ using namespace clib_util::singleton;
 
 namespace logger = SKSE::log;
 
-using RNG = clib_util::RNG;
 using EventResult = RE::BSEventNotifyControl;
 
 using KEY = RE::BSWin32KeyboardDevice::Key;
