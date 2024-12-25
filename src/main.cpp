@@ -1,3 +1,4 @@
+#include "Console.h"
 #include "ENB/ENB.h"
 #include "Hooks.h"
 #include "ImGui/Renderer.h"
@@ -55,6 +56,8 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 			MANAGER(LoadScreen)->InitLoadScreenObjects();
 			MANAGER(Screenshot)->LoadScreenshots();
 			MANAGER(PhotoMode)->OnDataLoad();
+
+			Console::Install();
 		}
 		break;
 	default:

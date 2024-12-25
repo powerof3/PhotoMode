@@ -1,5 +1,6 @@
 set(headers ${headers}
 	src/Cache.h
+	src/Console.h
 	src/ENB/AntTweakBar.h
 	src/ENB/ENB.h
 	src/ENB/ENBSeriesAPI.h
