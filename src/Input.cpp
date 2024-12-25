@@ -548,10 +548,10 @@ namespace Input
 								}
 							}
 						}
+					}
 
-						if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {
-							SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
-						}
+					if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {
+						SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
 					}
 				}
 			}
