@@ -31,8 +31,8 @@ namespace PhotoMode::Hotkeys
 
 	void Manager::Key::LoadKeys(const CSimpleIniA& a_ini, std::string_view a_setting)
 	{
-		keyboard = a_ini.GetLongValue("Controls", fmt::format("{}Key", a_setting).c_str(), keyboard);
-		gamePad = a_ini.GetLongValue("Controls", fmt::format("{}GamePad", a_setting).c_str(), gamePad);
+		keyboard = a_ini.GetLongValue("Controls", std::format("{}Key", a_setting).c_str(), keyboard);
+		gamePad = a_ini.GetLongValue("Controls", std::format("{}GamePad", a_setting).c_str(), gamePad);
 	}
 
 	std::uint32_t Manager::Key::GetKey() const
@@ -54,7 +54,7 @@ namespace PhotoMode::Hotkeys
 	void Manager::KeyCombo::KeyComboImpl::LoadKeys(const CSimpleIniA& a_ini, std::string_view a_setting)
 	{
 		primary = a_ini.GetLongValue("Controls", a_setting.data(), primary);
-		modifier = a_ini.GetLongValue("Controls", fmt::format("{}Modifier", a_setting).c_str(), modifier);
+		modifier = a_ini.GetLongValue("Controls", std::format("{}Modifier", a_setting).c_str(), modifier);
 
 		keys.clear();
 		if (primary != -1) {

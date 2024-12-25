@@ -272,7 +272,7 @@ namespace PhotoMode
 		} else {
 			RE::PlaySound("UIMenuOK");
 
-			const auto notification = fmt::format("{}", resetAll ? "$PM_ResetNotifAll"_T : TRANSLATE(tabResetNotifs[currentTab]));
+			const auto notification = std::format("{}", resetAll ? "$PM_ResetNotifAll"_T : TRANSLATE(tabResetNotifs[currentTab]));
 			RE::DebugNotification(notification.c_str());
 
 			if (resetAll) {
