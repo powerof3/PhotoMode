@@ -8,10 +8,13 @@
 
 #include "Input.h"
 
+
 namespace PhotoMode
 {
 	void Manager::Register()
 	{
+		Manager::GetSingleton()->tweenMenuInstalled = GetModuleHandle(L"TweenMenuOverhaul") != nullptr;
+
 		RE::UI::GetSingleton()->AddEventSink(GetSingleton());
 		logger::info("Registered for menu open/close event");
 	}
@@ -293,10 +296,15 @@ namespace PhotoMode
 
 	void Manager::NavigateTab(bool a_left)
 	{
+		const auto tabsSizeInt32 = tabs.size() > std::numeric_limits<uint32_t>::max() ?
+		                          std::numeric_limits<uint32_t>::max() :
+		                          static_cast<uint32_t>(tabs.size());
 		if (a_left) {
-			currentTab = (currentTab - 1 + tabs.size()) % tabs.size();
+			const auto result = (currentTab - static_cast<uint32_t>(1) + tabsSizeInt32) % tabsSizeInt32;
+			currentTab = result;
 		} else {
-			currentTab = (currentTab + 1) % tabs.size();
+			const auto result = (currentTab + static_cast<uint32_t>(1)) % tabsSizeInt32;
+			currentTab = result;
 		}
 		updateKeyboardFocus = true;
 	}
@@ -565,6 +573,10 @@ namespace PhotoMode
 
 	bool Manager::SetupJournalMenu() const
 	{
+		if (tweenMenuInstalled) {
+			return true;
+		}
+
 		const auto menu = RE::UI::GetSingleton()->GetMenu<RE::JournalMenu>(RE::JournalMenu::MENU_NAME);
 		const auto view = menu ? menu->systemTab.view : nullptr;
 
