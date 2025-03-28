@@ -300,11 +300,9 @@ namespace PhotoMode
 		                          std::numeric_limits<uint32_t>::max() :
 		                          static_cast<uint32_t>(tabs.size());
 		if (a_left) {
-			const auto result = (currentTab - static_cast<uint32_t>(1) + tabsSizeInt32) % tabsSizeInt32;
-			currentTab = result;
+			currentTab = (currentTab - static_cast<uint32_t>(1) + tabsSizeInt32) % tabsSizeInt32;
 		} else {
-			const auto result = (currentTab + static_cast<uint32_t>(1)) % tabsSizeInt32;
-			currentTab = result;
+			currentTab = (currentTab + static_cast<uint32_t>(1)) % tabsSizeInt32;
 		}
 		updateKeyboardFocus = true;
 	}

@@ -17,7 +17,10 @@ namespace ImGui::Renderer
 		const auto resolutionScaleDouble = a_ini.GetDoubleValue("Render", "ResolutionScale", DisplayTweaks::resolutionScale);
 		const float resolutionScaleFloat = resolutionScaleDouble > std::numeric_limits<float>::max() ?
 		                                       std::numeric_limits<float>::max() :
+		                                   resolutionScaleDouble < std::numeric_limits<float>::min() ?
+		                                       std::numeric_limits<float>::min() :
 		                                       static_cast<float>(resolutionScaleDouble);
+
 		DisplayTweaks::resolutionScale = resolutionScaleFloat;
 		DisplayTweaks::borderlessUpscale = a_ini.GetBoolValue("Render", "BorderlessUpscale", DisplayTweaks::borderlessUpscale);
 	}

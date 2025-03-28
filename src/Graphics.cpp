@@ -106,6 +106,7 @@ namespace Texture
 					for (std::int32_t offsetY = minY; offsetY <= maxY; offsetY++) {
 						for (std::int32_t offsetX = minX; offsetX <= maxX; offsetX++) {
 							const auto operand = (currRow + static_cast<std::size_t>(offsetY)) * bytesInARow;
+							// Result is never negative, so no lower bound check.
 							const std::int32_t result = operand > std::numeric_limits<std::int32_t>::max() ?
 							                                std::numeric_limits<std::int32_t>::max() :
 							                                static_cast<std::int32_t>(operand);
