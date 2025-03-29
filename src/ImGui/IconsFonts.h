@@ -18,7 +18,7 @@ namespace IconFont
 		ImVec2 imageSize{};
 	};
 
-	class Manager final : public ISingleton<Manager>
+	class Manager final : public REX::Singleton<Manager>
 	{
 	public:
 		struct GamepadIcon

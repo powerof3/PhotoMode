@@ -18,7 +18,7 @@ namespace ImGui
 		kComboBoxText
 	};
 
-	class Styles : public ISingleton<Styles>
+	class Styles : public REX::Singleton<Styles>
 	{
 	public:
 		ImU32  GetColorU32(USER_STYLE a_style) const;

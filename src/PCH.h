@@ -9,6 +9,7 @@
 #define MANAGER(T) T::Manager::GetSingleton()
 
 #include "RE/Skyrim.h"
+#include "REX/REX/Singleton.h"
 #include "SKSE/SKSE.h"
 
 #include <codecvt>
@@ -34,7 +35,6 @@
 #include <ClibUtil/editorID.hpp>
 #include <ClibUtil/hash.hpp>
 #include <ClibUtil/simpleINI.hpp>
-#include <ClibUtil/singleton.hpp>
 #include <ClibUtil/string.hpp>
 
 #define DLLEXPORT __declspec(dllexport)
@@ -42,7 +42,6 @@
 using namespace std::literals;
 using namespace clib_util;
 using namespace string::literals;
-using namespace clib_util::singleton;
 
 namespace logger = SKSE::log;
 

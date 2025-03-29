@@ -73,7 +73,7 @@ namespace ImGui
 		}
 		popup_max_height_in_items = ImMin(popup_max_height_in_items, show_count);
 
-		if (!(g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSizeConstraint)) {
+		if (!(g.NextWindowData.HasFlags & ImGuiNextWindowDataFlags_HasSizeConstraint)) {
 			const int numItems = popup_max_height_in_items + 2;  // extra for search bar
 			SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX,
 														   CalcMaxPopupHeightFromItemCount(numItems)));

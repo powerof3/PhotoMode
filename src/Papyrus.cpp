@@ -61,11 +61,12 @@ namespace Papyrus
 		}
 
 		a_vm->RegisterFunction("OnConfigClose", MCM, OnConfigClose);
-		logger::info("Registered {} class", MCM);
 
 		a_vm->RegisterFunction("ToggleMenu"sv, script, ToggleMenu);
 		a_vm->RegisterFunction("IsPhotoModeActive"sv, script, IsPhotoModeActive);
 		a_vm->RegisterFunction("GetVersion"sv, script, GetVersion);
+
+		logger::info("Registered {} class", MCM);
 
 		return true;
 	}

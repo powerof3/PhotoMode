@@ -2,7 +2,7 @@
 
 namespace Translation
 {
-	class Manager final : public ISingleton<Manager>
+	class Manager final : public REX::Singleton<Manager>
 	{
 	public:
 		static std::string GetGameLanguage();

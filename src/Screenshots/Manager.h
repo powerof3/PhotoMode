@@ -42,7 +42,7 @@ namespace Screenshot
 		std::size_t GetRandomIndex();
 	};
 
-	class Manager final : public ISingleton<Manager>
+	class Manager final : public REX::Singleton<Manager>
 	{
 	public:
 		void LoadMCMSettings(const CSimpleIniA& a_ini);

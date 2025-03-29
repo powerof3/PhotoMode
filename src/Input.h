@@ -11,7 +11,7 @@ namespace Input
 	};
 
 	class Manager final :
-		public ISingleton<Manager>,
+		public REX::Singleton<Manager>,
 		public RE::BSTEventSink<RE::InputEvent*>
 	{
 	public:
