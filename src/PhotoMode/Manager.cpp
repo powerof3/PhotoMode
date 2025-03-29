@@ -8,7 +8,6 @@
 
 #include "Input.h"
 
-
 namespace PhotoMode
 {
 	void Manager::Register()
@@ -297,8 +296,8 @@ namespace PhotoMode
 	void Manager::NavigateTab(bool a_left)
 	{
 		const auto tabsSizeInt32 = tabs.size() > std::numeric_limits<uint32_t>::max() ?
-		                          std::numeric_limits<uint32_t>::max() :
-		                          static_cast<uint32_t>(tabs.size());
+		                               std::numeric_limits<uint32_t>::max() :
+		                               static_cast<uint32_t>(tabs.size());
 		if (a_left) {
 			currentTab = (currentTab - static_cast<uint32_t>(1) + tabsSizeInt32) % tabsSizeInt32;
 		} else {

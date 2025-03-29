@@ -14,7 +14,7 @@ namespace ImGui::Renderer
 
 	void LoadSettings(const CSimpleIniA& a_ini)
 	{
-		const auto resolutionScaleDouble = a_ini.GetDoubleValue("Render", "ResolutionScale", DisplayTweaks::resolutionScale);
+		const auto  resolutionScaleDouble = a_ini.GetDoubleValue("Render", "ResolutionScale", DisplayTweaks::resolutionScale);
 		const float resolutionScaleFloat = resolutionScaleDouble > std::numeric_limits<float>::max() ?
 		                                       std::numeric_limits<float>::max() :
 		                                   resolutionScaleDouble < std::numeric_limits<float>::min() ?
@@ -129,7 +129,7 @@ namespace ImGui::Renderer
 				                                  std::numeric_limits<float>::max() :
 				                                  static_cast<float>(screenSize.width);
 				const float screenSizeHeight = screenSize.height > std::numeric_limits<float>::max() ?
-				                                  std::numeric_limits<float>::max() :
+				                                   std::numeric_limits<float>::max() :
 				                                   static_cast<float>(screenSize.height);
 
 				io.DisplaySize.x = screenSizeWidth;

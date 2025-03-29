@@ -132,13 +132,13 @@ namespace Texture
 					const std::int32_t maxIntensityIndex = maxIntensityIndexRaw > std::numeric_limits<std::uint32_t>::max() ?
 					                                           std::numeric_limits<std::uint32_t>::max() :
 					                                           static_cast<std::uint32_t>(maxIntensityIndexRaw);
-					
+
 					const std::int32_t currMaxIntensityCount = intensityCount[maxIntensityIndex];
 
 					const auto offset = (currColumn << 2) + currRowOffset;
 
 					// Red
-					const auto operandRed = avgR[maxIntensityIndex] / currMaxIntensityCount;
+					const auto         operandRed = avgR[maxIntensityIndex] / currMaxIntensityCount;
 					const std::uint8_t normalizedRed = operandRed > std::numeric_limits<std::uint8_t>::max() ?
 					                                       std::numeric_limits<std::uint8_t>::max() :
 					                                       static_cast<std::uint8_t>(operandRed);
@@ -152,10 +152,10 @@ namespace Texture
 					// Blue
 					const auto         operandBlue = avgG[maxIntensityIndex] / currMaxIntensityCount;
 					const std::uint8_t normalizedBlue = operandBlue > std::numeric_limits<std::uint8_t>::max() ?
-					                                         std::numeric_limits<std::uint8_t>::max() :
-					                                         static_cast<std::uint8_t>(operandBlue);
+					                                        std::numeric_limits<std::uint8_t>::max() :
+					                                        static_cast<std::uint8_t>(operandBlue);
 
-					outPixels[offset]     = normalizedRed;
+					outPixels[offset] = normalizedRed;
 					outPixels[offset + 1] = normalizedGreen;
 					outPixels[offset + 2] = normalizedBlue;
 				}
