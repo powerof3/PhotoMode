@@ -108,6 +108,7 @@ namespace PhotoMode
 		bool resetWindow{ true };
 		bool resetPlayerTabs{ true };
 		bool resetAll{ false };
+		bool tweenMenuInstalled{ false };
 
 		bool menusAlreadyHidden{ false };
 		bool allowTextInput{ false };
