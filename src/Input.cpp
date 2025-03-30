@@ -508,12 +508,10 @@ namespace Input
 				return EventResult::kContinue;
 			}
 
-			auto& io = ImGui::GetIO();
-
 			for (auto event = *a_evn; event; event = event->next) {
 				// process inputs
 				if (const auto charEvent = event->AsCharEvent()) {
-					io.AddInputCharacter(charEvent->keycode);
+					ImGui::GetIO().AddInputCharacter(charEvent->keycode);
 				} else if (const auto buttonEvent = event->AsButtonEvent()) {
 					const auto key = buttonEvent->GetIDCode();
 					auto       hotKey = key;
@@ -522,7 +520,7 @@ namespace Input
 						continue;
 					}
 
-					if (!io.WantTextInput) {
+					if (!ImGui::GetIO().WantTextInput) {
 						if (hotKey == hotKeys->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
 								QueueScreenshot(hotKey != GetDefaultScreenshotKey());
@@ -550,7 +548,12 @@ namespace Input
 						}
 					}
 
-					if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {
+					// temp alt tabbing fix
+					if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {
+						continue;
+					}
+
+					if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {						
 						SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
 					}
 				}
