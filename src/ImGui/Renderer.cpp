@@ -14,14 +14,7 @@ namespace ImGui::Renderer
 
 	void LoadSettings(const CSimpleIniA& a_ini)
 	{
-		const auto  resolutionScaleDouble = a_ini.GetDoubleValue("Render", "ResolutionScale", DisplayTweaks::resolutionScale);
-		const float resolutionScaleFloat = resolutionScaleDouble > std::numeric_limits<float>::max() ?
-		                                       std::numeric_limits<float>::max() :
-		                                   resolutionScaleDouble < std::numeric_limits<float>::min() ?
-		                                       std::numeric_limits<float>::min() :
-		                                       static_cast<float>(resolutionScaleDouble);
-
-		DisplayTweaks::resolutionScale = resolutionScaleFloat;
+		DisplayTweaks::resolutionScale = static_cast<float>(a_ini.GetDoubleValue("Render", "ResolutionScale", static_cast<double>(DisplayTweaks::resolutionScale)));
 		DisplayTweaks::borderlessUpscale = a_ini.GetBoolValue("Render", "BorderlessUpscale", DisplayTweaks::borderlessUpscale);
 	}
 
@@ -124,16 +117,9 @@ namespace ImGui::Renderer
 				// trick imgui into rendering at game's real resolution (ie. if upscaled with Display Tweaks)
 				static const auto screenSize = RE::BSGraphics::Renderer::GetScreenSize();
 
-				auto&       io = ImGui::GetIO();
-				const float screenSizeWidth = screenSize.width > std::numeric_limits<float>::max() ?
-				                                  std::numeric_limits<float>::max() :
-				                                  static_cast<float>(screenSize.width);
-				const float screenSizeHeight = screenSize.height > std::numeric_limits<float>::max() ?
-				                                   std::numeric_limits<float>::max() :
-				                                   static_cast<float>(screenSize.height);
-
-				io.DisplaySize.x = screenSizeWidth;
-				io.DisplaySize.y = screenSizeHeight;
+				auto& io = ImGui::GetIO();
+				io.DisplaySize.x = static_cast<float>(screenSize.width);
+				io.DisplaySize.y = static_cast<float>(screenSize.height);
 			}
 			ImGui::NewFrame();
 			{

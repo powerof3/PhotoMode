@@ -83,10 +83,10 @@ namespace Texture
 		const auto& bytesInARow = a_srcImage->rowPitch;
 
 		auto processRows = [&](const std::size_t startRow, const std::size_t endRow) {
-			std::array<std::int32_t, 256> intensityCount{ 0 };
-			std::array<std::int32_t, 256> avgR{ 0 };
-			std::array<std::int32_t, 256> avgG{ 0 };
-			std::array<std::int32_t, 256> avgB{ 0 };
+			std::array<std::int32_t, 256> intensityCount{};
+			std::array<std::int32_t, 256> avgR{};
+			std::array<std::int32_t, 256> avgG{};
+			std::array<std::int32_t, 256> avgB{};
 
 			auto currRowOffset = (startRow * bytesInARow);
 			for (auto currRow = startRow; currRow < endRow; currRow++) {
@@ -105,13 +105,7 @@ namespace Texture
 					// Grab luminance values of neighbouring pixels
 					for (std::int32_t offsetY = minY; offsetY <= maxY; offsetY++) {
 						for (std::int32_t offsetX = minX; offsetX <= maxX; offsetX++) {
-							const auto operand = (currRow + static_cast<std::size_t>(offsetY)) * bytesInARow;
-							// Result is never negative, so no lower bound check.
-							const std::int32_t result = operand > std::numeric_limits<std::int32_t>::max() ?
-							                                std::numeric_limits<std::int32_t>::max() :
-							                                static_cast<std::int32_t>(operand);
-
-							const std::int32_t offset = ((currColumn + offsetX) << 2) + result;
+							const std::int32_t offset = ((currColumn + offsetX) << 2) + static_cast<std::int32_t>((currRow + static_cast<std::size_t>(offsetY)) * bytesInARow);
 
 							const std::uint32_t R = inPixels[offset];
 							const std::uint32_t G = inPixels[offset + 1];
@@ -128,36 +122,14 @@ namespace Texture
 					}
 
 					// Find max intensity
-					const auto         maxIntensityIndexRaw = std::distance(intensityCount.begin(), std::ranges::max_element(intensityCount));
-					const std::int32_t maxIntensityIndex = maxIntensityIndexRaw > std::numeric_limits<std::uint32_t>::max() ?
-					                                           std::numeric_limits<std::uint32_t>::max() :
-					                                           static_cast<std::uint32_t>(maxIntensityIndexRaw);
-
+					const std::int32_t maxIntensityIndex = static_cast<std::int32_t>(std::distance(intensityCount.begin(), std::ranges::max_element(intensityCount)));
 					const std::int32_t currMaxIntensityCount = intensityCount[maxIntensityIndex];
 
 					const auto offset = (currColumn << 2) + currRowOffset;
 
-					// Red
-					const auto         operandRed = avgR[maxIntensityIndex] / currMaxIntensityCount;
-					const std::uint8_t normalizedRed = operandRed > std::numeric_limits<std::uint8_t>::max() ?
-					                                       std::numeric_limits<std::uint8_t>::max() :
-					                                       static_cast<std::uint8_t>(operandRed);
-
-					// Green
-					const auto         operandGreen = avgG[maxIntensityIndex] / currMaxIntensityCount;
-					const std::uint8_t normalizedGreen = operandGreen > std::numeric_limits<std::uint8_t>::max() ?
-					                                         std::numeric_limits<std::uint8_t>::max() :
-					                                         static_cast<std::uint8_t>(operandGreen);
-
-					// Blue
-					const auto         operandBlue = avgG[maxIntensityIndex] / currMaxIntensityCount;
-					const std::uint8_t normalizedBlue = operandBlue > std::numeric_limits<std::uint8_t>::max() ?
-					                                        std::numeric_limits<std::uint8_t>::max() :
-					                                        static_cast<std::uint8_t>(operandBlue);
-
-					outPixels[offset] = normalizedRed;
-					outPixels[offset + 1] = normalizedGreen;
-					outPixels[offset + 2] = normalizedBlue;
+					outPixels[offset] = static_cast<std::uint8_t>(avgR[maxIntensityIndex] / currMaxIntensityCount);
+					outPixels[offset + 1] = static_cast<std::uint8_t>(avgG[maxIntensityIndex] / currMaxIntensityCount);
+					outPixels[offset + 2] = static_cast<std::uint8_t>(avgB[maxIntensityIndex] / currMaxIntensityCount);
 				}
 				currRowOffset += bytesInARow;
 			}
