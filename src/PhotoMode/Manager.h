@@ -12,11 +12,12 @@ namespace PhotoMode
 {
 	class Manager :
 		public REX::Singleton<Manager>,
-		public RE::BSTEventSink<RE::MenuOpenCloseEvent>
+		public RE::BSTEventSink<RE::MenuOpenCloseEvent>,
+		public RE::BSTEventSink<SKSE::ModCallbackEvent>
 	{
 	public:
-		static void Register();
-		void        LoadMCMSettings(const CSimpleIniA& a_ini);
+		void Register();
+		void LoadMCMSettings(const CSimpleIniA& a_ini);
 
 		static bool        IsValid();
 		bool               ShouldBlockInput() const;
@@ -24,8 +25,7 @@ namespace PhotoMode
 		void               Activate();
 		void               Deactivate();
 		void               ToggleActive();
-
-		void Revert(bool a_deactivate = false);
+		void               Revert(bool a_deactivate = false);
 
 		bool GetResetAll() const;
 		void DoResetAll();
@@ -36,6 +36,8 @@ namespace PhotoMode
 		void NavigateTab(bool a_left);
 
 		[[nodiscard]] float GetViewRoll(float a_fallback) const;
+
+		void TryOpenFromTweenMenu();
 
 		void Draw();
 		bool OnFrameUpdate();
@@ -81,6 +83,7 @@ namespace PhotoMode
 		[[nodiscard]] bool SetupJournalMenu() const;
 
 		EventResult ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
+		EventResult ProcessEvent(const SKSE::ModCallbackEvent* a_evn, RE::BSTEventSource<SKSE::ModCallbackEvent>*) override;
 
 		// members
 		bool activated{ false };
@@ -108,7 +111,10 @@ namespace PhotoMode
 		bool resetWindow{ true };
 		bool resetPlayerTabs{ true };
 		bool resetAll{ false };
+
+		bool improvedCameraInstalled{ false };
 		bool tweenMenuInstalled{ false };
+		bool openFromTweenMenu{};
 
 		bool menusAlreadyHidden{ false };
 		bool allowTextInput{ false };

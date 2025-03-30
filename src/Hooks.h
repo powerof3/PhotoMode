@@ -7,6 +7,11 @@ namespace PhotoMode
 	void InstallHooks();
 }
 
+namespace Papyrus
+{
+	void InstallHooks();
+}
+
 namespace Screenshot
 {
 	void InstallHooks();

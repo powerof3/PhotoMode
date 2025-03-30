@@ -12,7 +12,7 @@ Returns True if the PhotoMode UI is active, false otherwise.
 Bool Function IsPhotoModeActive() Global Native
 
 ;/
-Attempts to open/close the PhotoMode menu, based on a_bOpen.
+Attempts to open/close the PhotoMode menu, based on abOpen.
 Returns true if successful, false if not.
 /;
-Bool Function ToggleMenu(Bool a_bOpen) Global Native 
+Bool Function TogglePhotoMode(Bool abOpen) Global Native 

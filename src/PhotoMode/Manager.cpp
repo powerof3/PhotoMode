@@ -12,10 +12,16 @@ namespace PhotoMode
 {
 	void Manager::Register()
 	{
-		Manager::GetSingleton()->tweenMenuInstalled = GetModuleHandle(L"TweenMenuOverhaul") != nullptr;
+		tweenMenuInstalled = GetModuleHandle(L"TweenMenuOverhaul") != nullptr;
+		improvedCameraInstalled = GetModuleHandle(L"ImprovedCameraSE.dll") != nullptr;
 
-		RE::UI::GetSingleton()->AddEventSink(GetSingleton());
+		RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(this);
 		logger::info("Registered for menu open/close event");
+		
+		if (tweenMenuInstalled) {
+			SKSE::GetModCallbackEventSource()->AddEventSink(this);
+			logger::info("Registered for mod callback event");
+		}
 	}
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
@@ -309,6 +315,22 @@ namespace PhotoMode
 	float Manager::GetViewRoll(const float a_fallback) const
 	{
 		return IsActive() ? cameraTab.GetViewRoll() : a_fallback;
+	}
+
+	void Manager::TryOpenFromTweenMenu()
+	{
+		if (openFromTweenMenu) {
+			if (improvedCameraInstalled) {
+				// prevent camera flicker on transition
+				SKSE::GetTaskInterface()->AddTask([this]() {
+					this->Activate();
+					this->openFromTweenMenu = false;
+				});
+			} else {
+				Activate();
+				openFromTweenMenu = false;
+			}
+		}
 	}
 
 	void Manager::UpdateENBParams()
@@ -693,6 +715,15 @@ namespace PhotoMode
 					Activate();
 				}
 			}
+		}
+
+		return EventResult::kContinue;
+	}
+
+	EventResult Manager::ProcessEvent(const SKSE::ModCallbackEvent* a_evn, RE::BSTEventSource<SKSE::ModCallbackEvent>*)
+	{
+		if (a_evn && a_evn->eventName == "OpenTween_PhotoMode" && !IsActive() && !openFromTweenMenu) {
+			openFromTweenMenu = true;
 		}
 
 		return EventResult::kContinue;

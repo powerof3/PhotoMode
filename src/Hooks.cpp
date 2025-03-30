@@ -41,6 +41,28 @@ namespace PhotoMode
 	}
 }
 
+namespace Papyrus
+{
+	struct StopTweenCamera
+	{
+		static void thunk(RE::PlayerCamera* a_this)
+		{
+			func(a_this);
+
+			MANAGER(PhotoMode)->TryOpenFromTweenMenu();
+		}
+		static inline REL::Relocation<decltype(thunk)> func;
+	};
+
+	void InstallHooks()
+	{
+		if (GetModuleHandle(L"TweenMenuOverhaul") != nullptr) {
+			REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(49985, 50925), OFFSET(0xC8, 0x1C7) };  // TweenMenuCameraState::Update
+			stl::write_thunk_call<StopTweenCamera>(target.address());
+		}
+	}
+}
+
 namespace Screenshot
 {
 	struct TakeScreenshot
@@ -116,6 +138,7 @@ namespace LoadScreen
 void Hooks::Install()
 {
 	PhotoMode::InstallHooks();
+	Papyrus::InstallHooks();
 	Screenshot::InstallHooks();
 	LoadScreen::InstallHooks();
 }

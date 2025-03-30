@@ -11,49 +11,6 @@ Message Property PhotoMode_MSG_DLLIncompatible Auto
 Message Property PhotoMode_MSG_DLLNeedsUpdate Auto
 
 ;/
-==========================================================
-          Photomode + Tween Menu Integration
-==========================================================
-/;
-
-;This isn't documented, but you can send the OpenMenuFromTween event
-;and TweenMenu will pick it up.
-
-Event OnPhotoModeShow(String eventName, String strArg, Float numArg, Form sender)
-    If (eventName != "OpenTween_PhotoMode")
-
-        Return
-    EndIf
-
-    Int iMaxAttempts = 20
-    While (iMaxAttempts > 0 && Utility.IsInMenuMode())
-
-        iMaxAttempts -= 1
-        Utility.Wait(0.25)
-    EndWhile
-
-    Utility.Wait(1.0)
-
-    If (iMaxAttempts < 0)
-
-        Return
-    EndIf
-
-    If (IsPhotoModeActive())
-
-        Return
-    EndIf
-
-    ToggleMenu(True)
-EndEvent
-
-;/
-==========================================================
-                  End of Integration
-==========================================================
-/;
-
-;/
 Returns:
 -1 Missing DLL
 0  Nominal
@@ -88,7 +45,6 @@ Int Function Maintenance()
         Return 1
     EndIf
 
-    RegisterForModEvent("OpenTween_PhotoMode", "OnPhotoModeShow")
     Return 0
 EndFunction
 

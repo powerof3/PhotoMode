@@ -16,7 +16,7 @@ namespace Papyrus
 		return { Version::MAJOR, Version::MINOR, Version::PATCH };
 	}
 
-	static bool ToggleMenu(STATIC_ARGS, bool a_show)
+	static bool TogglePhotoMode(STATIC_ARGS, bool a_show)
 	{
 		auto* manager = PhotoMode::Manager::GetSingleton();
 		if (!manager) {
@@ -41,6 +41,7 @@ namespace Papyrus
 		} else {
 			manager->Deactivate();
 		}
+
 		return true;
 	}
 
@@ -62,7 +63,7 @@ namespace Papyrus
 
 		a_vm->RegisterFunction("OnConfigClose", MCM, OnConfigClose);
 
-		a_vm->RegisterFunction("ToggleMenu"sv, script, ToggleMenu);
+		a_vm->RegisterFunction("TogglePhotoMode"sv, script, TogglePhotoMode);
 		a_vm->RegisterFunction("IsPhotoModeActive"sv, script, IsPhotoModeActive);
 		a_vm->RegisterFunction("GetVersion"sv, script, GetVersion);
 

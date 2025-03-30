@@ -21,5 +21,5 @@ Event OnEffectStart(Actor a_kTarget, Actor a_kCaster)
         Return 
     EndIf
 
-    ToggleMenu(bOpenMenu)
+    TogglePhotoMode(bOpenMenu)
 EndEvent
