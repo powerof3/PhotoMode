@@ -17,7 +17,7 @@ namespace PhotoMode
 
 		RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(this);
 		logger::info("Registered for menu open/close event");
-		
+
 		if (tweenMenuInstalled) {
 			SKSE::GetModCallbackEventSource()->AddEventSink(this);
 			logger::info("Registered for mod callback event");

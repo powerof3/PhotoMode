@@ -129,7 +129,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	logger::info("Game version : {}", a_skse->RuntimeVersion().string());
 
 	SKSE::AllocTrampoline(98);
-	
+
 	Settings::GetSingleton()->LoadSettings();
 
 	ImGui::Renderer::Install();
