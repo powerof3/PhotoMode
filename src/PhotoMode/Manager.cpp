@@ -592,10 +592,6 @@ namespace PhotoMode
 
 	bool Manager::SetupJournalMenu() const
 	{
-		if (tweenMenuInstalled) {
-			return true;
-		}
-
 		const auto menu = RE::UI::GetSingleton()->GetMenu<RE::JournalMenu>(RE::JournalMenu::MENU_NAME);
 		const auto view = menu ? menu->systemTab.view : nullptr;
 
