@@ -452,10 +452,16 @@ namespace Input
 		if (inputDevice == DEVICE::kMouse) {
 			switch (auto mouseKey = static_cast<MOUSE>(a_key)) {
 			case MOUSE::kWheelUp:
-				io.AddMouseWheelEvent(0, a_value);
+				{
+					io.AddMouseWheelEvent(0, a_value);
+					io.AddKeyEvent(ImGuiKey_UpArrow, a_keyPressed);
+				}
 				break;
 			case MOUSE::kWheelDown:
-				io.AddMouseWheelEvent(0, a_value * -1);
+				{
+					io.AddMouseWheelEvent(0, a_value * -1);
+					io.AddKeyEvent(ImGuiKey_DownArrow, a_keyPressed);
+				}
 				break;
 			default:
 				io.AddMouseButtonEvent(mouseKey, a_keyPressed);
@@ -553,7 +559,7 @@ namespace Input
 						continue;
 					}
 
-					if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {						
+					if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {
 						SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
 					}
 				}
