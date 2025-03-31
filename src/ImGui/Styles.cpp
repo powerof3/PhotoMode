@@ -142,6 +142,9 @@ namespace ImGui
 
 		colors[ImGuiCol_Text] = user.text;
 		colors[ImGuiCol_TextDisabled] = user.textDisabled;
+		colors[ImGuiCol_InputTextCursor] = user.text;
+		colors[ImGuiCol_TextSelectedBg] = user.textDisabled;
+		colors[ImGuiCol_TextSelectedBg].w = user.textDisabled.w * 0.5f;
 
 		colors[ImGuiCol_FrameBg] = user.frameBG;
 		colors[ImGuiCol_FrameBgHovered] = colors[ImGuiCol_FrameBg];

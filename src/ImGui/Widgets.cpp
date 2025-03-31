@@ -97,7 +97,7 @@ namespace ImGui
 		if (!is_already_open) {
 			ImGui::SetKeyboardFocusHere();
 		}
-		InputText("##ComboWithFilter_inputText", pattern_buffer, MAX_PATH, ImGuiInputTextFlags_AutoSelectAll);
+		InputText("##ComboWithFilter_inputText", pattern_buffer, MAX_PATH, 0);
 
 		ImGui::PopStyleColor(3);
 

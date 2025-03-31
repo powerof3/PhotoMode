@@ -554,13 +554,12 @@ namespace Input
 						}
 					}
 
-					// temp alt tabbing fix
-					if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {
-						continue;
-					}
-
 					if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {
-						SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
+						if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {
+							ImGui::GetIO().AddKeyEvent(ImGuiKey_Tab, buttonEvent->IsDown());
+						} else {
+							SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
+						}
 					}
 				}
 			}
