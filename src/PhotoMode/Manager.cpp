@@ -14,6 +14,7 @@ namespace PhotoMode
 	{
 		tweenMenuInstalled = GetModuleHandle(L"TweenMenuOverhaul") != nullptr;
 		improvedCameraInstalled = GetModuleHandle(L"ImprovedCameraSE.dll") != nullptr;
+		skyrimSoulsInstalled = GetModuleHandle(L"SkyrimSoulsRE.dll") != nullptr;
 
 		RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(this);
 		logger::info("Registered for menu open/close event");
@@ -42,26 +43,35 @@ namespace PhotoMode
 			"CustomMenu"sv
 		};
 
-		if (const auto UI = RE::UI::GetSingleton();
-			!UI || std::ranges::any_of(badMenus, [&](const auto& menuName) { return UI->IsMenuOpen(menuName); })) {
+		const auto UI = RE::UI::GetSingleton();
+		if (!UI || std::ranges::any_of(badMenus, [&](const auto& menuName) { return UI->IsMenuOpen(menuName); })) {
+			return false;
+		} 
+
+		if (!GetValidControlMapContext() || RE::MenuControls::GetSingleton()->InBeastForm() || RE::VATS::GetSingleton()->mode == RE::VATS::VATS_MODE::kKillCam) {
 			return false;
 		}
 
+		return true;
+	}
+
+	bool Manager::GetValidControlMapContext()
+	{
 		const auto* controlMap = RE::ControlMap::GetSingleton();
 		if (!controlMap) {
 			return false;
 		}
 
-		auto context_id = controlMap->contextPriorityStack.back();
-		if (context_id != RE::UserEvents::INPUT_CONTEXT_ID::kGameplay && context_id != RE::UserEvents::INPUT_CONTEXT_ID::kTFCMode && context_id != RE::UserEvents::INPUT_CONTEXT_ID::kConsole) {
+		switch (controlMap->contextPriorityStack.back()) {
+		case RE::UserEvents::INPUT_CONTEXT_ID::kGameplay:
+		case RE::UserEvents::INPUT_CONTEXT_ID::kTFCMode:
+		case RE::UserEvents::INPUT_CONTEXT_ID::kConsole:
+			return true;
+		case RE::UserEvents::INPUT_CONTEXT_ID::kCursor:
+			return RE::UI::GetSingleton()->IsMenuOpen(RE::TweenMenu::MENU_NAME);
+		default:
 			return false;
 		}
-
-		if (RE::MenuControls::GetSingleton()->InBeastForm() || RE::VATS::GetSingleton()->mode == RE::VATS::VATS_MODE::kKillCam) {
-			return false;
-		}
-
-		return true;
 	}
 
 	bool Manager::ShouldBlockInput() const
@@ -720,6 +730,10 @@ namespace PhotoMode
 	{
 		if (a_evn && a_evn->eventName == "OpenTween_PhotoMode" && !IsActive() && !openFromTweenMenu) {
 			openFromTweenMenu = true;
+			if (skyrimSoulsInstalled) {
+				Activate();
+				openFromTweenMenu = false;
+			}
 		}
 
 		return EventResult::kContinue;

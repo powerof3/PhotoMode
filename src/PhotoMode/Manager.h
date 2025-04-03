@@ -19,7 +19,9 @@ namespace PhotoMode
 		void Register();
 		void LoadMCMSettings(const CSimpleIniA& a_ini);
 
-		static bool        IsValid();
+		bool IsValid();
+		bool GetValidControlMapContext();
+
 		bool               ShouldBlockInput() const;
 		[[nodiscard]] bool IsActive() const;
 		void               Activate();
@@ -114,6 +116,7 @@ namespace PhotoMode
 
 		bool improvedCameraInstalled{ false };
 		bool tweenMenuInstalled{ false };
+		bool skyrimSoulsInstalled{ false };
 		bool openFromTweenMenu{};
 
 		bool menusAlreadyHidden{ false };
