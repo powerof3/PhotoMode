@@ -46,7 +46,7 @@ namespace PhotoMode
 		const auto UI = RE::UI::GetSingleton();
 		if (!UI || std::ranges::any_of(badMenus, [&](const auto& menuName) { return UI->IsMenuOpen(menuName); })) {
 			return false;
-		} 
+		}
 
 		if (!GetValidControlMapContext() || RE::MenuControls::GetSingleton()->InBeastForm() || RE::VATS::GetSingleton()->mode == RE::VATS::VATS_MODE::kKillCam) {
 			return false;

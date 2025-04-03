@@ -42,7 +42,7 @@ namespace PhotoMode
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
 	};
-	
+
 	void InstallHooks()
 	{
 		REL::Relocation<std::uintptr_t> getRot{ RELOCATION_ID(49814, 50744), 0x1B };  // FreeCamera::GetRotation
