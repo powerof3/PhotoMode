@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CameraPositions.h"
+
 namespace PhotoMode
 {
 	class Camera
@@ -63,6 +65,9 @@ namespace PhotoMode
 
 		float currentViewRoll{};
 		float currentViewRollDegrees{};
+
+		// Camera position management
+		CameraPositions cameraPositions{};
 	};
 
 	namespace CameraGrid

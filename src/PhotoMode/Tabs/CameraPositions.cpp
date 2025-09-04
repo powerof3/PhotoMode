@@ -1,0 +1,430 @@
+#include "CameraPositions.h"
+
+#include "ImGui/Widgets.h"
+#include "PhotoMode/Manager.h"
+#include "Translation.h"
+#include <fstream>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+#include <algorithm>
+
+namespace PhotoMode
+{
+	CameraPosition::CameraPosition(std::string_view a_name) :
+		name(a_name), timestamp(GenerateTimestamp())
+	{
+	}
+
+	std::string CameraPosition::GetFilename() const
+	{
+		return std::format("CameraPosition_{}.json", timestamp);
+	}
+
+	Result<void> CameraPosition::SaveToFile(const std::filesystem::path& a_folder) const
+	{
+		std::error_code ec;
+		if (!std::filesystem::exists(a_folder, ec)) {
+			std::filesystem::create_directories(a_folder, ec);
+			if (ec) {
+				return Result<void>::Error(std::format("Failed to create camera positions directory '{}': {}", a_folder.string(), ec.message()));
+			}
+		}
+
+		const std::filesystem::path filePath = a_folder / std::format("CameraPosition_{}.json", timestamp);
+
+		try {
+			nlohmann::json json;
+			SerializeToJson(json);
+
+			std::ofstream file(filePath);
+			if (!file.is_open()) {
+				return Result<void>::Error(std::format("Failed to open camera position file for writing: {}", filePath.string()));
+			}
+			
+			file << json.dump(2);
+
+			logger::debug("Saved camera position to: {}", filePath.string());
+			return Result<void>::Ok();
+		} catch (const std::exception& e) {
+			return Result<void>::Error(std::format("Failed to serialize camera position data to JSON format: {}", e.what()));
+		}
+	}
+
+	Result<void> CameraPosition::LoadFromFile(const std::string& a_filename, const std::filesystem::path& a_folder)
+	{
+		const std::filesystem::path filePath = a_folder / a_filename;
+
+		std::ifstream file(filePath);
+		if (!file.is_open()) {
+			return Result<void>::Error(std::format("Failed to open camera position file for reading: {}", filePath.string()));
+		}
+
+		try {
+			nlohmann::json json;
+			file >> json;
+			DeserializeFromJson(json);
+
+			logger::debug("Successfully loaded camera position from: {}", filePath.string());
+			return Result<void>::Ok();
+		} catch (const nlohmann::json::exception& e) {
+			return Result<void>::Error(std::format("JSON parsing error in camera position file {}: {}", filePath.string(), e.what()));
+		} catch (const std::exception& e) {
+			return Result<void>::Error(std::format("Failed to load camera position file {}: {}", filePath.string(), e.what()));
+		}
+	}
+
+	Result<void> CameraPosition::DeleteFile(const std::filesystem::path& a_folder) const
+	{
+		const std::filesystem::path filePath = a_folder / std::format("CameraPosition_{}.json", timestamp);
+		std::error_code ec;
+		if (std::filesystem::remove(filePath, ec)) {
+			logger::debug("Deleted camera position file: {}", filePath.string());
+			return Result<void>::Ok();
+		} else {
+			return Result<void>::Error(std::format("Failed to delete camera position file '{}': {}", filePath.string(), ec.message()));
+		}
+	}
+
+	Result<void> CameraPosition::ApplyToCamera() const
+	{
+		logger::info("Applying camera position: {}", name);
+
+		const auto pcCamera = RE::PlayerCamera::GetSingleton();
+		if (!pcCamera) {
+			return Result<void>::Error("Failed to apply camera position: PlayerCamera singleton is null");
+		}
+
+		if (!pcCamera->IsInFreeCameraMode()) {
+			pcCamera->ToggleFreeCameraMode(false);
+		}
+
+		const auto currentState = pcCamera->currentState;
+		if (!currentState || currentState->id != RE::CameraState::kFree) {
+			return Result<void>::Error("Failed to apply camera position: Not in free camera mode");
+		}
+
+		auto freeCameraState = static_cast<RE::FreeCameraState*>(currentState.get());
+		if (!freeCameraState) {
+			return Result<void>::Error("Failed to apply camera position: FreeCameraState is null");
+		}
+
+		freeCameraState->translation = position;
+
+		if (freeCameraRotationX != 0.0f || freeCameraRotationY != 0.0f) {
+			freeCameraState->rotation.x = freeCameraRotationX;
+			freeCameraState->rotation.y = freeCameraRotationY;
+		}
+
+		pcCamera->worldFOV = fov;
+
+
+		return Result<void>::Ok();
+	}
+
+	void CameraPositions::Draw()
+	{
+		static bool positionsLoaded = false;
+		if (!positionsLoaded) {
+			RefreshCameraPositions();
+			positionsLoaded = true;
+		}
+
+		ImGui::SeparatorText("$PM_CameraPositions_Header"_T);
+
+		ImGui::PushID("CameraPositions");
+		{
+			if (ImGui::OutlineButton(std::format("{}##CameraPosSave", "$PM_CameraPositions_Save"_T).c_str())) {
+				auto result = SaveCameraPositionEntry();
+				if (result) {
+					RefreshCameraPositions();
+					selectedPositionIndex = FindPositionIndexByTimestamp(result.value);
+					RE::PlaySound("UIMenuOK");
+				} else {
+					logger::error("Failed to save camera position: {}", result.error_message);
+				}
+			}
+
+			if (!positions.empty()) {
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("$PM_CameraPositions_Select"_T);
+
+				ImGui::SameLine();
+
+				auto positionNames = BuildPositionNames();
+				ImGui::PushItemWidth(-200);
+				if (ImGui::ComboWithFilter("##CameraPosSelect", &selectedPositionIndex, positionNames)) {
+					ImGui::SetKeyboardFocusHere(-1);
+				}
+				ImGui::PopItemWidth();
+
+				ImGui::SameLine();
+
+				ImGui::BeginDisabled(selectedPositionIndex < 0);
+				{
+					if (ImGui::OutlineButton(std::format("{}##CameraPosLoad", "$PM_CameraPositions_Load"_T).c_str())) {
+						LoadSelectedCameraPosition();
+					}
+
+					ImGui::SameLine();
+
+					if (ImGui::OutlineButton(std::format("{}##CameraPosDelete", "$PM_CameraPositions_Delete"_T).c_str())) {
+						DeleteSelectedCameraPosition();
+					}
+				}
+				ImGui::EndDisabled();
+			} else {
+				ImGui::Text("$PM_CameraPositions_None"_T);
+				ImGui::Text("$PM_CameraPositions_Help"_T);
+			}
+
+			ImGui::Spacing();
+
+			if (ImGui::OutlineButton(std::format("{}##CameraPosRefresh", "$PM_CameraPositions_Refresh"_T).c_str())) {
+				RefreshCameraPositions();
+				selectedPositionIndex = -1;
+				RE::PlaySound("UIMenuFocus");
+			}
+		}
+		ImGui::PopID();
+	}
+
+	void CameraPositions::RefreshCameraPositions()
+	{
+		auto result = GetAvailableCameraPositionsList();
+		if (result) {
+			positions = result.value;
+		} else {
+			logger::error("Failed to refresh camera positions: {}", result.error_message);
+			positions.clear();
+		}
+	}
+
+	int CameraPositions::FindPositionIndexByTimestamp(const std::string& a_timestamp) const
+	{
+		for (int i = 0; i < static_cast<int>(positions.size()); ++i) {
+			if (positions[i].timestamp == a_timestamp) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	std::vector<std::string> CameraPositions::BuildPositionNames() const
+	{
+		std::vector<std::string> names;
+		names.reserve(positions.size());
+		for (const auto& pos : positions) {
+			names.emplace_back(pos.GetFilename());
+		}
+		return names;
+	}
+
+	void CameraPositions::LoadSelectedCameraPosition()
+	{
+		if (selectedPositionIndex >= 0 && selectedPositionIndex < static_cast<int>(positions.size())) {
+			auto result = LoadCameraPositionEntry(positions[selectedPositionIndex]);
+			if (result) {
+				RE::PlaySound("UIMenuOK");
+			} else {
+				logger::error("Failed to load camera position: {}", result.error_message);
+			}
+		}
+	}
+
+	void CameraPositions::DeleteSelectedCameraPosition()
+	{
+		if (selectedPositionIndex >= 0 && selectedPositionIndex < static_cast<int>(positions.size())) {
+			auto result = DeleteCameraPositionEntry(positions[selectedPositionIndex]);
+			if (result) {
+				RefreshCameraPositions();
+				selectedPositionIndex = -1;
+				RE::PlaySound("UIMenuCancel");
+			} else {
+				logger::error("Failed to delete camera position: {}", result.error_message);
+			}
+		}
+	}
+
+	Result<std::string> CameraPositions::SaveCameraPositionEntry(std::string_view a_name)
+	{
+		InitializeCameraPositionsDirectory();
+
+		CameraPosition position = GetCurrentCameraPosition();
+		position.name = a_name;
+
+		position.timestamp = CameraPosition::GenerateTimestamp();
+
+		auto result = position.SaveToFile(GetCameraPositionsDirectory());
+		if (!result) {
+			return Result<std::string>::Error(result.error_message);
+		}
+
+		logger::debug("Saved camera position {} to {}", position.timestamp, GetCameraPositionsDirectory().string());
+		return Result<std::string>::Ok(position.timestamp);
+	}
+
+	Result<void> CameraPositions::LoadCameraPositionEntry(const CameraPosition& a_position)
+	{
+		auto result = a_position.ApplyToCamera();
+		if (!result) {
+			return Result<void>::Error(result.error_message);
+		}
+		logger::debug("Loaded camera position {} from {}", a_position.name, GetCameraPositionsDirectory().string());
+		return Result<void>::Ok();
+	}
+
+	Result<void> CameraPositions::DeleteCameraPositionEntry(const CameraPosition& a_position)
+	{
+		auto result = a_position.DeleteFile(GetCameraPositionsDirectory());
+		if (!result) {
+			return Result<void>::Error(result.error_message);
+		}
+		logger::debug("Deleted camera position {} from {}", a_position.name, GetCameraPositionsDirectory().string());
+		return Result<void>::Ok();
+	}
+
+	Result<std::vector<CameraPosition>> CameraPositions::GetAvailableCameraPositionsList() const
+	{
+		std::vector<CameraPosition> positionList;
+
+		EnsureDirectoryInitialized();
+
+		std::error_code ec;
+		if (!std::filesystem::exists(GetCameraPositionsDirectory(), ec)) {
+			return Result<std::vector<CameraPosition>>::Ok(positionList);
+		}
+
+		for (const auto& entry : std::filesystem::directory_iterator(GetCameraPositionsDirectory())) {
+			if (entry.is_regular_file()) {
+				const auto& path = entry.path();
+				if (path.extension() == ".json") {
+					std::string filename = path.filename().string();
+					CameraPosition position;
+					auto result = position.LoadFromFile(filename, GetCameraPositionsDirectory());
+					if (result) {
+						positionList.push_back(position);
+					} else {
+						logger::warn("Failed to load camera position file {}: {}", filename, result.error_message);
+					}
+				}
+			}
+		}
+
+		std::sort(positionList.begin(), positionList.end(), [](const CameraPosition& a, const CameraPosition& b) {
+			return a.name < b.name;
+		});
+
+		return Result<std::vector<CameraPosition>>::Ok(positionList);
+	}
+
+	CameraPosition CameraPositions::GetCurrentCameraPosition() const
+	{
+		const auto pcCamera = RE::PlayerCamera::GetSingleton();
+		if (!pcCamera) {
+			return CameraPosition();
+		}
+
+		CameraPosition position;
+
+		const auto currentState = pcCamera->currentState;
+		if (!currentState || currentState->id != RE::CameraState::kFree) {
+			// Return empty position if not in free camera mode
+			return position;
+		}
+
+		currentState->GetTranslation(position.position);
+
+		auto freeCameraState = static_cast<RE::FreeCameraState*>(currentState.get());
+		if (freeCameraState) {
+			position.freeCameraRotationX = freeCameraState->rotation.x;
+			position.freeCameraRotationY = freeCameraState->rotation.y;
+		}
+
+		position.fov = pcCamera->worldFOV;
+
+		return position;
+	}
+
+	void CameraPositions::InitializeCameraPositionsDirectory()
+	{
+		EnsureDirectoryInitialized();
+
+		std::error_code ec;
+		if (!std::filesystem::exists(cameraPositionsDirectory, ec)) {
+			logger::debug("Camera positions directory does not exist, creating it... ({})", ec.message());
+			if (!std::filesystem::create_directories(cameraPositionsDirectory, ec)) {
+				logger::error("Failed to create camera positions directory: {}", ec.message());
+			}
+		}
+	}
+
+	void CameraPositions::EnsureDirectoryInitialized() const
+	{
+		if (cameraPositionsDirectory.empty()) {
+			if (auto directory = logger::log_directory()) {
+				directory->remove_filename();
+				*directory /= "CameraPositions";
+				cameraPositionsDirectory = *directory;
+			}
+		}
+	}
+
+	std::filesystem::path CameraPositions::GetCameraPositionsDirectory() const
+	{
+		return cameraPositionsDirectory;
+	}
+
+	std::string CameraPosition::GenerateTimestamp()
+	{
+		auto now = std::chrono::system_clock::now();
+		auto time_t = std::chrono::system_clock::to_time_t(now);
+		std::stringstream ss;
+		std::tm tm_buf;
+		localtime_s(&tm_buf, &time_t);
+		ss << std::put_time(&tm_buf, "%Y-%m-%d_%H-%M-%S");
+		return ss.str();
+	}
+
+	void CameraPosition::SerializeToJson(nlohmann::json& json) const
+	{
+		json["name"] = name;
+		json["timestamp"] = timestamp;
+
+		json["position"]["x"] = position.x;
+		json["position"]["y"] = position.y;
+		json["position"]["z"] = position.z;
+
+		json["fov"] = fov;
+
+		json["freeCameraRotation"]["x"] = freeCameraRotationX;
+		json["freeCameraRotation"]["y"] = freeCameraRotationY;
+	}
+
+	void CameraPosition::DeserializeFromJson(const nlohmann::json& json)
+	{
+		if (json.contains("name")) {
+			name = json["name"].get<std::string>();
+		}
+		if (json.contains("timestamp")) {
+			timestamp = json["timestamp"].get<std::string>();
+		}
+
+		if (json.contains("position")) {
+			const auto& pos = json["position"];
+			if (pos.contains("x")) position.x = pos["x"].get<float>();
+			if (pos.contains("y")) position.y = pos["y"].get<float>();
+			if (pos.contains("z")) position.z = pos["z"].get<float>();
+		}
+
+		if (json.contains("fov")) {
+			fov = json["fov"].get<float>();
+		}
+
+		if (json.contains("freeCameraRotation")) {
+			const auto& fcr = json["freeCameraRotation"];
+			if (fcr.contains("x")) freeCameraRotationX = fcr["x"].get<float>();
+			if (fcr.contains("y")) freeCameraRotationY = fcr["y"].get<float>();
+		}
+	}
+}
