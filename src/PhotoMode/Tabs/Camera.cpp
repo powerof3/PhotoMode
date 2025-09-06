@@ -116,6 +116,9 @@ namespace PhotoMode
 			}
 			ImGui::EndDisabled();
 		}
+
+		// Camera position management
+		cameraPositions.Draw();
 	}
 
 	void Camera::UpdateENBParams()

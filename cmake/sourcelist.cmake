@@ -14,6 +14,7 @@ set(sources ${sources}
 	src/PhotoMode/Hotkeys.cpp
 	src/PhotoMode/Manager.cpp
 	src/PhotoMode/Tabs/Camera.cpp
+	src/PhotoMode/Tabs/CameraPositions.cpp
 	src/PhotoMode/Tabs/Character.cpp
 	src/PhotoMode/Tabs/Filters.cpp
 	src/PhotoMode/Tabs/Overlays.cpp

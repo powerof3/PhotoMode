@@ -50,6 +50,8 @@ namespace ImGui
 
 	bool OpenTabOnHover(const char* a_label, ImGuiTabItemFlags flags = 0);
 
+	bool OutlineButton(const char* label, bool* wasFocused = nullptr);
+
 	bool DragFloatEx(const char* label, float* v, float v_speed, float v_min, float v_max, const char* format, ImGuiSliderFlags flags);
 	bool DragIntEx(const char* label, int* v, float v_speed, int v_min, int v_max, const char* format, ImGuiSliderFlags flags);
 

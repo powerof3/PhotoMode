@@ -182,6 +182,56 @@ namespace ImGui
 		return value_changed;
 	}
 
+	bool ImGui::OutlineButton(const char* label, bool* wasFocused)
+	{
+		ImGuiWindow* window = GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+
+		ImGuiContext& g = *GImGui;
+		const ImGuiStyle& style = g.Style;
+		const ImGuiID id = window->GetID(label);
+
+		const ImVec2 label_size = CalcTextSize(label, nullptr, true);
+		const ImVec2 size(label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+		const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + size);
+
+		ItemSize(size, style.FramePadding.y);
+		if (!ItemAdd(frame_bb, id, &frame_bb))
+			return false;
+
+		bool hovered = false, held = false;
+		bool pressed = ButtonBehavior(frame_bb, id, &hovered, &held, 0);
+
+		const bool itemFocused = GetFocusID() == id;
+		ImU32 frame_col = GetColorU32(held ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+		if (wasFocused && !*wasFocused) {
+			ImVec4 c = ColorConvertU32ToFloat4(frame_col);
+			c.w *= 0.3f; 
+			frame_col = GetColorU32(c);
+		}
+
+		RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
+		window->DrawList->AddRect(
+			frame_bb.Min, frame_bb.Max, 
+			itemFocused ? GetUserStyleColorU32(USER_STYLE::kSliderBorderActive) 
+						: GetUserStyleColorU32(USER_STYLE::kSliderBorder), 
+			style.FrameRounding, 0, GetUserStyleVar(USER_STYLE::kSeparatorThickness) * 0.43f);
+		if (!itemFocused) {
+			PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TextDisabled));
+		}
+		RenderTextClipped(frame_bb.Min, frame_bb.Max, label, nullptr, nullptr, ImVec2(0.5f, 0.5f));
+		if (!itemFocused) {
+			PopStyleColor();
+		}
+
+		if (wasFocused) {
+			*wasFocused = itemFocused;
+		}
+
+		return pressed;
+	}
+
 	bool ImGui::CenteredTextWithArrows(const char* label, std::string_view centerText)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
