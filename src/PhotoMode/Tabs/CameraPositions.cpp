@@ -1,5 +1,6 @@
 #include "CameraPositions.h"
 
+#include "ImGui/Renderer.h"
 #include "ImGui/Widgets.h"
 #include "PhotoMode/Manager.h"
 #include "Translation.h"
@@ -129,12 +130,17 @@ namespace PhotoMode
 
 				ImGui::SameLine();
 
+				ImGui::PushStyleColor(ImGuiCol_NavCursor, ImGui::GetUserStyleColorVec4(ImGui::USER_STYLE::kComboBoxText));
+				ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+
 				auto positionNames = BuildPositionNames();
-				ImGui::PushItemWidth(-200);
+
+				ImGui::PushItemWidth(-200 * ImGui::Renderer::GetResolutionScale());
 				if (ImGui::ComboWithFilter("##CameraPosSelect", &selectedPositionIndex, positionNames)) {
 					ImGui::SetKeyboardFocusHere(-1);
 				}
 				ImGui::PopItemWidth();
+				ImGui::PopStyleColor(2);
 
 				ImGui::SameLine();
 
@@ -143,9 +149,7 @@ namespace PhotoMode
 					if (ImGui::OutlineButton(std::format("{}##CameraPosLoad", "$PM_CameraPositions_Load"_T).c_str())) {
 						LoadSelectedCameraPosition();
 					}
-
 					ImGui::SameLine();
-
 					if (ImGui::OutlineButton(std::format("{}##CameraPosDelete", "$PM_CameraPositions_Delete"_T).c_str())) {
 						DeleteSelectedCameraPosition();
 					}
