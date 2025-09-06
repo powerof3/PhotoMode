@@ -3,11 +3,11 @@
 #include "ImGui/Widgets.h"
 #include "PhotoMode/Manager.h"
 #include "Translation.h"
-#include <fstream>
+#include <algorithm>
 #include <chrono>
+#include <fstream>
 #include <iomanip>
 #include <sstream>
-#include <algorithm>
 
 namespace PhotoMode
 {
@@ -41,7 +41,7 @@ namespace PhotoMode
 			if (!file.is_open()) {
 				return Result<void>::Error(std::format("Failed to open camera position file for writing: {}", filePath.string()));
 			}
-			
+
 			file << json.dump(2);
 
 			logger::debug("Saved camera position to: {}", filePath.string());
@@ -77,7 +77,7 @@ namespace PhotoMode
 	Result<void> CameraPosition::DeleteFile(const std::filesystem::path& a_folder) const
 	{
 		const std::filesystem::path filePath = a_folder / std::format("CameraPosition_{}.json", timestamp);
-		std::error_code ec;
+		std::error_code             ec;
 		if (std::filesystem::remove(filePath, ec)) {
 			logger::debug("Deleted camera position file: {}", filePath.string());
 			return Result<void>::Ok();
@@ -117,7 +117,6 @@ namespace PhotoMode
 		}
 
 		pcCamera->worldFOV = fov;
-
 
 		return Result<void>::Ok();
 	}
@@ -299,9 +298,9 @@ namespace PhotoMode
 			if (entry.is_regular_file()) {
 				const auto& path = entry.path();
 				if (path.extension() == ".json") {
-					std::string filename = path.filename().string();
+					std::string    filename = path.filename().string();
 					CameraPosition position;
-					auto result = position.LoadFromFile(filename, GetCameraPositionsDirectory());
+					auto           result = position.LoadFromFile(filename, GetCameraPositionsDirectory());
 					if (result) {
 						positionList.push_back(position);
 					} else {
@@ -377,10 +376,10 @@ namespace PhotoMode
 
 	std::string CameraPosition::GenerateTimestamp()
 	{
-		auto now = std::chrono::system_clock::now();
-		auto time_t = std::chrono::system_clock::to_time_t(now);
+		auto              now = std::chrono::system_clock::now();
+		auto              time_t = std::chrono::system_clock::to_time_t(now);
 		std::stringstream ss;
-		std::tm tm_buf;
+		std::tm           tm_buf;
 		localtime_s(&tm_buf, &time_t);
 		ss << std::put_time(&tm_buf, "%Y-%m-%d_%H-%M-%S");
 		return ss.str();
@@ -412,9 +411,12 @@ namespace PhotoMode
 
 		if (json.contains("position")) {
 			const auto& pos = json["position"];
-			if (pos.contains("x")) position.x = pos["x"].get<float>();
-			if (pos.contains("y")) position.y = pos["y"].get<float>();
-			if (pos.contains("z")) position.z = pos["z"].get<float>();
+			if (pos.contains("x"))
+				position.x = pos["x"].get<float>();
+			if (pos.contains("y"))
+				position.y = pos["y"].get<float>();
+			if (pos.contains("z"))
+				position.z = pos["z"].get<float>();
 		}
 
 		if (json.contains("fov")) {
@@ -423,8 +425,10 @@ namespace PhotoMode
 
 		if (json.contains("freeCameraRotation")) {
 			const auto& fcr = json["freeCameraRotation"];
-			if (fcr.contains("x")) freeCameraRotationX = fcr["x"].get<float>();
-			if (fcr.contains("y")) freeCameraRotationY = fcr["y"].get<float>();
+			if (fcr.contains("x"))
+				freeCameraRotationX = fcr["x"].get<float>();
+			if (fcr.contains("y"))
+				freeCameraRotationY = fcr["y"].get<float>();
 		}
 	}
 }
