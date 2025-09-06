@@ -130,7 +130,10 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 	SKSE::AllocTrampoline(98);
 
-	Settings::GetSingleton()->LoadSettings();
+	Settings::GetSingleton()->Load(FileType::kDisplayTweaks, [](auto& ini) {
+		ImGui::Renderer::LoadSettings(ini);  // display tweaks scaling
+	});
+	Settings::GetSingleton()->LoadMCMSettings();
 
 	ImGui::Renderer::Install();
 

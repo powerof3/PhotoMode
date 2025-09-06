@@ -1,18 +1,31 @@
 #pragma once
 
-class Settings : public REX::Singleton<Settings>
+enum class FileType
+{
+	kFonts,
+	kStyles,
+	kMCM,
+	kDisplayTweaks,
+};
+
+class Settings
 {
 public:
-	void LoadSettings() const;
+	using INIFunc = std::function<void(CSimpleIniA&)>;
+
+	static Settings* GetSingleton()
+	{
+		return &instance;
+	}
+
+	void Load(FileType type, INIFunc a_func, bool a_generate = false) const;
+	void Save(FileType type, INIFunc a_func, bool a_generate = false) const;
+
 	void LoadMCMSettings() const;
 
-	void SerializeMCM(std::function<void(CSimpleIniA&)> a_func);
-	void SerializeStyles(std::function<void(CSimpleIniA&)> a_func) const;
-	void SerializeFonts(std::function<void(CSimpleIniA&)> a_func) const;
-
 private:
-	static void SerializeINI(const wchar_t* a_path, std::function<void(CSimpleIniA&)> a_func, bool a_generate = false);
-	static void SerializeINI(const wchar_t* a_defaultPath, const wchar_t* a_userPath, std::function<void(CSimpleIniA&)> a_func);
+	static void LoadINI(const wchar_t* a_path, INIFunc a_func, bool a_generate = false);
+	static void LoadINI(const wchar_t* a_defaultPath, const wchar_t* a_userPath, INIFunc a_func);
 
 	// members
 	const wchar_t* fontsPath{ L"Data/Interface/PhotoMode/fonts.ini" };
@@ -23,4 +36,8 @@ private:
 
 	const wchar_t* defaultDisplayTweaksPath{ L"Data/SKSE/Plugins/SSEDisplayTweaks.ini" };
 	const wchar_t* userDisplayTweaksPath{ L"Data/SKSE/Plugins/SSEDisplayTweaks_Custom.ini" };
+
+	static Settings instance;
 };
+
+inline constinit Settings Settings::instance;

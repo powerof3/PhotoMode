@@ -50,7 +50,7 @@ namespace IconFont
 
 	void Manager::LoadSettings()
 	{
-		Settings::GetSingleton()->SerializeFonts([this](auto& ini) { LoadFontSettings(ini); });
+		Settings::GetSingleton()->Load(FileType::kFonts, [&](auto& ini) { LoadFontSettings(ini); });
 	}
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)

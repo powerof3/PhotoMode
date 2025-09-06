@@ -70,9 +70,7 @@ namespace ImGui
 
 	void Styles::LoadStyles()
 	{
-		Settings::GetSingleton()->SerializeStyles([this](auto& ini) {
-			LoadStyles(ini);
-		});
+		Settings::GetSingleton()->Load(FileType::kStyles, [&](auto& ini) { LoadStyles(ini); });
 	}
 
 	void Styles::LoadStyles(CSimpleIniA& a_ini)

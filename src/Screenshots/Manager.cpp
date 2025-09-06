@@ -140,7 +140,7 @@ namespace Screenshot
 		screenshots.LoadImages(screenshotFolder);
 		paintings.LoadImages(paintingFolder);
 
-		Settings::GetSingleton()->SerializeMCM([this](auto& ini) {
+		Settings::GetSingleton()->Save(FileType::kMCM, [this](auto& ini) {
 			index = ini.GetLongValue("Screenshots", "iScreenshotIndex", index);
 			AssignHighestPossibleIndex();
 			ini.SetLongValue("Screenshots", "iScreenshotIndex", index);
@@ -197,7 +197,7 @@ namespace Screenshot
 	void Manager::IncrementIndex()
 	{
 		index++;
-		Settings::GetSingleton()->SerializeMCM([this](auto& ini) {
+		Settings::GetSingleton()->Save(FileType::kMCM, [this](auto& ini) {
 			ini.SetLongValue("Screenshots", "iScreenshotIndex", index);
 		});
 	}
