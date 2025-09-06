@@ -341,7 +341,8 @@ namespace PhotoMode
 		if (cameraPositionsDirectory.empty()) {
 			if (auto directory = logger::log_directory()) {
 				directory->remove_filename();
-				*directory /= "CameraPositions";
+				*directory /= "Saves\\PhotoMode\\CameraPositions"sv;
+				logger::info("Camera positions directory: {}", directory->string());
 				cameraPositionsDirectory = *directory;
 			}
 		}
