@@ -1,11 +1,5 @@
 #pragma once
 
-#include <chrono>
-#include <filesystem>
-#include <iomanip>
-#include <nlohmann/json.hpp>
-#include <sstream>
-
 // Simple Result type for consistent error handling
 template <typename T>
 struct Result
@@ -46,14 +40,6 @@ namespace PhotoMode
 	{
 		CameraPosition(std::string_view a_name = "");
 
-		RE::NiPoint3 position{};
-		float        fov{ 75.0f };
-		float        freeCameraRotationX{ 0.0f };
-		float        freeCameraRotationY{ 0.0f };
-
-		std::string name{};
-		std::string timestamp{};
-
 		Result<void> SaveToFile(const std::filesystem::path& a_folder) const;
 		Result<void> LoadFromFile(const std::string& a_filename, const std::filesystem::path& a_folder);
 		Result<void> DeleteFile(const std::filesystem::path& a_folder) const;
@@ -62,9 +48,14 @@ namespace PhotoMode
 		std::string        GetFilename() const;
 		static std::string GenerateTimestamp();
 
-		void SerializeToJson(nlohmann::json& json) const;
-		void DeserializeFromJson(const nlohmann::json& json);
+		// members
+		std::string  name{};
+		std::string  timestamp{};
+		RE::NiPoint3 position{};
+		float        fov{ 75.0f };
+		RE::NiPoint2 freeCameraRotation{};
 	};
+
 	class CameraPositions
 	{
 	public:
@@ -78,7 +69,7 @@ namespace PhotoMode
 
 	private:
 		void                     RefreshCameraPositions();
-		int                      FindPositionIndexByTimestamp(const std::string& a_timestamp) const;
+		std::int32_t             FindPositionIndexByTimestamp(const std::string& a_timestamp) const;
 		std::vector<std::string> BuildPositionNames() const;
 		void                     LoadSelectedCameraPosition();
 		void                     DeleteSelectedCameraPosition();
@@ -87,8 +78,36 @@ namespace PhotoMode
 		void                  EnsureDirectoryInitialized() const;
 		std::filesystem::path GetCameraPositionsDirectory() const;
 
+		// members
 		std::vector<CameraPosition>   positions{};
-		int                           selectedPositionIndex{ -1 };
+		std::int32_t                  selectedPositionIndex{ -1 };
 		mutable std::filesystem::path cameraPositionsDirectory{};
 	};
 }
+
+// glaze
+template <>
+struct glz::meta<RE::NiPoint3>
+{
+	using T = RE::NiPoint3;
+	static constexpr auto value = array(&T::x, &T::y, &T::z);
+};
+
+template <>
+struct glz::meta<RE::NiPoint2>
+{
+	using T = RE::NiPoint2;
+	static constexpr auto value = array(&T::x, &T::y);
+};
+
+template <>
+struct glz::meta<PhotoMode::CameraPosition>
+{
+	using T = PhotoMode::CameraPosition;
+	static constexpr auto value = object(
+		"name", &T::name,
+		"timestamp", &T::timestamp,
+		"position", &T::position,
+		"fov", &T::fov,
+		"freeCameraRotation", &T::freeCameraRotation);
+};

@@ -134,6 +134,7 @@ endif()
 
 find_package(directxtex CONFIG REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(glaze CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(rapidfuzz CONFIG REQUIRED)
 find_package(unordered_dense CONFIG REQUIRED)
@@ -201,6 +202,7 @@ target_link_libraries(
 		${CommonLibName}::${CommonLibName}
 		Microsoft::DirectXTex
 		Freetype::Freetype
+		glaze::glaze
 		imgui::imgui
 		rapidfuzz::rapidfuzz
 		unordered_dense::unordered_dense

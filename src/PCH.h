@@ -24,6 +24,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <srell.hpp>
 #include <xbyak/xbyak.h>
+#include <glaze/glaze.hpp>
 
 #include "imgui_internal.h"
 #include <imgui.h>

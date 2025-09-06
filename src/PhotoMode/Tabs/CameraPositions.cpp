@@ -3,11 +3,6 @@
 #include "ImGui/Widgets.h"
 #include "PhotoMode/Manager.h"
 #include "Translation.h"
-#include <algorithm>
-#include <chrono>
-#include <fstream>
-#include <iomanip>
-#include <sstream>
 
 namespace PhotoMode
 {
@@ -33,21 +28,13 @@ namespace PhotoMode
 
 		const std::filesystem::path filePath = a_folder / std::format("CameraPosition_{}.json", timestamp);
 
-		try {
-			nlohmann::json json;
-			SerializeToJson(json);
-
-			std::ofstream file(filePath);
-			if (!file.is_open()) {
-				return Result<void>::Error(std::format("Failed to open camera position file for writing: {}", filePath.string()));
-			}
-
-			file << json.dump(2);
-
+		std::string buffer;
+		auto        glz_ec = glz::write_file_json(this, filePath.string(), buffer);
+		if (glz_ec) {
+			return Result<void>::Error(std::format("Failed to write camera position to file '{}': {}", filePath.string(), glz::format_error(glz_ec, buffer)));
+		} else {
 			logger::debug("Saved camera position to: {}", filePath.string());
 			return Result<void>::Ok();
-		} catch (const std::exception& e) {
-			return Result<void>::Error(std::format("Failed to serialize camera position data to JSON format: {}", e.what()));
 		}
 	}
 
@@ -55,22 +42,13 @@ namespace PhotoMode
 	{
 		const std::filesystem::path filePath = a_folder / a_filename;
 
-		std::ifstream file(filePath);
-		if (!file.is_open()) {
-			return Result<void>::Error(std::format("Failed to open camera position file for reading: {}", filePath.string()));
-		}
-
-		try {
-			nlohmann::json json;
-			file >> json;
-			DeserializeFromJson(json);
-
+		std::string buffer;
+		auto        glz_ec = glz::read_file_json(*this, filePath.string(), buffer);
+		if (glz_ec) {
+			return Result<void>::Error(std::format("Failed to load camera position file '{}': {}", filePath.string(), glz::format_error(glz_ec, buffer)));
+		} else {
 			logger::debug("Successfully loaded camera position from: {}", filePath.string());
 			return Result<void>::Ok();
-		} catch (const nlohmann::json::exception& e) {
-			return Result<void>::Error(std::format("JSON parsing error in camera position file {}: {}", filePath.string(), e.what()));
-		} catch (const std::exception& e) {
-			return Result<void>::Error(std::format("Failed to load camera position file {}: {}", filePath.string(), e.what()));
 		}
 	}
 
@@ -111,9 +89,9 @@ namespace PhotoMode
 
 		freeCameraState->translation = position;
 
-		if (freeCameraRotationX != 0.0f || freeCameraRotationY != 0.0f) {
-			freeCameraState->rotation.x = freeCameraRotationX;
-			freeCameraState->rotation.y = freeCameraRotationY;
+		if (freeCameraRotation.x != 0.0f || freeCameraRotation.y != 0.0f) {
+			freeCameraState->rotation.x = freeCameraRotation.x;
+			freeCameraState->rotation.y = freeCameraRotation.y;
 		}
 
 		pcCamera->worldFOV = fov;
@@ -199,9 +177,9 @@ namespace PhotoMode
 		}
 	}
 
-	int CameraPositions::FindPositionIndexByTimestamp(const std::string& a_timestamp) const
+	std::int32_t CameraPositions::FindPositionIndexByTimestamp(const std::string& a_timestamp) const
 	{
-		for (int i = 0; i < static_cast<int>(positions.size()); ++i) {
+		for (std::int32_t i = 0; i < static_cast<std::int32_t>(positions.size()); ++i) {
 			if (positions[i].timestamp == a_timestamp) {
 				return i;
 			}
@@ -221,7 +199,7 @@ namespace PhotoMode
 
 	void CameraPositions::LoadSelectedCameraPosition()
 	{
-		if (selectedPositionIndex >= 0 && selectedPositionIndex < static_cast<int>(positions.size())) {
+		if (selectedPositionIndex >= 0 && selectedPositionIndex < static_cast<std::int32_t>(positions.size())) {
 			auto result = LoadCameraPositionEntry(positions[selectedPositionIndex]);
 			if (result) {
 				RE::PlaySound("UIMenuOK");
@@ -233,7 +211,7 @@ namespace PhotoMode
 
 	void CameraPositions::DeleteSelectedCameraPosition()
 	{
-		if (selectedPositionIndex >= 0 && selectedPositionIndex < static_cast<int>(positions.size())) {
+		if (selectedPositionIndex >= 0 && selectedPositionIndex < static_cast<std::int32_t>(positions.size())) {
 			auto result = DeleteCameraPositionEntry(positions[selectedPositionIndex]);
 			if (result) {
 				RefreshCameraPositions();
@@ -336,8 +314,8 @@ namespace PhotoMode
 
 		auto freeCameraState = static_cast<RE::FreeCameraState*>(currentState.get());
 		if (freeCameraState) {
-			position.freeCameraRotationX = freeCameraState->rotation.x;
-			position.freeCameraRotationY = freeCameraState->rotation.y;
+			position.freeCameraRotation.x = freeCameraState->rotation.x;
+			position.freeCameraRotation.y = freeCameraState->rotation.y;
 		}
 
 		position.fov = pcCamera->worldFOV;
@@ -383,52 +361,5 @@ namespace PhotoMode
 		localtime_s(&tm_buf, &time_t);
 		ss << std::put_time(&tm_buf, "%Y-%m-%d_%H-%M-%S");
 		return ss.str();
-	}
-
-	void CameraPosition::SerializeToJson(nlohmann::json& json) const
-	{
-		json["name"] = name;
-		json["timestamp"] = timestamp;
-
-		json["position"]["x"] = position.x;
-		json["position"]["y"] = position.y;
-		json["position"]["z"] = position.z;
-
-		json["fov"] = fov;
-
-		json["freeCameraRotation"]["x"] = freeCameraRotationX;
-		json["freeCameraRotation"]["y"] = freeCameraRotationY;
-	}
-
-	void CameraPosition::DeserializeFromJson(const nlohmann::json& json)
-	{
-		if (json.contains("name")) {
-			name = json["name"].get<std::string>();
-		}
-		if (json.contains("timestamp")) {
-			timestamp = json["timestamp"].get<std::string>();
-		}
-
-		if (json.contains("position")) {
-			const auto& pos = json["position"];
-			if (pos.contains("x"))
-				position.x = pos["x"].get<float>();
-			if (pos.contains("y"))
-				position.y = pos["y"].get<float>();
-			if (pos.contains("z"))
-				position.z = pos["z"].get<float>();
-		}
-
-		if (json.contains("fov")) {
-			fov = json["fov"].get<float>();
-		}
-
-		if (json.contains("freeCameraRotation")) {
-			const auto& fcr = json["freeCameraRotation"];
-			if (fcr.contains("x"))
-				freeCameraRotationX = fcr["x"].get<float>();
-			if (fcr.contains("y"))
-				freeCameraRotationY = fcr["y"].get<float>();
-		}
 	}
 }

@@ -12,7 +12,7 @@
       "name": "imgui",
       "features": [ "dx11-binding", "win32-binding", "freetype", "wchar32" ]
     },
-    "nlohmann-json",
+    "glaze",
     "rapidfuzz",
     "rsm-binary-io",
     "spdlog",
