@@ -20,11 +20,11 @@
 
 #include <ankerl/unordered_dense.h>
 #include <freetype/freetype.h>
+#include <glaze/glaze.hpp>
 #include <rapidfuzz/rapidfuzz_all.hpp>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <srell.hpp>
 #include <xbyak/xbyak.h>
-#include <glaze/glaze.hpp>
 
 #include "imgui_internal.h"
 #include <imgui.h>
