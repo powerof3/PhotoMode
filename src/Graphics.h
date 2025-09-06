@@ -11,7 +11,7 @@ namespace Texture
 	void CompressTexture(const RE::BSGraphics::Renderer* a_this, const DirectX::ScratchImage& a_inputImage, DirectX::ScratchImage& a_outputImage);
 
 	void SaveToDDS(const DirectX::ScratchImage& a_inputImage, std::string_view a_path);
-	void SaveToPNG(const DirectX::ScratchImage& a_inputImage, std::string_view a_path);
+	void SaveToPNG(const DirectX::ScratchImage& a_inputImage, std::string_view a_path, bool a_forceSRGB);
 }
 
 namespace Mesh

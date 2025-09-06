@@ -90,22 +90,20 @@ namespace ImGui::Renderer
 		static inline REL::Relocation<decltype(thunk)> func;
 	};
 
-	// DXGIPresentHook
-	struct StopTimer
+	// IMenu::PostDisplay
+	struct PostDisplay
 	{
-		static void thunk(std::uint32_t a_timer)
+		static void thunk(RE::IMenu* a_menu)
 		{
-			func(a_timer);
-
 			// Skip if Imgui is not loaded
 			if (!initialized.load()) {
-				return;
+				return func(a_menu);
 			}
 
 			const auto photoMode = MANAGER(PhotoMode);
 
 			if (!photoMode->IsActive() || !photoMode->OnFrameUpdate()) {
-				return;
+				return func(a_menu);
 			}
 
 			// refresh style
@@ -128,8 +126,11 @@ namespace ImGui::Renderer
 			ImGui::EndFrame();
 			ImGui::Render();
 			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+			func(a_menu);
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
+		static inline std::size_t                      idx{ 0x6 };
 	};
 
 	void Install()
@@ -137,7 +138,6 @@ namespace ImGui::Renderer
 		REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(75595, 77226), OFFSET(0x9, 0x275) };  // BSGraphics::InitD3D
 		stl::write_thunk_call<CreateD3DAndSwapChain>(target.address());
 
-		REL::Relocation<std::uintptr_t> target2{ RELOCATION_ID(75461, 77246), 0x9 };  // BSGraphics::Renderer::End
-		stl::write_thunk_call<StopTimer>(target2.address());
+		stl::write_vfunc<RE::HUDMenu, PostDisplay>();
 	}
 }

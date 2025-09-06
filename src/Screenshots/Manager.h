@@ -72,6 +72,7 @@ namespace Screenshot
 
 		bool takeScreenshotAsDDS{ true };
 		bool compressTextures{ true };
+		bool forceSRGB{ true };
 
 		bool applyPaintFilter{ true };
 		struct

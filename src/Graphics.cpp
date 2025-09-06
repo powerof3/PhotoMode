@@ -181,11 +181,11 @@ namespace Texture
 		}
 	}
 
-	void SaveToPNG(const DirectX::ScratchImage& a_inputImage, std::string_view a_path)
+	void SaveToPNG(const DirectX::ScratchImage& a_inputImage, std::string_view a_path, bool a_forceSRGB)
 	{
 		// Save texture
 		const auto wPath = stl::utf8_to_utf16(a_path);
-		auto       hr = DirectX::SaveToWICFile(*a_inputImage.GetImage(0, 0, 0), DirectX::WIC_FLAGS_FORCE_SRGB,
+		auto       hr = DirectX::SaveToWICFile(*a_inputImage.GetImage(0, 0, 0), a_forceSRGB ? DirectX::WIC_FLAGS_FORCE_SRGB : DirectX::WIC_FLAGS_NONE,
 				  DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), wPath->c_str());
 		if (FAILED(hr)) {
 			logger::info("Failed to save png");

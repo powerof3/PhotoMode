@@ -277,9 +277,6 @@
           }
         },
         {
-          "type": "empty"
-        },
-        {
           "id": "bPaintFilter:Screenshots",
           "text": "$PM_PaintFilter_Text",
           "type": "toggle",
@@ -315,21 +312,30 @@
           }
         },
         {
-          "type": "empty"
-        },
-        {
           "id": "bCompressTextures:Screenshots",
           "text": "$PM_CompressTextures_Text",
           "type": "toggle",
           "help": "$PM_CompressTextures_Help",
+          "position": 1,
           "valueOptions": {
             "sourceType": "ModSettingBool"
           }
         },
         {
+          "id": "bForceSRGB:Screenshots",
+          "text": "$PM_ForceSRGB_Text",
+          "type": "toggle",
+          "help": "$PM_ForceSRGB_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
           "text": "$PM_LoadScreenHeader",
-          "type": "header",
-          "position": 1
+          "type": "header"
         },
         {
           "id": "bLoadScreenPics:Screenshots",
@@ -340,9 +346,6 @@
           "valueOptions": {
             "sourceType": "ModSettingBool"
           }
-        },
-        {
-          "type": "empty"
         },
         {
           "id": "iChanceFullScreenArt:LoadScreen",

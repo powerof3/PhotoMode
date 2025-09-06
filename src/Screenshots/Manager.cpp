@@ -114,6 +114,7 @@ namespace Screenshot
 		paintFilter.radius = a_ini.GetLongValue("Screenshots", "iPaintRadius", paintFilter.radius);
 
 		compressTextures = a_ini.GetBoolValue("Screenshots", "bCompressTextures", compressTextures);
+		forceSRGB = a_ini.GetBoolValue("Screenshots", "bForceSRGB", forceSRGB);
 	}
 
 	void Manager::LoadScreenshots()
@@ -225,7 +226,7 @@ namespace Screenshot
 	{
 		bool skipVanillaScreenshot = false;
 
-		const auto renderer = RE::BSGraphics::Renderer::GetRendererData();
+		const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
 		if (!renderer) {
 			return skipVanillaScreenshot;
 		}
@@ -233,9 +234,9 @@ namespace Screenshot
 		// capture screenshot
 		DirectX::ScratchImage inputImage{};
 
-		const ComPtr<ID3D11Device>        device{ reinterpret_cast<ID3D11Device*>(renderer->forwarder) };
-		const ComPtr<ID3D11DeviceContext> deviceContext{ reinterpret_cast<ID3D11DeviceContext*>(renderer->context) };
-		ID3D11Texture2D*                  texture2D{ renderer->renderTargets[RE::RENDER_TARGET::kSCREENSHOT].texture };
+		const ComPtr<ID3D11Device>        device{ reinterpret_cast<ID3D11Device*>(renderer->data.forwarder) };
+		const ComPtr<ID3D11DeviceContext> deviceContext{ reinterpret_cast<ID3D11DeviceContext*>(renderer->data.context) };
+		ID3D11Texture2D*                  texture2D{ renderer->data.renderTargets[RE::RENDER_TARGET::kSCREENSHOT].texture };
 
 		if (auto result = DirectX::CaptureTexture(device.Get(), deviceContext.Get(), texture2D, inputImage); result == S_OK) {
 			skipVanillaScreenshot = true;
@@ -257,13 +258,13 @@ namespace Screenshot
 				Texture::AlphaBlendImage(inputImage.GetImages(), overlayImage.GetImages(), blendedImage, alpha);
 
 				TakeScreenshotAsTexture(blendedImage, inputImage);
-				Texture::SaveToPNG(blendedImage, pngPath);
+				Texture::SaveToPNG(blendedImage, pngPath, forceSRGB);
 
 				overlayImage.Release();
 				blendedImage.Release();
 			} else {
 				TakeScreenshotAsTexture(inputImage, inputImage);
-				Texture::SaveToPNG(inputImage, pngPath);
+				Texture::SaveToPNG(inputImage, pngPath, forceSRGB);
 			}
 
 			IncrementIndex();
