@@ -95,6 +95,7 @@ namespace PhotoMode
 		}
 
 		pcCamera->worldFOV = fov;
+		MANAGER(PhotoMode)->SetViewRoll(viewRoll);
 
 		return Result<void>::Ok();
 	}
@@ -319,6 +320,7 @@ namespace PhotoMode
 		}
 
 		position.fov = pcCamera->worldFOV;
+		position.viewRoll = MANAGER(PhotoMode)->GetViewRoll();
 
 		return position;
 	}

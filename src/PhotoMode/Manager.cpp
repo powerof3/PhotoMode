@@ -327,6 +327,16 @@ namespace PhotoMode
 		return IsActive() ? cameraTab.GetViewRoll() : a_fallback;
 	}
 
+	float Manager::GetViewRoll() const
+	{
+		return cameraTab.GetViewRoll();
+	}
+
+	void Manager::SetViewRoll(float a_value)
+	{
+		cameraTab.SetViewRoll(a_value);
+	}
+
 	void Manager::TryOpenFromTweenMenu()
 	{
 		if (openFromTweenMenu) {

@@ -38,6 +38,8 @@ namespace PhotoMode
 		void NavigateTab(bool a_left);
 
 		[[nodiscard]] float GetViewRoll(float a_fallback) const;
+		[[nodiscard]] float GetViewRoll() const;
+		void SetViewRoll(float a_value);
 
 		void TryOpenFromTweenMenu();
 

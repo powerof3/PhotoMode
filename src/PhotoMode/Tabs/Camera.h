@@ -11,6 +11,7 @@ namespace PhotoMode
 		void RevertState(bool a_deactivate);
 
 		[[nodiscard]] float GetViewRoll() const { return currentViewRoll; }
+		void                SetViewRoll(float a_roll) { currentViewRoll = a_roll; }
 
 		void Draw();
 

@@ -53,6 +53,7 @@ namespace PhotoMode
 		std::string  timestamp{};
 		RE::NiPoint3 position{};
 		float        fov{ 75.0f };
+		float        viewRoll{ 0.0f };
 		RE::NiPoint2 freeCameraRotation{};
 	};
 
@@ -109,5 +110,6 @@ struct glz::meta<PhotoMode::CameraPosition>
 		"timestamp", &T::timestamp,
 		"position", &T::position,
 		"fov", &T::fov,
+		"viewRoll", &T::viewRoll,
 		"freeCameraRotation", &T::freeCameraRotation);
 };
