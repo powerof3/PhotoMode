@@ -517,7 +517,7 @@ namespace Input
 			for (auto event = *a_evn; event; event = event->next) {
 				// process inputs
 				if (const auto charEvent = event->AsCharEvent()) {
-					ImGui::GetIO().AddInputCharacter(charEvent->keycode);
+					ImGui::GetIO().AddInputCharacter(charEvent->keyCode);
 				} else if (const auto buttonEvent = event->AsButtonEvent()) {
 					const auto key = buttonEvent->GetIDCode();
 					auto       hotKey = key;
