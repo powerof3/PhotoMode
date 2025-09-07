@@ -73,8 +73,6 @@ namespace Texture
 			return false;
 		}
 
-		const auto intensityFactor = 255.0f / std::clamp(a_intensity, 0.0f, 255.0f);
-
 		const std::uint8_t* inPixels = a_srcImage->pixels;
 		std::uint8_t*       outPixels = a_outImage.GetPixels();
 
@@ -112,7 +110,10 @@ namespace Texture
 							const std::uint32_t B = inPixels[offset + 2];
 
 							// Find intensity of RGB value and apply intensity level.
-							const auto currIntensity = static_cast<std::int32_t>(((R + G + B) / 3) / intensityFactor);
+							auto currIntensity = static_cast<std::int32_t>((((R + G + B) / 3.0f) * a_intensity) / 255);
+							if (currIntensity > 255) {
+								currIntensity = 255;
+							}
 
 							intensityCount[currIntensity]++;
 							avgR[currIntensity] += R;
@@ -130,6 +131,7 @@ namespace Texture
 					outPixels[offset] = static_cast<std::uint8_t>(avgR[maxIntensityIndex] / currMaxIntensityCount);
 					outPixels[offset + 1] = static_cast<std::uint8_t>(avgG[maxIntensityIndex] / currMaxIntensityCount);
 					outPixels[offset + 2] = static_cast<std::uint8_t>(avgB[maxIntensityIndex] / currMaxIntensityCount);
+					outPixels[offset + 3] = inPixels[offset + 3];  // copy alpha
 				}
 				currRowOffset += bytesInARow;
 			}
