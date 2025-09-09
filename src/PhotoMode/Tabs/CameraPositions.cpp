@@ -190,13 +190,13 @@ namespace PhotoMode
 	}
 
 	const std::vector<std::string>& CameraPositions::GetPositionNames()
-	{		
+	{
 		if (positionNames.empty()) {
 			positionNames.reserve(positions.size());
 			for (const auto& pos : positions) {
 				positionNames.emplace_back(pos.GetFilename());
 			}
-		}		
+		}
 		return positionNames;
 	}
 

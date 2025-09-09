@@ -532,7 +532,7 @@ namespace Input
 					auto       hotKey = key;
 					bool       mouseOverWindow = MANAGER(PhotoMode)->IsCursorHoveringOverWindow();
 
-					if (!SetInputDevice(event->GetDevice(), hotKey) || !mouseOverWindow && TiltWithMouse(buttonEvent, key) ) {
+					if (!SetInputDevice(event->GetDevice(), hotKey) || !mouseOverWindow && TiltWithMouse(buttonEvent, key)) {
 						continue;
 					}
 
@@ -576,7 +576,7 @@ namespace Input
 								}
 							}
 						}
-					} 
+					}
 
 					if (mouseOverWindow && (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey())) {
 						if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {

@@ -554,8 +554,8 @@ namespace ImGui
 		bool hovered = false, held = false;
 		bool pressed = ButtonBehavior(frame_bb, id, &hovered, &held, 0);
 
-		ImU32      frame_col = GetColorU32(held ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered :
-																					ImGuiCol_Button);
+		ImU32 frame_col = GetColorU32(held ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered :
+																			   ImGuiCol_Button);
 		if (wasFocused && !*wasFocused) {
 			ImVec4 c = ColorConvertU32ToFloat4(frame_col);
 			c.w *= 0.3f;

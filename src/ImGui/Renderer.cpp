@@ -111,7 +111,7 @@ namespace ImGui::Renderer
 
 			ImGui_ImplDX11_NewFrame();
 			SKSE::ImGui_ImplWin32_NewFrame();
-			{			
+			{
 				// trick imgui into rendering at game's real resolution (ie. if upscaled with Display Tweaks)
 				static const auto screenSize = RE::BSGraphics::Renderer::GetScreenSize();
 
@@ -123,7 +123,7 @@ namespace ImGui::Renderer
 			{
 				// disable windowing
 				GImGui->NavWindowingTarget = nullptr;
-				
+
 				photoMode->Draw();
 			}
 			ImGui::EndFrame();

@@ -27,7 +27,7 @@ namespace Input
 		bool IsScreenshotQueued() const;
 		void QueueScreenshot(bool a_forceQueue);
 		void OnScreenshotFinish();
-		
+
 		static void ToggleCursor(bool a_enable);
 
 	private:
@@ -41,9 +41,9 @@ namespace Input
 		EventResult ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*) override;
 
 		// members
-		bool          screenshotQueued{ false };
-		bool          menuHidden{ false };
-		bool          panCamera{ false };
+		bool screenshotQueued{ false };
+		bool menuHidden{ false };
+		bool panCamera{ false };
 
 		float keyHeldDuration{ 0.5 };
 

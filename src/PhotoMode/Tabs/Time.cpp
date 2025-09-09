@@ -74,7 +74,7 @@ namespace PhotoMode
 
 		if (ImGui::DragOnHover("$PM_TimeScaleMult"_T, &currentTimescaleMult, 10, 1.0f, 1000.0f, "%.fX")) {
 			RE::Calendar::GetSingleton()->timeScale->value = originalState.timescale * currentTimescaleMult;
-		} 
+		}
 
 		ImGui::BeginDisabled(RE::Sky::GetSingleton()->mode == RE::Sky::Mode::kInterior);
 		{
