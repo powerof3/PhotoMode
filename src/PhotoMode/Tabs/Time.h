@@ -4,8 +4,6 @@
 
 namespace PhotoMode
 {
-	inline ImGui::FormComboBoxFiltered<RE::TESWeather> weathers{ "$PM_Weathers" };
-
 	class Time
 	{
 	public:
@@ -34,7 +32,8 @@ namespace PhotoMode
 		float currentGlobalTimeMult{};
 		float currentTimescaleMult{};
 
-		RE::TESWeather* originalWeather{ nullptr };
-		bool            weatherForced{ false };
+		ImGui::FormComboBoxFiltered<RE::TESWeather> weathers{ "$PM_Weathers" };
+		RE::TESWeather*                             originalWeather{ nullptr };
+		bool                                        weatherForced{ false };
 	};
 }

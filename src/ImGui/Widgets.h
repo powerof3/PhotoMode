@@ -7,7 +7,11 @@ namespace ImGui
 {
 	bool ComboWithFilter(const char* label, int* current_item, const std::vector<std::string>& items, int popup_max_height_in_items = -1);
 
-	bool CenteredTextWithArrows(const char* label, std::string_view centerText);
+	bool FramelessImageButton(const char* str_id, ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
+
+	bool AlignedImage(ID3D11ShaderResourceView* texID, const ImVec2& texture_size, const ImVec2& min, const ImVec2& max, const ImVec2& align, ImU32 colour);
+
+	std::tuple<bool, bool> CenteredTextWithArrows(const char* label, std::string_view centerText);
 
 	bool CheckBox(const char* label, bool* a_toggle);
 
@@ -23,11 +27,12 @@ namespace ImGui
 			uIndex = *index;
 		}
 
-		auto centeredText = a_translate ? TRANSLATE(a_enum[uIndex]) : a_enum[uIndex];
+		LeftAlignedTextImpl(label);
+		auto [clickedLeft, clickedRight] = CenteredTextWithArrows(label, a_translate ? TRANSLATE(a_enum[uIndex]) : a_enum[uIndex]);
 
-		if (CenteredTextWithArrows(LeftAlignedText(label).c_str(), centeredText)) {
-			const bool pressedLeft = IsKeyPressed(ImGuiKey_LeftArrow) || IsKeyPressed(ImGuiKey_GamepadDpadLeft);
-			const bool pressedRight = IsKeyPressed(ImGuiKey_RightArrow) || IsKeyPressed(ImGuiKey_GamepadDpadRight);
+		if (IsWidgetFocused(label)) {
+			const bool pressedLeft = clickedLeft || IsKeyPressed(ImGuiKey_LeftArrow) || IsKeyPressed(ImGuiKey_GamepadDpadLeft);
+			const bool pressedRight = clickedRight || IsKeyPressed(ImGuiKey_RightArrow) || IsKeyPressed(ImGuiKey_GamepadDpadRight);
 			if (pressedLeft) {
 				uIndex = (uIndex - 1 + a_enum.size()) % a_enum.size();
 			}
@@ -41,14 +46,10 @@ namespace ImGui
 			}
 		}
 
-		if (IsItemFocused()) {
-			UnfocusOnEscape();
-		}
-
 		return value_changed;
 	}
 
-	bool OpenTabOnHover(const char* a_label, ImGuiTabItemFlags flags = 0);
+	bool BeginTabItemEx(const char* a_label, ImGuiTabItemFlags flags = 0);
 
 	bool OutlineButton(const char* label, bool* wasFocused = nullptr);
 
@@ -73,7 +74,6 @@ namespace ImGui
 		if (result) {
 			RE::PlaySound("UIMenuPrevNext");
 		}
-		ActivateOnHover();
 
 		PopStyleColor(3);
 
@@ -101,7 +101,6 @@ namespace ImGui
 		if (result) {
 			RE::PlaySound("UIMenuPrevNext");
 		}
-		ActivateOnHover();
 
 		PopStyleColor(3);
 

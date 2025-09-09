@@ -2,6 +2,7 @@ set(sources ${sources}
 	src/Console.cpp
 	src/Graphics.cpp
 	src/Hooks.cpp
+	src/ImGui/Backend/imgui_impl_win32.cpp
 	src/ImGui/Graphics.cpp
 	src/ImGui/IconsFonts.cpp
 	src/ImGui/Renderer.cpp

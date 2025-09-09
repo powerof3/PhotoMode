@@ -7,6 +7,7 @@ set(headers ${headers}
 	src/ENB/ENBSeriesSDK.h
 	src/Graphics.h
 	src/Hooks.h
+	src/ImGui/Backend/imgui_impl_win32.h
 	src/ImGui/FormComboBox.h
 	src/ImGui/Graphics.h
 	src/ImGui/IconsFontAwesome6.h

@@ -4,8 +4,6 @@
 
 namespace PhotoMode
 {
-	inline ImGui::FormComboBoxFiltered<RE::TESImageSpaceModifier> imods{ "$PM_ImageSpaceModifiers" };
-
 	class Filters
 	{
 	public:
@@ -16,9 +14,9 @@ namespace PhotoMode
 
 	private:
 		// members
-		RE::ImageSpaceBaseData imageSpaceData{};
-
-		RE::TESImageSpaceModifier* currentImod{ nullptr };
-		bool                       imodPlayed{ false };
+		RE::ImageSpaceBaseData                                 imageSpaceData{};
+		RE::TESImageSpaceModifier*                             currentImod{ nullptr };
+		bool                                                   imodPlayed{ false };
+		ImGui::FormComboBoxFiltered<RE::TESImageSpaceModifier> imods{ "$PM_ImageSpaceModifiers" };
 	};
 }

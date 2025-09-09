@@ -32,28 +32,12 @@ namespace PhotoMode
 		static inline constexpr std::size_t            idx{ 0x33 };
 	};
 
-	struct StopTweenCamera
-	{
-		static void thunk(RE::PlayerCamera* a_this)
-		{
-			func(a_this);
-
-			MANAGER(PhotoMode)->TryOpenFromTweenMenu();
-		}
-		static inline REL::Relocation<decltype(thunk)> func;
-	};
-
 	void InstallHooks()
 	{
 		REL::Relocation<std::uintptr_t> getRot{ RELOCATION_ID(49814, 50744), 0x1B };  // FreeCamera::GetRotation
 		stl::write_thunk_call<FromEulerAnglesZXY>(getRot.address());
 
 		stl::write_vfunc<RE::TESIdleForm, SetFormEditorID>();
-
-		if (GetModuleHandle(L"TweenMenuOverhaul") != nullptr && GetModuleHandle(L"SkyrimSoulsRE.dll") == nullptr) {
-			REL::Relocation<std::uintptr_t> tweenUpdate{ RELOCATION_ID(49985, 50925), OFFSET(0xC8, 0x1C7) };  // TweenMenuCameraState::Update
-			stl::write_thunk_call<StopTweenCamera>(tweenUpdate.address());
-		}
 	}
 }
 

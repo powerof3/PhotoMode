@@ -59,7 +59,7 @@ namespace ImGui::Renderer
 				ImGui::CreateContext();
 
 				auto& io = ImGui::GetIO();
-				io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
+				io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad | ImGuiConfigFlags_NoMouseCursorChange;
 				io.IniFilename = nullptr;
 
 				if (!ImGui_ImplWin32_Init(desc.OutputWindow)) {
@@ -110,8 +110,8 @@ namespace ImGui::Renderer
 			ImGui::Styles::GetSingleton()->OnStyleRefresh();
 
 			ImGui_ImplDX11_NewFrame();
-			ImGui_ImplWin32_NewFrame();
-			{
+			SKSE::ImGui_ImplWin32_NewFrame();
+			{			
 				// trick imgui into rendering at game's real resolution (ie. if upscaled with Display Tweaks)
 				static const auto screenSize = RE::BSGraphics::Renderer::GetScreenSize();
 
@@ -121,13 +121,16 @@ namespace ImGui::Renderer
 			}
 			ImGui::NewFrame();
 			{
+				// disable windowing
+				GImGui->NavWindowingTarget = nullptr;
+				
 				photoMode->Draw();
 			}
 			ImGui::EndFrame();
 			ImGui::Render();
 			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-			func(a_menu);
+			return func(a_menu);
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
 		static inline std::size_t                      idx{ 0x6 };
@@ -137,6 +140,9 @@ namespace ImGui::Renderer
 	{
 		REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(75595, 77226), OFFSET(0x9, 0x275) };  // BSGraphics::InitD3D
 		stl::write_thunk_call<CreateD3DAndSwapChain>(target.address());
+
+		//REL::Relocation<std::uintptr_t> target2{ RELOCATION_ID(75461, 77246), 0x9 };  // BSGraphics::Renderer::End
+		//stl::write_thunk_call<StopTimer>(target2.address());
 
 		stl::write_vfunc<RE::HUDMenu, PostDisplay>();
 	}

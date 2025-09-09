@@ -115,9 +115,9 @@ namespace Input
 		return true;
 	}
 
-	bool Manager::PanWithMouse(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const
+	bool Manager::TiltWithMouse(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const
 	{
-		// recreate vertical pan event for mouse
+		// recreate tilt event for mouse
 		if (inputDevice == DEVICE::kMouse && RE::PlayerCamera::GetSingleton()->IsInFreeCameraMode()) {  // redundant check??
 			if (const auto freeCameraState = static_cast<RE::FreeCameraState*>(RE::PlayerCamera::GetSingleton()->currentState.get())) {
 				if (a_key == MOUSE::kLeftButton) {
@@ -498,6 +498,15 @@ namespace Input
 		}
 	}
 
+	void Manager::ToggleCursor(bool a_enable)
+	{
+		SKSE::GetTaskInterface()->AddUITask([a_enable]() { RE::UIMessageQueue::GetSingleton()->AddMessage(RE::CursorMenu::MENU_NAME,
+															   a_enable ?
+																   RE::UI_MESSAGE_TYPE::kShow :
+																   RE::UI_MESSAGE_TYPE::kHide,
+															   nullptr); });
+	}
+
 	EventResult Manager::ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*)
 	{
 		if (!a_evn || !RE::Main::GetSingleton()->gameActive) {
@@ -521,9 +530,24 @@ namespace Input
 				} else if (const auto buttonEvent = event->AsButtonEvent()) {
 					const auto key = buttonEvent->GetIDCode();
 					auto       hotKey = key;
+					bool       mouseOverWindow = MANAGER(PhotoMode)->IsCursorHoveringOverWindow();
 
-					if (!SetInputDevice(event->GetDevice(), hotKey) || PanWithMouse(buttonEvent, key)) {
+					if (!SetInputDevice(event->GetDevice(), hotKey) || !mouseOverWindow && TiltWithMouse(buttonEvent, key) ) {
 						continue;
+					}
+
+					if (key == KEY::kLeftShift) {
+						if (buttonEvent->IsHeld()) {
+							if (!mouseOverWindow) {
+								if (!panCamera) {
+									ToggleCursor(false);
+									panCamera = true;
+								}
+							}
+						} else if (panCamera) {
+							ToggleCursor(true);
+							panCamera = false;
+						}
 					}
 
 					if (!ImGui::GetIO().WantTextInput) {
@@ -552,9 +576,9 @@ namespace Input
 								}
 							}
 						}
-					}
+					} 
 
-					if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {
+					if (mouseOverWindow && (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey())) {
 						if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {
 							ImGui::GetIO().AddKeyEvent(ImGuiKey_Tab, buttonEvent->IsDown());
 						} else {

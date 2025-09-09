@@ -35,19 +35,6 @@ namespace ImGui
 		}
 	}
 
-	void AlignedImage(ImTextureID texID, const ImVec2& texture_size, const ImVec2& min, const ImVec2& max, const ImVec2& align, ImU32 colour)
-	{
-		const ImGuiWindow* window = GetCurrentWindow();
-		ImVec2             pos = min;
-
-		if (align.x > 0.0f)
-			pos.x = ImMax(pos.x, pos.x + (max.x - pos.x - texture_size.x) * align.x);
-		if (align.y > 0.0f)
-			pos.y = ImMax(pos.y, pos.y + (max.y - pos.y - texture_size.y) * align.y);
-
-		window->DrawList->AddImage(texID, pos, pos + texture_size, ImVec2(0, 0), ImVec2(1, 1), colour);
-	}
-
 	void ExtendWindowPastBorder()
 	{
 		const ImGuiWindow* window = GetCurrentWindowRead();
@@ -59,14 +46,13 @@ namespace ImGui
 		rootWindow->DrawList->AddRect(newWindowPos, newWindowPos + ImVec2(window->Size.x + 2 * borderSize, window->Size.y + 2 * borderSize), GetColorU32(ImGuiCol_WindowBg), 0.0f, 0, borderSize);
 	}
 
-	std::string LeftAlignedText(const char* label)
+	void LeftAlignedTextImpl(const char* label, const std::string& newLabel)
 	{
 		const float width = CalcItemWidth();
 		const float x = GetCursorPosX();
 
-		const auto newLabel = "##"s + label;
+		const bool hovered = IsWidgetFocused(newLabel.empty() ? label : newLabel.c_str());
 
-		const auto hovered = GetFocusID() == GetCurrentWindow()->GetID(newLabel.c_str());
 		if (!hovered) {
 			PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TextDisabled));
 		}
@@ -78,7 +64,12 @@ namespace ImGui
 		SameLine();
 		SetCursorPosX(x + width * 0.5f + GetStyle().ItemInnerSpacing.x);
 		SetNextItemWidth(-1);
+	}
 
+	std::string LeftAlignedText(const char* label)
+	{
+		const auto newLabel = "##"s + label;
+		LeftAlignedTextImpl(label, newLabel);
 		return newLabel;
 	}
 
@@ -96,28 +87,20 @@ namespace ImGui
 		ImGui::TextUnformatted(label);
 	}
 
-	bool ActivateOnHover()
+	bool IsWidgetFocused()
 	{
-		if (!IsItemActive()) {
-			if (IsItemFocused()) {
-				ActivateItemByID(GetItemID());
-				return true;
-			}
-		} else {
-			UnfocusOnEscape();
-		}
-
-		return false;
+		return IsWidgetFocused(GetItemID());
 	}
 
-	void UnfocusOnEscape()
+	bool IsWidgetFocused(std::string_view label)
 	{
-		ImGuiContext& g = *GImGui;
-		if (IsKeyDown(ImGuiKey_Escape) || IsKeyDown(ImGuiKey_NavGamepadCancel)) {
-			g.NavId = 0;
-			g.NavCursorVisible = false;
-			SetWindowFocus(nullptr);
-		}
+		const auto id = GetCurrentWindow()->GetID(label.data());
+		return IsWidgetFocused(id);
+	}
+
+	bool IsWidgetFocused(ImGuiID id)
+	{
+		return GetHoveredID() == id && (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0;
 	}
 
 	ImVec2 GetNativeViewportPos()

@@ -69,11 +69,11 @@ namespace PhotoMode
 		CameraPosition                      GetCurrentCameraPosition() const;
 
 	private:
-		void                     RefreshCameraPositions();
-		std::int32_t             FindPositionIndexByTimestamp(const std::string& a_timestamp) const;
-		std::vector<std::string> BuildPositionNames() const;
-		void                     LoadSelectedCameraPosition();
-		void                     DeleteSelectedCameraPosition();
+		void                            RefreshCameraPositions();
+		std::int32_t                    FindPositionIndexByTimestamp(const std::string& a_timestamp) const;
+		const std::vector<std::string>& GetPositionNames();
+		void                            LoadSelectedCameraPosition();
+		void                            DeleteSelectedCameraPosition();
 
 		void                  InitializeCameraPositionsDirectory();
 		void                  EnsureDirectoryInitialized() const;
@@ -81,6 +81,7 @@ namespace PhotoMode
 
 		// members
 		std::vector<CameraPosition>   positions{};
+		std::vector<std::string>      positionNames{};
 		std::int32_t                  selectedPositionIndex{ -1 };
 		mutable std::filesystem::path cameraPositionsDirectory{};
 	};

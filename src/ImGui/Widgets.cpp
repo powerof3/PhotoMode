@@ -1,6 +1,8 @@
 #include "Widgets.h"
 
+#include "IconsFontAwesome6.h"
 #include "IconsFonts.h"
+#include "PhotoMode\Manager.h"
 
 namespace ImGui
 {
@@ -18,25 +20,25 @@ namespace ImGui
 	//
 	// Posted in issue: https://github.com/ocornut/imgui/issues/1658#issuecomment-1086193100
 
-	bool ComboWithFilter(const char* label, int* current_item, const std::vector<std::string>& items, int popup_max_height_in_items)
+	bool ComboWithFilter(const char* label, int* current_item, const std::vector<std::string>& items, int popup_max_height_in_items /*= -1*/)
 	{
+		const bool allow_repeat = ImGuiInputFlags_Repeat;
+
 		ImGuiContext& g = *GImGui;
 
 		ImGuiWindow* window = GetCurrentWindow();
-		if (window->SkipItems) {
+		if (window->SkipItems)
 			return false;
-		}
 
-		const int items_count = static_cast<int>(items.size());
+		int items_count = static_cast<int>(items.size());
 
-		// Use imgui Items_ getters to support more input formats.
-		const char* preview_value = nullptr;
-		if (*current_item >= 0 && *current_item < items_count) {
+		// Could use imgui Items_ getters to support more input formats.
+		const char* preview_value = NULL;
+		if (*current_item >= 0 && *current_item < items_count)
 			preview_value = items[*current_item].c_str();
-		}
 
 		static int  focus_idx = -1;
-		static char pattern_buffer[MAX_PATH] = { 0 };
+		static char pattern_buffer[256] = { 0 };
 
 		bool value_changed = false;
 
@@ -74,14 +76,12 @@ namespace ImGui
 		popup_max_height_in_items = ImMin(popup_max_height_in_items, show_count);
 
 		if (!(g.NextWindowData.HasFlags & ImGuiNextWindowDataFlags_HasSizeConstraint)) {
-			const int numItems = popup_max_height_in_items + 2;  // extra for search bar
-			SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX,
-														   CalcMaxPopupHeightFromItemCount(numItems)));
+			int numItems = popup_max_height_in_items + 3;  // extra for search bar
+			SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(numItems)));
 		}
 
-		if (!BeginCombo(label, preview_value, ImGuiComboFlags_None)) {
+		if (!BeginCombo(label, preview_value, ImGuiComboFlags_None))
 			return false;
-		}
 
 		if (!is_already_open) {
 			focus_idx = *current_item;
@@ -90,25 +90,24 @@ namespace ImGui
 
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, GetUserStyleColorVec4(USER_STYLE::kComboBoxTextBox));
 		ImGui::PushStyleColor(ImGuiCol_Text, GetUserStyleColorVec4(USER_STYLE::kComboBoxText));
-		ImGui::PushStyleColor(ImGuiCol_NavCursor, ImVec4(0, 0, 0, 0));
-
+		ImGui::PushStyleColor(ImGuiCol_NavCursor, ImVec4());
 		ImGui::PushItemWidth(-FLT_MIN);
 		// Filter input
-		if (!is_already_open) {
+		if (!is_already_open)
 			ImGui::SetKeyboardFocusHere();
-		}
-		InputText("##ComboWithFilter_inputText", pattern_buffer, MAX_PATH, 0);
+		InputText("##ComboWithFilter_inputText", pattern_buffer, 256, ImGuiInputTextFlags_AutoSelectAll);
 
 		ImGui::PopStyleColor(3);
 
 		int move_delta = 0;
-		if (IsKeyPressed(ImGuiKey_UpArrow) || IsKeyPressed(ImGuiKey_GamepadDpadUp)) {
+		// Use Shortcut to prevent NavEnableKeyboard from also responding to nav.
+		if (Shortcut(ImGuiKey_UpArrow, allow_repeat) || IsKeyPressed(ImGuiKey_GamepadDpadUp)) {
 			--move_delta;
-		} else if (IsKeyPressed(ImGuiKey_DownArrow) || IsKeyPressed(ImGuiKey_GamepadDpadDown)) {
+		} else if (Shortcut(ImGuiKey_DownArrow, allow_repeat) || IsKeyPressed(ImGuiKey_GamepadDpadDown)) {
 			++move_delta;
-		} else if (IsKeyPressed(ImGuiKey_PageUp)) {
+		} else if (Shortcut(ImGuiKey_PageUp, ImGuiInputFlags_None)) {
 			move_delta -= popup_max_height_in_items;
-		} else if (IsKeyPressed(ImGuiKey_PageDown)) {
+		} else if (Shortcut(ImGuiKey_PageDown, ImGuiInputFlags_None)) {
 			move_delta += popup_max_height_in_items;
 		}
 
@@ -128,14 +127,12 @@ namespace ImGui
 
 		// Copied from ListBoxHeader
 		// If popup_max_height_in_items == -1, default height is maximum 7.
-		const float height_in_items_f = (popup_max_height_in_items < 0 ? ImMin(items_count, 7) :
-																		 popup_max_height_in_items) +
-		                                0.25f;
+		float  height_in_items_f = (popup_max_height_in_items < 0 ? ImMin(items_count, 7) : popup_max_height_in_items) + 0.25f;
 		ImVec2 size;
 		size.x = 0.0f;
 		size.y = GetTextLineHeightWithSpacing() * height_in_items_f + g.Style.FramePadding.y * 2.0f;
 
-		ImGui::PushStyleColor(ImGuiCol_NavCursor, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_NavCursor, ImVec4());
 		if (ImGui::BeginListBox("##ComboWithFilter_itemList", size)) {
 			for (int i = 0; i < show_count; i++) {
 				int idx = is_filtering ? itemScoreVector[i].first : i;
@@ -160,12 +157,15 @@ namespace ImGui
 			}
 			ImGui::EndListBox();
 
-			if (IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_NavGamepadActivate)) {
+			const bool repeat = false;
+			if (IsKeyPressed(ImGuiKey_Enter, repeat) || IsKeyPressed(ImGuiKey_Space, repeat) || IsKeyPressed(ImGuiKey_NavGamepadActivate)) {
 				value_changed = true;
 				*current_item = focus_idx;
 				CloseCurrentPopup();
 				RE::PlaySound("UIMenuOK");
-			} else if (IsKeyPressed(ImGuiKey_Escape) || IsKeyPressed(ImGuiKey_NavGamepadCancel)) {
+			}
+			// Using Shortcut would make the first Esc clear input (even if empty) and the second close the popup.
+			else if (IsKeyPressed(ImGuiKey_Escape, repeat) || IsKeyPressed(ImGuiKey_NavGamepadCancel)) {
 				value_changed = false;
 				CloseCurrentPopup();
 				RE::PlaySound("UIMenuCancel");
@@ -175,18 +175,44 @@ namespace ImGui
 		ImGui::PopItemWidth();
 		ImGui::EndCombo();
 
-		if (value_changed) {
+		if (value_changed)
 			MarkItemEdited(g.LastItemData.ID);
-		}
 
 		return value_changed;
 	}
 
-	bool ImGui::CenteredTextWithArrows(const char* label, std::string_view centerText)
+	bool FramelessImageButton(const char* str_id, ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col)
+	{
+		PushStyleColor(ImGuiCol_Button, ImVec4());
+		PushStyleColor(ImGuiCol_ButtonActive, ImVec4());
+		PushStyleColor(ImGuiCol_ButtonHovered, ImVec4());
+
+		auto result = ImageButton(str_id, user_texture_id, image_size, uv0, uv1, bg_col, tint_col);
+
+		PopStyleColor(3);
+
+		return result;
+	}
+
+	bool AlignedImage(ID3D11ShaderResourceView* texID, const ImVec2& texture_size, const ImVec2& min, const ImVec2& max, const ImVec2& align, ImU32 colour)
+	{
+		ImVec2 pos = min;
+
+		if (align.x > 0.0f)
+			pos.x = ImMax(pos.x, pos.x + (max.x - pos.x - texture_size.x) * align.x);
+		if (align.y > 0.0f)
+			pos.y = ImMax(pos.y, pos.y + (max.y - pos.y - texture_size.y) * align.y);
+
+		GetCurrentWindow()->DrawList->AddImage((ImU64)texID, pos, pos + texture_size, ImVec2(0, 0), ImVec2(1, 1), colour);
+
+		return IsMouseHoveringRect(pos, pos + texture_size) && IsMouseClicked(0) && (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0;
+	}
+
+	std::tuple<bool, bool> ImGui::CenteredTextWithArrows(const char* label, std::string_view centerText)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
-			return false;
+			return { false, false };
 
 		ImGuiContext&     g = *GImGui;
 		const ImGuiStyle& style = g.Style;
@@ -199,12 +225,16 @@ namespace ImGui
 
 		ItemSize(total_bb, style.FramePadding.y);
 		if (!ItemAdd(total_bb, id, &frame_bb, false))
-			return false;
+			return { false, false };
 
 		// RenderNavHighlight(frame_bb, id);
 
-		const bool isHovered = GetFocusID() == id;
-		if (!isHovered) {
+		bool hovered = IsMouseHoveringRect(frame_bb.Min, frame_bb.Max) && (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0;
+		if (hovered) {
+			SetHoveredID(id);
+		}
+
+		if (!hovered) {
 			PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TextDisabled));
 		}
 
@@ -212,7 +242,7 @@ namespace ImGui
 		RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText.data(), nullptr, nullptr, ImVec2(0.5f, 0.5f));
 		PopFont();
 
-		if (!isHovered) {
+		if (!hovered) {
 			PopStyleColor();
 		}
 
@@ -220,12 +250,12 @@ namespace ImGui
 		static auto leftArrow = MANAGER(IconFont)->GetStepperLeft();
 		static auto rightArrow = MANAGER(IconFont)->GetStepperRight();
 
-		const auto color = isHovered ? IM_COL32(255, 255, 255, 255) : GetUserStyleColorU32(USER_STYLE::kIconDisabled);
+		const auto color = hovered ? IM_COL32_WHITE : GetUserStyleColorU32(USER_STYLE::kIconDisabled);
 
-		AlignedImage((ImTextureID)leftArrow->srView.Get(), leftArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(0, 0.5f), color);
-		AlignedImage((ImTextureID)rightArrow->srView.Get(), rightArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(1.0, 0.5f), color);
+		auto hoveringLeft = AlignedImage(leftArrow->srView.Get(), leftArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(0, 0.5f), color);
+		auto hoveringRight = AlignedImage(rightArrow->srView.Get(), rightArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(1.0, 0.5f), color);
 
-		return isHovered;
+		return { hoveringLeft, hoveringRight };
 	}
 
 	bool CheckBox(const char* label, bool* a_toggle)
@@ -235,25 +265,21 @@ namespace ImGui
 		static auto checkbox = MANAGER(IconFont)->GetCheckbox();
 		static auto checkboxFilled = MANAGER(IconFont)->GetCheckboxFilled();
 
-		const auto newLabel = LeftAlignedText(label);
+		BeginGroup();
+		{
+			const auto newLabel = LeftAlignedText(label);
 
-		AlignForWidth(checkbox->size.x);
+			AlignForWidth(checkbox->size.x);
 
-		PushStyleColor(ImGuiCol_Button, ImVec4());
-		PushStyleColor(ImGuiCol_ButtonActive, ImVec4());
-		PushStyleColor(ImGuiCol_ButtonHovered, ImVec4());
+			FramelessImageButton(newLabel.c_str(), (ImTextureID)(*a_toggle ? checkboxFilled->srView.Get() : checkbox->srView.Get()), checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
+				IsWidgetFocused(newLabel) ? ImVec4(1, 1, 1, 1) : GetUserStyleColorVec4(USER_STYLE::kIconDisabled));
+		}
+		EndGroup();
 
-		ImageButton(newLabel.c_str(), (ImTextureID)(*a_toggle ? checkboxFilled->srView.Get() : checkbox->srView.Get()), checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
-			GetFocusID() == GetCurrentWindow()->GetID(newLabel.c_str()) ? ImVec4(1, 1, 1, 1) : GetUserStyleColorVec4(USER_STYLE::kIconDisabled));
-
-		PopStyleColor(3);
-
-		if (IsItemFocused()) {
-			if (IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_GamepadFaceDown)) {
+		if (ImGui::IsItemHovered()) {
+			if (IsItemClicked() || IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_GamepadFaceDown)) {
 				*a_toggle = !*a_toggle;
 				selected = true;
-			} else {
-				UnfocusOnEscape();
 			}
 		}
 
@@ -334,7 +360,7 @@ namespace ImGui
 		if (value_changed)
 			MarkItemEdited(id);
 
-		const bool isHovered = GetFocusID() == id;
+		const bool isHovered = IsWidgetFocused(id);
 		if (!isHovered) {
 			PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TextDisabled));
 		}
@@ -435,7 +461,7 @@ namespace ImGui
 		draw_bb.Max.y -= shrink_amount;
 
 		// Render track
-		const bool isHovered = GetFocusID() == id;
+		const bool isHovered = IsWidgetFocused(id);
 
 		window->DrawList->AddRect(draw_bb.Min, draw_bb.Max, isHovered ? GetUserStyleColorU32(USER_STYLE::kSliderBorderActive) : GetUserStyleColorU32(USER_STYLE::kSliderBorder), g.Style.FrameRounding, 0, 1.75f);
 
@@ -491,23 +517,23 @@ namespace ImGui
 		if (!wasActive)
 			ImGui::PopStyleColor();
 
-		if (isActive)
+		if (isActive) {
+			if (*active_tab != id) {
+				RE::PlaySound("UIJournalTabsSD");
+			}
 			*active_tab = id;
+		}
 
 		return isActive;
 	}
 
-	bool OpenTabOnHover(const char* a_label, const ImGuiTabItemFlags flags)
+	bool BeginTabItemEx(const char* a_label, const ImGuiTabItemFlags flags)
 	{
-		static ImGuiID activeInspectorTab;
-		const bool     selected = BeginTabItemEx(a_label, &activeInspectorTab, nullptr, flags);
-		if (!selected && ActivateOnHover()) {
-			RE::PlaySound("UIJournalTabsSD");
-		}
-		return selected;
+		static ImGuiID lastActiveTab = 0;
+		return ImGui::BeginTabItemEx(a_label, &lastActiveTab, nullptr, flags);
 	}
 
-	bool ImGui::OutlineButton(const char* label, bool* wasFocused)
+	bool OutlineButton(const char* label, bool* wasFocused)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
@@ -528,7 +554,6 @@ namespace ImGui
 		bool hovered = false, held = false;
 		bool pressed = ButtonBehavior(frame_bb, id, &hovered, &held, 0);
 
-		const bool itemFocused = GetFocusID() == id;
 		ImU32      frame_col = GetColorU32(held ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered :
 																					ImGuiCol_Button);
 		if (wasFocused && !*wasFocused) {
@@ -540,18 +565,18 @@ namespace ImGui
 		RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
 		window->DrawList->AddRect(
 			frame_bb.Min, frame_bb.Max,
-			itemFocused ? GetUserStyleColorU32(USER_STYLE::kSliderBorderActive) : GetUserStyleColorU32(USER_STYLE::kSliderBorder),
+			hovered ? GetUserStyleColorU32(USER_STYLE::kSliderBorderActive) : GetUserStyleColorU32(USER_STYLE::kSliderBorder),
 			style.FrameRounding, 0, GetUserStyleVar(USER_STYLE::kSeparatorThickness) * 0.43f);
-		if (!itemFocused) {
+		if (!hovered) {
 			PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TextDisabled));
 		}
 		RenderTextClipped(frame_bb.Min, frame_bb.Max, label, nullptr, nullptr, ImVec2(0.5f, 0.5f));
-		if (!itemFocused) {
+		if (!hovered) {
 			PopStyleColor();
 		}
 
 		if (wasFocused) {
-			*wasFocused = itemFocused;
+			*wasFocused = hovered;
 		}
 
 		return pressed;

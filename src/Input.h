@@ -27,10 +27,12 @@ namespace Input
 		bool IsScreenshotQueued() const;
 		void QueueScreenshot(bool a_forceQueue);
 		void OnScreenshotFinish();
+		
+		static void ToggleCursor(bool a_enable);
 
 	private:
 		bool            SetInputDevice(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey);
-		bool            PanWithMouse(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const;
+		bool            TiltWithMouse(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const;
 		static ImGuiKey ToImGuiKey(KEY a_key);
 		static ImGuiKey ToImGuiKey(GAMEPAD_DIRECTX a_key);
 		static ImGuiKey ToImGuiKey(GAMEPAD_ORBIS a_key);
@@ -41,7 +43,7 @@ namespace Input
 		// members
 		bool          screenshotQueued{ false };
 		bool          menuHidden{ false };
-		std::uint32_t escapedPressedCount{ 0 };
+		bool          panCamera{ false };
 
 		float keyHeldDuration{ 0.5 };
 

@@ -66,9 +66,8 @@ namespace PhotoMode
 		case RE::UserEvents::INPUT_CONTEXT_ID::kGameplay:
 		case RE::UserEvents::INPUT_CONTEXT_ID::kTFCMode:
 		case RE::UserEvents::INPUT_CONTEXT_ID::kConsole:
-			return true;
 		case RE::UserEvents::INPUT_CONTEXT_ID::kCursor:
-			return RE::UI::GetSingleton()->IsMenuOpen(RE::TweenMenu::MENU_NAME);
+			return true;
 		default:
 			return false;
 		}
@@ -76,7 +75,7 @@ namespace PhotoMode
 
 	bool Manager::ShouldBlockInput() const
 	{
-		return blockInput;
+		return blockInputToPhotoMode;
 	}
 
 	bool Manager::IsActive() const
@@ -147,6 +146,8 @@ namespace PhotoMode
 
 		// refresh style
 		ImGui::Styles::GetSingleton()->RefreshStyle();
+
+		Input::Manager::ToggleCursor(true);
 
 		activated = true;
 		if (activeGlobal) {
@@ -221,6 +222,8 @@ namespace PhotoMode
 		lastFocusedID = 0;
 
 		updateKeyboardFocus = false;
+
+		Input::Manager::ToggleCursor(false);
 
 		activated = false;
 		if (activeGlobal) {
@@ -340,16 +343,10 @@ namespace PhotoMode
 	void Manager::TryOpenFromTweenMenu()
 	{
 		if (openFromTweenMenu) {
-			if (improvedCameraInstalled) {
-				// prevent camera flicker on transition
-				SKSE::GetTaskInterface()->AddTask([this]() {
-					this->Activate();
-					this->openFromTweenMenu = false;
-				});
-			} else {
-				Activate();
-				openFromTweenMenu = false;
-			}
+			SKSE::GetTaskInterface()->AddTask([this]() {
+				this->Activate();
+				this->openFromTweenMenu = false;
+			});
 		}
 	}
 
@@ -381,12 +378,17 @@ namespace PhotoMode
 		return overlaysTab.GetCurrentOverlay();
 	}
 
+	bool Manager::IsCursorHoveringOverWindow() const
+	{
+		return isCursorHoveringOverWindow;
+	}
+
 	void Manager::Draw()
 	{
 		ImGui::SetNextWindowPos(ImGui::GetNativeViewportPos());
 		ImGui::SetNextWindowSize(ImGui::GetNativeViewportSize());
 
-		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
+		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
 		{
 			// render hierachy
 			overlaysTab.DrawOverlays();
@@ -418,7 +420,7 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(ImVec2(center.x + third_width, center.y + third_height * 0.8f), ImGuiCond_Always, ImVec2(0.5, 0.5));
 		ImGui::SetNextWindowSize(ImVec2(size.x / 3.25f, size.y / 3.125f));
 
-		constexpr auto windowFlags = ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoDecoration;
+		constexpr auto windowFlags = ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDecoration;
 
 		ImGui::Begin("$PM_Title_Menu"_T, nullptr, windowFlags);
 		{
@@ -428,116 +430,139 @@ namespace PhotoMode
 				currentTab = kCamera;
 			}
 
-			// Q [Tab Tab Tab Tab Tab] E
-			ImGui::BeginGroup();
-			{
-				const auto buttonSize = ImGui::ButtonIcon(MANAGER(Hotkeys)->PreviousTabKey());
-				ImGui::SameLine();
-
-				const float tabWidth = (ImGui::GetContentRegionAvail().x - (buttonSize.x + ImGui::GetStyle().ItemSpacing.x * tabs.size())) / tabs.size();
-
-				ImGui::PushItemFlag(ImGuiItemFlags_NoNav, true);
-				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-				for (std::int32_t i = 0; i < tabs.size(); ++i) {
-					if (currentTab != i) {
-						ImGui::BeginDisabled(true);
-					} else {
-						ImGui::PushFont(MANAGER(IconFont)->GetLargeFont());
-					}
-					ImGui::Button(tabIcons[i], ImVec2(tabWidth, ImGui::GetFrameHeightWithSpacing()));
-					if (currentTab != i) {
-						ImGui::EndDisabled();
-					} else {
-						ImGui::PopFont();
-					}
-					ImGui::SameLine();
-				}
-				ImGui::PopStyleColor();
-				ImGui::PopItemFlag();
-
-				ImGui::SameLine();
-				ImGui::ButtonIcon(MANAGER(Hotkeys)->NextTabKey());
+			// console already covers menu
+			if (blockInputToPhotoMode) {
+				ImGui::PushStyleVar(ImGuiStyleVar_DisabledAlpha, ImGui::GetStyle().Alpha);
 			}
-			ImGui::EndGroup();
 
-			//		CAMERA
-			// ----------------
-			ImGui::CenteredText(currentTab != TAB_TYPE::kCharacter ? TRANSLATE(tabs[currentTab]) : characterTab[cachedCharacter->GetFormID()].GetName());
-			ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, ImGui::GetUserStyleVar(ImGui::USER_STYLE::kSeparatorThickness));
-
-			// content
-			ImGui::SetNextWindowBgAlpha(0.0f);  // child bg color is added ontop of window
-			ImGui::BeginChild("##PhotoModeChild", ImVec2(0, 0), false, windowFlags);
+			ImGui::BeginDisabled(blockInputToPhotoMode);
 			{
-				ImGui::Spacing();
+				// Q [Tab Tab Tab Tab Tab] E
+				ImGui::BeginGroup();
+				{
+					const auto buttonSize = ImGui::ButtonIcon(MANAGER(Hotkeys)->PreviousTabKey());
+					ImGui::SameLine();
 
-				if (restoreLastFocusID) {
-					ImGui::SetFocusID(lastFocusedID, ImGui::GetCurrentWindow());
+					const float tabWidth = (ImGui::GetContentRegionAvail().x - (buttonSize.x + ImGui::GetStyle().ItemSpacing.x * tabs.size())) / tabs.size();
 
-					restoreLastFocusID = false;
-				} else if (updateKeyboardFocus) {
-					if (currentTab == TAB_TYPE::kCharacter) {
-						resetPlayerTabs = true;
-					}
+					ImGui::PushItemFlag(ImGuiItemFlags_NoNav, true);
 
-					ImGui::SetKeyboardFocusHere();
-					RE::PlaySound("UIJournalTabsSD");
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4());
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4());
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4());
 
-					updateKeyboardFocus = false;
-				}
-
-				switch (currentTab) {
-				case TAB_TYPE::kCamera:
-					{
-						if (resetWindow) {
-							ImGui::SetKeyboardFocusHere();
-							resetWindow = false;
-						}
-						cameraTab.Draw();
-					}
-					break;
-				case TAB_TYPE::kTime:
-					timeTab.Draw();
-					break;
-				case TAB_TYPE::kCharacter:
-					{
-						const auto consoleRef = RE::Console::GetSelectedRef();
-						if (!consoleRef || !consoleRef->Is(RE::FormType::ActorCharacter) || consoleRef->IsDisabled() || consoleRef->IsDeleted() || !consoleRef->Is3DLoaded()) {
-							prevCachedCharacter = cachedCharacter;
-							cachedCharacter = RE::PlayerCharacter::GetSingleton();
+					for (std::int32_t i = 0; i < tabs.size(); ++i) {
+						bool activeTab = (currentTab == i) || hoveredTabs[i] == true;
+						if (!activeTab) {
+							ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 						} else {
-							prevCachedCharacter = cachedCharacter;
-							cachedCharacter = consoleRef->As<RE::Actor>();
-							if (!characterTab.contains(cachedCharacter->GetFormID())) {
-								characterTab.emplace(cachedCharacter->GetFormID(), Character(cachedCharacter));
-							}
+							ImGui::PushFont(MANAGER(IconFont)->GetLargeFont());
 						}
+						if (ImGui::Button(tabIcons[i], ImVec2(tabWidth, ImGui::GetFrameHeightWithSpacing()))) {
+							currentTab = i;
+						}
+						hoveredTabs[i] = ImGui::IsItemHovered();
+						if (!activeTab) {
+							ImGui::PopStyleColor();
+						} else {
+							ImGui::PopFont();
+						}
+						ImGui::SameLine();
+					}
+					ImGui::PopStyleColor(3);
+					ImGui::PopItemFlag();
 
-						if (cachedCharacter != prevCachedCharacter) {
+					ImGui::SameLine();
+					ImGui::ButtonIcon(MANAGER(Hotkeys)->NextTabKey());
+				}
+				ImGui::EndGroup();
+
+				//		CAMERA
+				// ----------------
+				ImGui::CenteredText(currentTab != TAB_TYPE::kCharacter ? TRANSLATE(tabs[currentTab]) : characterTab[cachedCharacter->GetFormID()].GetName());
+				ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, ImGui::GetUserStyleVar(ImGui::USER_STYLE::kSeparatorThickness));
+
+				// content
+				ImGui::SetNextWindowBgAlpha(0.0f);  // child bg color is added ontop of window
+				ImGui::BeginChild("##PhotoModeChild", ImVec2(0, 0), ImGuiChildFlags_None, windowFlags);
+				{
+					ImGui::Spacing();
+
+					if (restoreLastFocusID) {
+						ImGui::SetHoveredID(lastFocusedID);
+
+						restoreLastFocusID = false;
+					} else if (updateKeyboardFocus) {
+						if (currentTab == TAB_TYPE::kCharacter) {
 							resetPlayerTabs = true;
 						}
 
-						characterTab[cachedCharacter->GetFormID()].Draw(resetPlayerTabs);
+						ImGui::SetItemDefaultFocus();
+						RE::PlaySound("UIJournalTabsSD");
 
-						if (resetPlayerTabs) {
-							resetPlayerTabs = false;
-						}
+						updateKeyboardFocus = false;
 					}
-					break;
-				case TAB_TYPE::kFilters:
-					filterTab.Draw();
-					break;
-				case TAB_TYPE::kOverlays:
-					overlaysTab.Draw();
-					break;
-				default:
-					break;
-				}
 
-				noItemsFocused = !ImGui::IsAnyItemFocused() || !ImGui::IsWindowFocused();
-				lastFocusedID = ImGui::GetFocusID();
+					switch (currentTab) {
+					case TAB_TYPE::kCamera:
+						{
+							if (resetWindow) {
+								ImGui::SetItemDefaultFocus();
+								resetWindow = false;
+							}
+							cameraTab.Draw();
+						}
+						break;
+					case TAB_TYPE::kTime:
+						timeTab.Draw();
+						break;
+					case TAB_TYPE::kCharacter:
+						{
+							const auto consoleRef = RE::Console::GetSelectedRef();
+							if (!consoleRef || !consoleRef->Is(RE::FormType::ActorCharacter) || consoleRef->IsDisabled() || consoleRef->IsDeleted() || !consoleRef->Is3DLoaded()) {
+								prevCachedCharacter = cachedCharacter;
+								cachedCharacter = RE::PlayerCharacter::GetSingleton();
+							} else {
+								prevCachedCharacter = cachedCharacter;
+								cachedCharacter = consoleRef->As<RE::Actor>();
+								if (!characterTab.contains(cachedCharacter->GetFormID())) {
+									characterTab.emplace(cachedCharacter->GetFormID(), Character(cachedCharacter));
+								}
+							}
+
+							if (cachedCharacter != prevCachedCharacter) {
+								resetPlayerTabs = true;
+							}
+
+							characterTab[cachedCharacter->GetFormID()].Draw(resetPlayerTabs);
+
+							if (resetPlayerTabs) {
+								resetPlayerTabs = false;
+							}
+						}
+						break;
+					case TAB_TYPE::kFilters:
+						filterTab.Draw();
+						break;
+					case TAB_TYPE::kOverlays:
+						overlaysTab.Draw();
+						break;
+					default:
+						break;
+					}
+
+					noItemsFocused = !isCursorHoveringOverWindow;
+					lastFocusedID = ImGui::GetHoveredID();
+				}
+				ImGui::EndChild();
 			}
-			ImGui::EndChild();
+			ImGui::EndDisabled();
+
+			if (blockInputToPhotoMode) {
+				ImGui::PopStyleVar();
+			}
+
+			UpdateMouseHoveringOverWindow();
 		}
 		ImGui::End();
 	}
@@ -705,6 +730,20 @@ namespace PhotoMode
 		return false;
 	}
 
+	void Manager::UpdateMouseHoveringOverWindow()
+	{
+		constexpr float buffer = 50.0f;
+		auto            mousePos = ImGui::GetMousePos();
+		auto            winPos = ImGui::GetWindowPos();
+		auto            winSize = ImGui::GetWindowSize();
+
+		isCursorHoveringOverWindow =
+			mousePos.x >= winPos.x - buffer &&
+			mousePos.x <= winPos.x + winSize.x + buffer &&
+			mousePos.y >= winPos.y - buffer &&
+			mousePos.y <= winPos.y + winSize.y + buffer;
+	}
+
 	EventResult Manager::ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*)
 	{
 		if (!a_evn) {
@@ -712,9 +751,17 @@ namespace PhotoMode
 		}
 
 		if (a_evn->menuName == RE::Console::MENU_NAME) {
-			blockInput = a_evn->opening;
-			if (a_evn->opening && IsHidden()) {
-				ToggleUI();
+			blockInputToPhotoMode = a_evn->opening;
+			if (a_evn->opening) {
+				if (IsActive() && IsHidden()) {
+					ToggleUI();
+				}
+			} else if (IsActive()) {
+				Input::Manager::ToggleCursor(true);
+			}
+		} else if (a_evn->menuName == RE::TweenMenu::MENU_NAME) {
+			if (!a_evn->opening) {
+				TryOpenFromTweenMenu();
 			}
 		} else if (a_evn->opening) {
 			if (a_evn->menuName == RE::JournalMenu::MENU_NAME) {
@@ -738,7 +785,7 @@ namespace PhotoMode
 
 	EventResult Manager::ProcessEvent(const SKSE::ModCallbackEvent* a_evn, RE::BSTEventSource<SKSE::ModCallbackEvent>*)
 	{
-		if (a_evn && a_evn->eventName == "OpenTween_PhotoMode" && !IsActive() && !openFromTweenMenu) {
+		if (a_evn && a_evn->eventName == "OpenTween_PhotoMode") {
 			openFromTweenMenu = true;
 			if (skyrimSoulsInstalled) {
 				Activate();

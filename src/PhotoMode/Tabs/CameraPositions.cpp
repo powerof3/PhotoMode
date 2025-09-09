@@ -78,27 +78,24 @@ namespace PhotoMode
 			pcCamera->ToggleFreeCameraMode(false);
 		}
 
-		const auto currentState = pcCamera->currentState;
-		if (!currentState || currentState->id != RE::CameraState::kFree) {
-			return Result<void>::Error("Failed to apply camera position: Not in free camera mode");
+		if (pcCamera->IsInFreeCameraMode()) {
+			auto freeCameraState = static_cast<RE::FreeCameraState*>(pcCamera->currentState.get());
+			if (freeCameraState) {
+				freeCameraState->translation = position;
+
+				if (freeCameraRotation.x != 0.0f || freeCameraRotation.y != 0.0f) {
+					freeCameraState->rotation.x = freeCameraRotation.x;
+					freeCameraState->rotation.y = freeCameraRotation.y;
+				}
+
+				pcCamera->worldFOV = fov;
+				MANAGER(PhotoMode)->SetViewRoll(viewRoll);
+
+				return Result<void>::Ok();
+			}
 		}
 
-		auto freeCameraState = static_cast<RE::FreeCameraState*>(currentState.get());
-		if (!freeCameraState) {
-			return Result<void>::Error("Failed to apply camera position: FreeCameraState is null");
-		}
-
-		freeCameraState->translation = position;
-
-		if (freeCameraRotation.x != 0.0f || freeCameraRotation.y != 0.0f) {
-			freeCameraState->rotation.x = freeCameraRotation.x;
-			freeCameraState->rotation.y = freeCameraRotation.y;
-		}
-
-		pcCamera->worldFOV = fov;
-		MANAGER(PhotoMode)->SetViewRoll(viewRoll);
-
-		return Result<void>::Ok();
+		return Result<void>::Error("Failed to apply camera position");
 	}
 
 	void CameraPositions::Draw()
@@ -133,10 +130,8 @@ namespace PhotoMode
 				ImGui::PushStyleColor(ImGuiCol_NavCursor, ImGui::GetUserStyleColorVec4(ImGui::USER_STYLE::kComboBoxText));
 				ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetColorU32(ImGuiCol_TextDisabled));
 
-				auto positionNames = BuildPositionNames();
-
 				ImGui::PushItemWidth(-200 * ImGui::Renderer::GetResolutionScale());
-				if (ImGui::ComboWithFilter("##CameraPosSelect", &selectedPositionIndex, positionNames)) {
+				if (ImGui::ComboWithFilter("##CameraPosSelect", &selectedPositionIndex, GetPositionNames())) {
 					ImGui::SetKeyboardFocusHere(-1);
 				}
 				ImGui::PopItemWidth();
@@ -176,9 +171,11 @@ namespace PhotoMode
 		auto result = GetAvailableCameraPositionsList();
 		if (result) {
 			positions = result.value;
+			positionNames.clear();
 		} else {
 			logger::error("Failed to refresh camera positions: {}", result.error_message);
 			positions.clear();
+			positionNames.clear();
 		}
 	}
 
@@ -192,14 +189,15 @@ namespace PhotoMode
 		return -1;
 	}
 
-	std::vector<std::string> CameraPositions::BuildPositionNames() const
-	{
-		std::vector<std::string> names;
-		names.reserve(positions.size());
-		for (const auto& pos : positions) {
-			names.emplace_back(pos.GetFilename());
-		}
-		return names;
+	const std::vector<std::string>& CameraPositions::GetPositionNames()
+	{		
+		if (positionNames.empty()) {
+			positionNames.reserve(positions.size());
+			for (const auto& pos : positions) {
+				positionNames.emplace_back(pos.GetFilename());
+			}
+		}		
+		return positionNames;
 	}
 
 	void CameraPositions::LoadSelectedCameraPosition()

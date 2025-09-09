@@ -187,12 +187,12 @@ namespace PhotoMode
 				const float width = ImGui::GetContentRegionAvail().x / 4;
 
 				if (a_resetTabs) {
-					ImGui::SetKeyboardFocusHere();
+					ImGui::SetItemDefaultFocus();
 				}
 
 				if (character->GetFaceGenAnimationData()) {
 					ImGui::SetNextItemWidth(width);
-					if (ImGui::OpenTabOnHover("$PM_Expressions"_T, a_resetTabs ? ImGuiTabItemFlags_SetSelected : 0)) {
+					if (ImGui::BeginTabItemEx("$PM_Expressions"_T, a_resetTabs ? ImGuiTabItemFlags_SetSelected : 0)) {
 						using namespace MFG;
 
 						if (ImGui::EnumSlider("$PM_Expression"_T, &mfgData.expressionData.modifier, expressions)) {
@@ -240,7 +240,7 @@ namespace PhotoMode
 				}
 
 				ImGui::SetNextItemWidth(width);
-				if (ImGui::OpenTabOnHover("$PM_Poses"_T)) {
+				if (ImGui::BeginTabItemEx("$PM_Poses"_T)) {
 					idles.GetFormResultFromCombo([&](const auto& a_idle) {
 						if (idlePlayed) {
 							RevertIdle();
@@ -257,7 +257,7 @@ namespace PhotoMode
 				}
 
 				ImGui::SetNextItemWidth(width);
-				if (ImGui::OpenTabOnHover("$PM_Effects"_T)) {
+				if (ImGui::BeginTabItemEx("$PM_Effects"_T)) {
 					effectShaders.GetFormResultFromCombo([&](const auto& a_effectShader) {
 						character->ApplyEffectShader(a_effectShader);
 						effectsPlayed = true;
@@ -275,7 +275,7 @@ namespace PhotoMode
 				}
 
 				ImGui::SetNextItemWidth(width);
-				if (ImGui::OpenTabOnHover("$PM_Transforms"_T)) {
+				if (ImGui::BeginTabItemEx("$PM_Transforms"_T)) {
 					currentState.rotZ = RE::rad_to_deg(character->GetAngleZ());
 					if (ImGui::Slider("$PM_Rotation"_T, &currentState.rotZ, 0.0f, 360.0f)) {
 						character->SetHeading(RE::deg_to_rad(currentState.rotZ));

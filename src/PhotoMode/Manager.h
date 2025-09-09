@@ -52,6 +52,8 @@ namespace PhotoMode
 		void                              OnDataLoad();
 		std::pair<ImGui::Texture*, float> GetOverlay() const;
 
+		bool IsCursorHoveringOverWindow() const;
+
 	private:
 		enum TAB_TYPE : std::int8_t
 		{
@@ -85,6 +87,7 @@ namespace PhotoMode
 		void               DrawControls();
 		void               DrawBar() const;
 		[[nodiscard]] bool SetupJournalMenu() const;
+		void               UpdateMouseHoveringOverWindow();
 
 		EventResult ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
 		EventResult ProcessEvent(const SKSE::ModCallbackEvent* a_evn, RE::BSTEventSource<SKSE::ModCallbackEvent>*) override;
@@ -93,10 +96,11 @@ namespace PhotoMode
 		bool activated{ false };
 		bool hiddenUI{ false };
 		bool revertENB{ false };
-		bool blockInput{ false };
+		bool blockInputToPhotoMode{ false };
 
-		std::int32_t previousTab{ kCamera };
-		std::int32_t currentTab{ kCamera };
+		std::int32_t                  previousTab{ kCamera };
+		std::int32_t                  currentTab{ kCamera };
+		std::array<bool, tabs.size()> hoveredTabs{};
 
 		Camera cameraTab;
 		Time   timeTab;
@@ -131,6 +135,8 @@ namespace PhotoMode
 		float freeCameraSpeed{ 4.0f };
 		bool  freezeTimeOnStart{ true };
 		bool  openFromPauseMenu{ true };
+
+		bool isCursorHoveringOverWindow{ false };
 
 		RE::TESGlobal* activeGlobal{ nullptr };
 	};
