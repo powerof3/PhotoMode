@@ -130,30 +130,38 @@ namespace Input
 		return true;
 	}
 
-	bool Manager::TiltWithMouse(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const
+	bool Manager::TiltCamera(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const
 	{
-		// recreate tilt event for mouse
-		if (inputDevice == DEVICE::kMouse && RE::PlayerCamera::GetSingleton()->IsInFreeCameraMode()) {  // redundant check??
-			if (const auto freeCameraState = static_cast<RE::FreeCameraState*>(RE::PlayerCamera::GetSingleton()->currentState.get())) {
-				if (a_key == MOUSE::kLeftButton) {
-					std::uint16_t value = (value & 0x00ff) | (0 << 8);
-					bool          released = true;
-					if (a_buttonEvent->value != 0.0 || a_buttonEvent->heldDownSecs < 0.0) {
-						released = false;
-					}
-					value = (value & 0xff00) | (!released);
-					freeCameraState->verticalDirection = value;
+		if (!RE::PlayerCamera::GetSingleton()->IsInFreeCameraMode()) {
+			return false;
+		}
 
-					return true;
+		if (auto device = a_buttonEvent->GetDevice(); device != RE::INPUT_DEVICE::kMouse && device != RE::INPUT_DEVICE::kGamepad) {
+			return false;
+		}
+
+		if (const auto freeCameraState = static_cast<RE::FreeCameraState*>(RE::PlayerCamera::GetSingleton()->currentState.get())) {
+			constexpr auto getKey = [](std::string_view action, RE::INPUT_DEVICE device) {
+				return RE::ControlMap::GetSingleton()->GetMappedKey(action, device, RE::UserEvents::INPUT_CONTEXT_ID::kTFCMode);
+			};
+
+			static auto mouseUp = getKey("WorldZUp", RE::INPUT_DEVICE::kMouse);
+			static auto mouseDown = getKey("WorldZDown", RE::INPUT_DEVICE::kMouse);
+			static auto gamepadUp = getKey("WorldZUp", RE::INPUT_DEVICE::kGamepad);
+			static auto gamepadDown = getKey("WorldZDown", RE::INPUT_DEVICE::kGamepad);
+
+			if (a_key == mouseUp || a_key == gamepadUp) {
+				bool released = !(a_buttonEvent->value != 0.0 || a_buttonEvent->heldDownSecs < 0.0);
+				freeCameraState->verticalDirection = static_cast<std::uint16_t>(!released);
+				return true;
+			}
+			if (a_key == mouseDown || a_key == gamepadDown) {
+				if (a_buttonEvent->value == 0.0 && a_buttonEvent->heldDownSecs >= 0.0) {
+					freeCameraState->verticalDirection = 0;
+				} else {
+					freeCameraState->verticalDirection = -1;
 				}
-				if (a_key == MOUSE::kRightButton) {
-					if (a_buttonEvent->value == 0.0 && a_buttonEvent->heldDownSecs >= 0.0) {
-						freeCameraState->verticalDirection = 0;
-					} else {
-						freeCameraState->verticalDirection = -1;
-					}
-					return true;
-				}
+				return true;
 			}
 		}
 
@@ -549,15 +557,15 @@ namespace Input
 				} else if (const auto buttonEvent = event->AsButtonEvent()) {
 					const auto key = buttonEvent->GetIDCode();
 					auto       hotKey = key;
-					bool       mouseOverWindow = MANAGER(PhotoMode)->IsCursorHoveringOverWindow();
+					bool       cursorOverWindow = MANAGER(PhotoMode)->IsCursorHoveringOverWindow();
 
-					if (!GetHotKey(event->GetDevice(), hotKey) || !mouseOverWindow && TiltWithMouse(buttonEvent, key)) {
+					if (!GetHotKey(event->GetDevice(), hotKey) || !cursorOverWindow && TiltCamera(buttonEvent, key)) {
 						continue;
 					}
 
-					if (key == KEY::kLeftShift) {
+					if (hotKey == KEY::kLeftShift) {
 						if (buttonEvent->IsHeld()) {
-							if (!mouseOverWindow) {
+							if (!cursorOverWindow) {
 								if (!panCamera) {
 									ToggleCursor(false);
 									panCamera = true;
@@ -597,7 +605,7 @@ namespace Input
 						}
 					}
 
-					if (mouseOverWindow && (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey())) {
+					if (cursorOverWindow && (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey())) {
 						if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {
 							ImGui::GetIO().AddKeyEvent(ImGuiKey_Tab, buttonEvent->IsDown());
 						} else {
