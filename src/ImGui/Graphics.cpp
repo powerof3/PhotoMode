@@ -1,7 +1,5 @@
 #include "Graphics.h"
 
-#include "ImGui/Renderer.h"
-
 namespace ImGui
 {
 	Texture::Texture(std::wstring_view a_path) :

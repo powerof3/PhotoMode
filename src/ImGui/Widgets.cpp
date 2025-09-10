@@ -1,8 +1,7 @@
 #include "Widgets.h"
 
-#include "IconsFontAwesome6.h"
 #include "IconsFonts.h"
-#include "PhotoMode\Manager.h"
+#include "PhotoMode/Manager.h"
 
 namespace ImGui
 {
@@ -504,10 +503,12 @@ namespace ImGui
 		return ThinSliderScalar(label, ImGuiDataType_S32, v, &v_min, &v_max, format, flags, 0.5f);
 	}
 
-	bool BeginTabItemEx(const char* label, ImGuiID* active_tab, bool* p_open = nullptr, ImGuiTabItemFlags flags = 0)
+	bool BeginTabItemEx(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 	{
-		ImGuiID id = ImGui::GetID(label);
-		bool    wasActive = *active_tab == id;
+		static ImGuiID lastActiveTab = 0;
+		ImGuiID        id = ImGui::GetID(label);
+
+		bool wasActive = lastActiveTab == id;
 
 		if (!wasActive)
 			ImGui::PushStyleColor(ImGuiCol_Text, GetStyleColorVec4(ImGuiCol_TextDisabled));
@@ -518,19 +519,13 @@ namespace ImGui
 			ImGui::PopStyleColor();
 
 		if (isActive) {
-			if (*active_tab != id) {
+			if (lastActiveTab != id) {
 				RE::PlaySound("UIJournalTabsSD");
 			}
-			*active_tab = id;
+			lastActiveTab = id;
 		}
 
 		return isActive;
-	}
-
-	bool BeginTabItemEx(const char* a_label, const ImGuiTabItemFlags flags)
-	{
-		static ImGuiID lastActiveTab = 0;
-		return ImGui::BeginTabItemEx(a_label, &lastActiveTab, nullptr, flags);
 	}
 
 	bool OutlineButton(const char* label, bool* wasFocused)

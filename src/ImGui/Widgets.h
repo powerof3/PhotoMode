@@ -49,7 +49,7 @@ namespace ImGui
 		return value_changed;
 	}
 
-	bool BeginTabItemEx(const char* a_label, ImGuiTabItemFlags flags = 0);
+	bool BeginTabItemEx(const char* label, bool* p_open = nullptr, ImGuiTabItemFlags flags = 0);
 
 	bool OutlineButton(const char* label, bool* wasFocused = nullptr);
 

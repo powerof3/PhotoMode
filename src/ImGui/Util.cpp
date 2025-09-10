@@ -1,7 +1,5 @@
 #include "Util.h"
 
-#include "Renderer.h"
-
 namespace ImGui
 {
 	int IndexOfKey(const std::vector<std::pair<int, double>>& pair_list, const int key)

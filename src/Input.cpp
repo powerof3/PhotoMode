@@ -85,7 +85,7 @@ namespace Input
 		}
 	}
 
-	bool Manager::SetInputDevice(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey)
+	bool Manager::SetInputDevice(RE::INPUT_DEVICE a_device)
 	{
 		// get input type
 		switch (a_device) {
@@ -93,20 +93,35 @@ namespace Input
 			inputDevice = DEVICE::kKeyboard;
 			break;
 		case RE::INPUT_DEVICE::kMouse:
-			{
-				a_hotkey += SKSE::InputMap::kMacro_MouseButtonOffset;
-				inputDevice = DEVICE::kMouse;
-			}
+			inputDevice = DEVICE::kMouse;
 			break;
 		case RE::INPUT_DEVICE::kGamepad:
 			{
-				a_hotkey = SKSE::InputMap::GamepadMaskToKeycode(a_hotkey);
 				if (RE::ControlMap::GetSingleton()->GetGamePadType() == RE::PC_GAMEPAD_TYPE::kOrbis) {
 					inputDevice = DEVICE::kGamepadOrbis;
 				} else {
 					inputDevice = DEVICE::kGamepadDirectX;
 				}
 			}
+			break;
+		default:
+			return false;
+		}
+
+		return true;
+	}
+
+	bool Manager::GetHotKey(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey)
+	{
+		// get input type
+		switch (a_device) {
+		case RE::INPUT_DEVICE::kKeyboard:
+			break;
+		case RE::INPUT_DEVICE::kMouse:
+			a_hotkey += SKSE::InputMap::kMacro_MouseButtonOffset;
+			break;
+		case RE::INPUT_DEVICE::kGamepad:
+			a_hotkey = SKSE::InputMap::GamepadMaskToKeycode(a_hotkey);
 			break;
 		default:
 			return false;
@@ -524,6 +539,10 @@ namespace Input
 			}
 
 			for (auto event = *a_evn; event; event = event->next) {
+				if (!SetInputDevice(event->GetDevice())) {
+					continue;
+				}
+
 				// process inputs
 				if (const auto charEvent = event->AsCharEvent()) {
 					ImGui::GetIO().AddInputCharacter(charEvent->keyCode);
@@ -532,7 +551,7 @@ namespace Input
 					auto       hotKey = key;
 					bool       mouseOverWindow = MANAGER(PhotoMode)->IsCursorHoveringOverWindow();
 
-					if (!SetInputDevice(event->GetDevice(), hotKey) || !mouseOverWindow && TiltWithMouse(buttonEvent, key)) {
+					if (!GetHotKey(event->GetDevice(), hotKey) || !mouseOverWindow && TiltWithMouse(buttonEvent, key)) {
 						continue;
 					}
 

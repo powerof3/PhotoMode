@@ -192,7 +192,7 @@ namespace PhotoMode
 
 				if (character->GetFaceGenAnimationData()) {
 					ImGui::SetNextItemWidth(width);
-					if (ImGui::BeginTabItemEx("$PM_Expressions"_T, a_resetTabs ? ImGuiTabItemFlags_SetSelected : 0)) {
+					if (ImGui::BeginTabItemEx("$PM_Expressions"_T, nullptr, a_resetTabs ? ImGuiTabItemFlags_SetSelected : 0)) {
 						using namespace MFG;
 
 						if (ImGui::EnumSlider("$PM_Expression"_T, &mfgData.expressionData.modifier, expressions)) {

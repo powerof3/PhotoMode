@@ -31,7 +31,8 @@ namespace Input
 		static void ToggleCursor(bool a_enable);
 
 	private:
-		bool            SetInputDevice(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey);
+		bool            SetInputDevice(RE::INPUT_DEVICE a_device);
+		bool            GetHotKey(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey);
 		bool            TiltWithMouse(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const;
 		static ImGuiKey ToImGuiKey(KEY a_key);
 		static ImGuiKey ToImGuiKey(GAMEPAD_DIRECTX a_key);

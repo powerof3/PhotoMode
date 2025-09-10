@@ -1,8 +1,6 @@
 #include "Settings.h"
 
 #include "ImGui/IconsFonts.h"
-#include "ImGui/Renderer.h"
-#include "ImGui/Styles.h"
 #include "Input.h"
 #include "PhotoMode/Hotkeys.h"
 #include "PhotoMode/Manager.h"
