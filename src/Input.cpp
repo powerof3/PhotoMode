@@ -11,6 +11,16 @@ namespace Input
 		return inputDevice;
 	}
 
+	bool Manager::IsInputKBM() const
+	{
+		return inputDevice == DEVICE::kKeyboard || inputDevice == DEVICE::kMouse;
+	}
+
+	bool Manager::IsInputGamepad() const
+	{
+		return inputDevice == DEVICE::kGamepadDirectX || inputDevice == DEVICE::kGamepadOrbis;
+	}
+
 	void Manager::Register()
 	{
 		if (const auto inputMgr = RE::BSInputDeviceManager::GetSingleton()) {
@@ -384,87 +394,96 @@ namespace Input
 		}
 	}
 
-	ImGuiKey Manager::ToImGuiKey(GAMEPAD_DIRECTX a_key)
+	std::pair<ImGuiKey, bool> Manager::ToImGuiKey(GAMEPAD_DIRECTX a_key)
 	{
 		switch (a_key) {
 		case GAMEPAD_DIRECTX::kUp:
-			return ImGuiKey_GamepadDpadUp;
+			return { ImGuiKey_GamepadDpadUp, false };
 		case GAMEPAD_DIRECTX::kDown:
-			return ImGuiKey_GamepadDpadDown;
+			return { ImGuiKey_GamepadDpadDown, false };
 		case GAMEPAD_DIRECTX::kLeft:
-			return ImGuiKey_GamepadDpadLeft;
+			return { ImGuiKey_GamepadDpadLeft, false };
 		case GAMEPAD_DIRECTX::kRight:
-			return ImGuiKey_GamepadDpadRight;
+			return { ImGuiKey_GamepadDpadRight, false };
 		case GAMEPAD_DIRECTX::kStart:
-			return ImGuiKey_GamepadStart;
+			return { ImGuiKey_GamepadStart, false };
 		case GAMEPAD_DIRECTX::kBack:
-			return ImGuiKey_GamepadBack;
+			return { ImGuiKey_GamepadBack, false };
 		case GAMEPAD_DIRECTX::kLeftThumb:
-			return ImGuiKey_GamepadL3;
+			return { ImGuiKey_GamepadL3, false };
 		case GAMEPAD_DIRECTX::kRightThumb:
-			return ImGuiKey_GamepadR3;
+			return { ImGuiKey_GamepadR3, false };
 		case GAMEPAD_DIRECTX::kLeftShoulder:
-			return ImGuiKey_GamepadL1;
+			return { ImGuiKey_GamepadL1, false };
 		case GAMEPAD_DIRECTX::kRightShoulder:
-			return ImGuiKey_GamepadR1;
+			return { ImGuiKey_GamepadR1, false };
 		case GAMEPAD_DIRECTX::kA:
-			return ImGuiKey_GamepadFaceDown;
+			return { ImGuiKey_GamepadFaceDown, false };
 		case GAMEPAD_DIRECTX::kB:
-			return ImGuiKey_GamepadFaceRight;
+			return { ImGuiKey_GamepadFaceRight, false };
 		case GAMEPAD_DIRECTX::kX:
-			return ImGuiKey_GamepadFaceLeft;
+			return { ImGuiKey_GamepadFaceLeft, false };
 		case GAMEPAD_DIRECTX::kY:
-			return ImGuiKey_GamepadFaceUp;
+			return { ImGuiKey_GamepadFaceUp, false };
+		case GAMEPAD_DIRECTX::kLeftTrigger:
+			return { ImGuiKey_GamepadL2, true };  // analog
+		case GAMEPAD_DIRECTX::kRightTrigger:
+			return { ImGuiKey_GamepadR2, true };  // analog
 		default:
-			return ImGuiKey_None;
+			return { ImGuiKey_None, false };
 		}
 	}
 
 	// faking this with keyboard inputs, since ImGUI doesn't support DirectInput
-	ImGuiKey Manager::ToImGuiKey(GAMEPAD_ORBIS a_key)
+	std::pair<ImGuiKey, bool> Manager::ToImGuiKey(GAMEPAD_ORBIS a_key)
 	{
 		switch (a_key) {
 		// Move / Tweak / Resize Window (in Windowing mode)
 		case GAMEPAD_ORBIS::kUp:
-			return ImGuiKey_UpArrow;
+			return { ImGuiKey_UpArrow, false };
 		// Move / Tweak / Resize Window (in Windowing mode)
 		case GAMEPAD_ORBIS::kDown:
-			return ImGuiKey_DownArrow;
+			return { ImGuiKey_DownArrow, false };
 		// Move / Tweak / Resize Window (in Windowing mode)
 		case GAMEPAD_ORBIS::kLeft:
-			return ImGuiKey_LeftArrow;
+			return { ImGuiKey_LeftArrow, false };
 		// Move / Tweak / Resize Window (in Windowing mode)
 		case GAMEPAD_ORBIS::kRight:
-			return ImGuiKey_RightArrow;
+			return { ImGuiKey_RightArrow, false };
 
 		case GAMEPAD_ORBIS::kPS3_Start:
-			return ImGuiKey_GamepadStart;
+			return { ImGuiKey_GamepadStart, false };
 		case GAMEPAD_ORBIS::kPS3_Back:
-			return ImGuiKey_GamepadBack;
+			return { ImGuiKey_GamepadBack, false };
 		case GAMEPAD_ORBIS::kPS3_L3:
-			return ImGuiKey_GamepadL3;
+			return { ImGuiKey_GamepadL3, false };
 		case GAMEPAD_ORBIS::kPS3_R3:
-			return ImGuiKey_GamepadR3;
+			return { ImGuiKey_GamepadR3, false };
 
 		// Tweak Slower / Focus Previous (in Windowing mode)
 		case GAMEPAD_ORBIS::kPS3_LB:
-			return ImGuiKey_NavKeyboardTweakSlow;
+			return { ImGuiKey_NavKeyboardTweakSlow, false };
 		// Tweak Faster / Focus Next (in Windowing mode)
 		case GAMEPAD_ORBIS::kPS3_RB:
-			return ImGuiKey_NavKeyboardTweakFast;
+			return { ImGuiKey_NavKeyboardTweakFast, false };
 		// Activate / Open / Toggle / Tweak
 		case GAMEPAD_ORBIS::kPS3_A:
-			return ImGuiKey_Enter;
+			return { ImGuiKey_Enter, false };
 		// Cancel / Close / Exit
 		case GAMEPAD_ORBIS::kPS3_B:
-			return ImGuiKey_Escape;
+			return { ImGuiKey_Escape, false };
 
 		case GAMEPAD_ORBIS::kPS3_X:
-			return ImGuiKey_GamepadFaceLeft;
+			return { ImGuiKey_GamepadFaceLeft, false };
 		case GAMEPAD_ORBIS::kPS3_Y:
-			return ImGuiKey_GamepadFaceUp;
+			return { ImGuiKey_GamepadFaceUp, false };
+
+		case GAMEPAD_ORBIS::kPS3_LT:
+			return { ImGuiKey_GamepadL2, true };
+		case GAMEPAD_ORBIS::kPS3_RT:
+			return { ImGuiKey_GamepadR2, true };
 		default:
-			return ImGuiKey_None;
+			return { ImGuiKey_None, false };
 		}
 	}
 
@@ -492,20 +511,26 @@ namespace Input
 			}
 		} else {
 			ImGuiKey key{ ImGuiKey_None };
+			bool     analog{ false };
+
 			switch (inputDevice) {
 			case DEVICE::kKeyboard:
 				key = ToImGuiKey(static_cast<KEY>(a_key));
 				break;
 			case DEVICE::kGamepadDirectX:
-				key = ToImGuiKey(static_cast<GAMEPAD_DIRECTX>(a_key));
+				std::tie(key, analog) = ToImGuiKey(static_cast<GAMEPAD_DIRECTX>(a_key));
 				break;
 			case DEVICE::kGamepadOrbis:
-				key = ToImGuiKey(static_cast<GAMEPAD_ORBIS>(a_key));
+				std::tie(key, analog) = ToImGuiKey(static_cast<GAMEPAD_ORBIS>(a_key));
 				break;
 			default:
 				break;
 			}
-			io.AddKeyEvent(key, a_keyPressed);
+			if (analog) {
+				io.AddKeyAnalogEvent(key, a_value, a_keyPressed);
+			} else {
+				io.AddKeyEvent(key, a_keyPressed);
+			}
 		}
 	}
 
@@ -559,7 +584,7 @@ namespace Input
 					auto       hotKey = key;
 					bool       cursorOverWindow = MANAGER(PhotoMode)->IsCursorHoveringOverWindow();
 
-					if (!GetHotKey(event->GetDevice(), hotKey) || !cursorOverWindow && TiltCamera(buttonEvent, key)) {
+					if (!GetHotKey(event->GetDevice(), hotKey) /* || !cursorOverWindow && TiltCamera(buttonEvent, key)*/) {
 						continue;
 					}
 
@@ -605,7 +630,7 @@ namespace Input
 						}
 					}
 
-					if (cursorOverWindow && (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey())) {
+					if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {
 						if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {
 							ImGui::GetIO().AddKeyEvent(ImGuiKey_Tab, buttonEvent->IsDown());
 						} else {

@@ -19,6 +19,8 @@ namespace Input
 		void        LoadMCMSettings(const CSimpleIniA& a_ini);
 
 		DEVICE GetInputDevice() const;
+		bool   IsInputKBM() const;
+		bool   IsInputGamepad() const;
 
 		void          LoadDefaultKeys();
 		std::uint32_t GetDefaultScreenshotKey() const;
@@ -31,13 +33,13 @@ namespace Input
 		static void ToggleCursor(bool a_enable);
 
 	private:
-		bool            SetInputDevice(RE::INPUT_DEVICE a_device);
-		bool            GetHotKey(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey);
-		bool            TiltCamera(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const;
-		static ImGuiKey ToImGuiKey(KEY a_key);
-		static ImGuiKey ToImGuiKey(GAMEPAD_DIRECTX a_key);
-		static ImGuiKey ToImGuiKey(GAMEPAD_ORBIS a_key);
-		void            SendKeyEvent(std::uint32_t a_key, float a_value, bool a_keyPressed) const;
+		bool                             SetInputDevice(RE::INPUT_DEVICE a_device);
+		bool                             GetHotKey(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey);
+		bool                             TiltCamera(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const;
+		static ImGuiKey                  ToImGuiKey(KEY a_key);
+		static std::pair<ImGuiKey, bool> ToImGuiKey(GAMEPAD_DIRECTX a_key);
+		static std::pair<ImGuiKey, bool> ToImGuiKey(GAMEPAD_ORBIS a_key);
+		void                             SendKeyEvent(std::uint32_t a_key, float a_value, bool a_keyPressed) const;
 
 		EventResult ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*) override;
 
