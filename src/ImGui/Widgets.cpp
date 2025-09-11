@@ -180,33 +180,6 @@ namespace ImGui
 		return value_changed;
 	}
 
-	bool FramelessImageButton(const char* str_id, ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col)
-	{
-		PushStyleColor(ImGuiCol_Button, ImVec4());
-		PushStyleColor(ImGuiCol_ButtonActive, ImVec4());
-		PushStyleColor(ImGuiCol_ButtonHovered, ImVec4());
-
-		auto result = ImageButton(str_id, user_texture_id, image_size, uv0, uv1, bg_col, tint_col);
-
-		PopStyleColor(3);
-
-		return result;
-	}
-
-	bool AlignedImage(ID3D11ShaderResourceView* texID, const ImVec2& texture_size, const ImVec2& min, const ImVec2& max, const ImVec2& align, ImU32 colour)
-	{
-		ImVec2 pos = min;
-
-		if (align.x > 0.0f)
-			pos.x = ImMax(pos.x, pos.x + (max.x - pos.x - texture_size.x) * align.x);
-		if (align.y > 0.0f)
-			pos.y = ImMax(pos.y, pos.y + (max.y - pos.y - texture_size.y) * align.y);
-
-		GetCurrentWindow()->DrawList->AddImage((ImU64)texID, pos, pos + texture_size, ImVec2(0, 0), ImVec2(1, 1), colour);
-
-		return IsMouseHoveringRect(pos, pos + texture_size) && IsMouseClicked(0) && (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0;
-	}
-
 	std::tuple<bool, bool> ImGui::CenteredTextWithArrows(const char* label, std::string_view centerText)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
@@ -299,7 +272,7 @@ namespace ImGui
 		const ImGuiID     id = window->GetID(label);
 		const float       w = CalcItemWidth();
 
-		const ImVec2 label_size = CalcTextSize(label, nullptr, true);
+		const ImVec2 label_size = CalcTextSize(label, NULL, true);
 		const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
 		const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 
@@ -309,13 +282,13 @@ namespace ImGui
 			return false;
 
 		// Default format string when passing NULL
-		if (format == nullptr)
+		if (format == NULL)
 			format = DataTypeGetInfo(data_type)->PrintFmt;
 
 		const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.ItemFlags);
 		bool       temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
 		if (!temp_input_is_active) {
-			// Tabbing or CTRL-clicking on Drag turns it into an InputText
+			// Tabbing or CTRL+click on Drag turns it into an InputText
 			const bool clicked = hovered && IsMouseClicked(0, ImGuiInputFlags_None, id);
 			const bool double_clicked = (hovered && g.IO.MouseClickedCount[0] == 2 && TestKeyOwner(ImGuiKey_MouseLeft, id));
 			const bool make_active = (clicked || double_clicked || g.NavActivateId == id);
@@ -325,13 +298,19 @@ namespace ImGui
 				if ((clicked && g.IO.KeyCtrl) || double_clicked || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
 					temp_input_is_active = true;
 
+			constexpr float DRAG_MOUSE_THRESHOLD_FACTOR = 0.5f;
+
 			// (Optional) simple click (without moving) turns Drag into an InputText
 			if (g.IO.ConfigDragClickToInputText && temp_input_allowed && !temp_input_is_active)
-				if (g.ActiveId == id && hovered && g.IO.MouseReleased[0] && !IsMouseDragPastThreshold(0, g.IO.MouseDragThreshold * 0.5f)) {
+				if (g.ActiveId == id && hovered && g.IO.MouseReleased[0] && !IsMouseDragPastThreshold(0, g.IO.MouseDragThreshold * DRAG_MOUSE_THRESHOLD_FACTOR)) {
 					g.NavActivateId = id;
 					g.NavActivateFlags = ImGuiActivateFlags_PreferInput;
 					temp_input_is_active = true;
 				}
+
+			// Store initial value (not used by main lib but available as a convenience but some mods e.g. to revert)
+			if (make_active)
+				memcpy(&g.ActiveIdValueOnActivation, p_data, DataTypeGetInfo(data_type)->Size);
 
 			if (make_active && !temp_input_is_active) {
 				SetActiveID(id, window);
@@ -342,15 +321,22 @@ namespace ImGui
 		}
 
 		if (temp_input_is_active) {
-			// Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set
-			const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0 && (p_min == NULL || p_max == NULL || DataTypeCompare(data_type, p_min, p_max) < 0);
-			return TempInputScalar(frame_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : NULL, is_clamp_input ? p_max : NULL);
+			// Only clamp CTRL+Click input when ImGuiSliderFlags_ClampOnInput is set (generally via ImGuiSliderFlags_AlwaysClamp)
+			bool clamp_enabled = false;
+			if ((flags & ImGuiSliderFlags_ClampOnInput) && (p_min != NULL || p_max != NULL)) {
+				const int clamp_range_dir = (p_min != NULL && p_max != NULL) ? DataTypeCompare(data_type, p_min, p_max) : 0;  // -1 when *p_min < *p_max, == 0 when *p_min == *p_max
+				if (p_min == NULL || p_max == NULL || clamp_range_dir < 0)
+					clamp_enabled = true;
+				else if (clamp_range_dir == 0)
+					clamp_enabled = DataTypeIsZero(data_type, p_min) ? ((flags & ImGuiSliderFlags_ClampZeroRange) != 0) : true;
+			}
+			return TempInputScalar(frame_bb, id, label, data_type, p_data, format, clamp_enabled ? p_min : NULL, clamp_enabled ? p_max : NULL);
 		}
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
 																								  ImGuiCol_FrameBg);
-		//RenderNavHighlight(frame_bb, id);
+		//RenderNavCursor(frame_bb, id);
 		RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
 		window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, g.ActiveId == id ? GetUserStyleColorU32(USER_STYLE::kSliderBorderActive) : GetUserStyleColorU32(USER_STYLE::kSliderBorder), g.Style.FrameRounding, 0, 1.5f);
 
@@ -382,16 +368,6 @@ namespace ImGui
 		return value_changed;
 	}
 
-	bool DragFloatEx(const char* label, float* v, float v_speed, float v_min, float v_max, const char* format, ImGuiSliderFlags flags)
-	{
-		return DragScalarEx(label, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, flags);
-	}
-
-	bool DragIntEx(const char* label, int* v, float v_speed, int v_min, int v_max, const char* format, ImGuiSliderFlags flags)
-	{
-		return DragScalarEx(label, ImGuiDataType_S32, v, v_speed, &v_min, &v_max, format, flags);
-	}
-
 	bool ThinSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags, float sliderThickness)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
@@ -403,7 +379,7 @@ namespace ImGui
 		const ImGuiID     id = window->GetID(label);
 		const float       w = CalcItemWidth();
 
-		const ImVec2 label_size = CalcTextSize(label, nullptr, true);
+		const ImVec2 label_size = CalcTextSize(label, NULL, true);
 		const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
 		const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 
@@ -413,13 +389,13 @@ namespace ImGui
 			return false;
 
 		// Default format string when passing NULL
-		if (format == nullptr)
+		if (format == NULL)
 			format = DataTypeGetInfo(data_type)->PrintFmt;
 
 		const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.ItemFlags);
 		bool       temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
 		if (!temp_input_is_active) {
-			// Tabbing or CTRL-clicking on Slider turns it into an input box
+			// Tabbing or CTRL+click on Slider turns it into an input box
 			const bool clicked = hovered && IsMouseClicked(0, ImGuiInputFlags_None, id);
 			const bool make_active = (clicked || g.NavActivateId == id);
 			if (make_active && clicked)
@@ -427,6 +403,10 @@ namespace ImGui
 			if (make_active && temp_input_allowed)
 				if ((clicked && g.IO.KeyCtrl) || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
 					temp_input_is_active = true;
+
+			// Store initial value (not used by main lib but available as a convenience but some mods e.g. to revert)
+			if (make_active)
+				memcpy(&g.ActiveIdValueOnActivation, p_data, DataTypeGetInfo(data_type)->Size);
 
 			if (make_active && !temp_input_is_active) {
 				SetActiveID(id, window);
@@ -437,16 +417,16 @@ namespace ImGui
 		}
 
 		if (temp_input_is_active) {
-			// Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set
-			const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0;
-			return TempInputScalar(frame_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : nullptr, is_clamp_input ? p_max : nullptr);
+			// Only clamp CTRL+Click input when ImGuiSliderFlags_ClampOnInput is set (generally via ImGuiSliderFlags_AlwaysClamp)
+			const bool clamp_enabled = (flags & ImGuiSliderFlags_ClampOnInput) != 0;
+			return TempInputScalar(frame_bb, id, label, data_type, p_data, format, clamp_enabled ? p_min : NULL, clamp_enabled ? p_max : NULL);
 		}
 
 		// Draw frame
 		const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered :
 																								  ImGuiCol_FrameBg);
-		// RenderNavHighlight(frame_bb, id);
-		// RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, g.Style.FrameRounding);
+		//RenderNavCursor(frame_bb, id);
+		//RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, g.Style.FrameRounding);
 
 		// Slider behavior
 		ImRect     grab_bb;
@@ -480,7 +460,7 @@ namespace ImGui
 		const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
 		if (g.LogEnabled)
 			LogSetNextTextDecoration("{", "}");
-		RenderTextClipped(frame_bb.Min, frame_bb.Max, value_buf, value_buf_end, nullptr, ImVec2(0.5f, 0.5f));
+		RenderTextClipped(frame_bb.Min, frame_bb.Max, value_buf, value_buf_end, NULL, ImVec2(0.5f, 0.5f));
 
 		if (!isHovered) {
 			PopStyleColor();
@@ -491,16 +471,6 @@ namespace ImGui
 
 		IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | (temp_input_allowed ? ImGuiItemStatusFlags_Inputable : 0));
 		return value_changed;
-	}
-
-	bool ThinSliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, ImGuiSliderFlags flags)
-	{
-		return ThinSliderScalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags, 0.5f);
-	}
-
-	bool ThinSliderInt(const char* label, int* v, int v_min, int v_max, const char* format, ImGuiSliderFlags flags)
-	{
-		return ThinSliderScalar(label, ImGuiDataType_S32, v, &v_min, &v_max, format, flags, 0.5f);
 	}
 
 	bool BeginTabItemEx(const char* label, bool* p_open, ImGuiTabItemFlags flags)

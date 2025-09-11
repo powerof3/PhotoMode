@@ -85,6 +85,33 @@ namespace ImGui
 		ImGui::TextUnformatted(label);
 	}
 
+	bool FramelessImageButton(const char* str_id, ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col)
+	{
+		PushStyleColor(ImGuiCol_Button, ImVec4());
+		PushStyleColor(ImGuiCol_ButtonActive, ImVec4());
+		PushStyleColor(ImGuiCol_ButtonHovered, ImVec4());
+
+		auto result = ImageButton(str_id, user_texture_id, image_size, uv0, uv1, bg_col, tint_col);
+
+		PopStyleColor(3);
+
+		return result;
+	}
+
+	bool AlignedImage(ID3D11ShaderResourceView* texID, const ImVec2& texture_size, const ImVec2& min, const ImVec2& max, const ImVec2& align, ImU32 colour)
+	{
+		ImVec2 pos = min;
+
+		if (align.x > 0.0f)
+			pos.x = ImMax(pos.x, pos.x + (max.x - pos.x - texture_size.x) * align.x);
+		if (align.y > 0.0f)
+			pos.y = ImMax(pos.y, pos.y + (max.y - pos.y - texture_size.y) * align.y);
+
+		GetCurrentWindow()->DrawList->AddImage((ImU64)texID, pos, pos + texture_size, ImVec2(0, 0), ImVec2(1, 1), colour);
+
+		return IsMouseHoveringRect(pos, pos + texture_size) && IsMouseClicked(0) && (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0;
+	}
+
 	bool IsWidgetFocused()
 	{
 		return IsWidgetFocused(GetItemID());
