@@ -37,7 +37,7 @@ typedef DWORD(WINAPI* PFN_XInputGetCapabilities)(DWORD, DWORD, XINPUT_CAPABILITI
 typedef DWORD(WINAPI* PFN_XInputGetState)(DWORD, XINPUT_STATE*);
 #	endif
 
-#include "Input.h"
+#	include "Input.h"
 
 namespace SKSE
 {

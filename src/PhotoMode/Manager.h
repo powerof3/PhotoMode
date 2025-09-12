@@ -36,7 +36,7 @@ namespace PhotoMode
 		void               ToggleUI();
 
 		void NavigateTab(bool a_left);
-		void UpdateKeyboardFocus();	
+		void UpdateKeyboardFocus();
 
 		[[nodiscard]] float GetViewRoll(float a_fallback) const;
 		[[nodiscard]] float GetViewRoll() const;

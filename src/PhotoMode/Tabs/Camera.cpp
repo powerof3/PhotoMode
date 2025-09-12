@@ -75,7 +75,7 @@ namespace PhotoMode
 	}
 
 	void Camera::Draw()
-	{	
+	{
 		ImGui::EnumSlider("$PM_Grid"_T, &CameraGrid::gridType, CameraGrid::gridTypes);
 
 		ImGui::Slider("$PM_FieldOfView"_T, &RE::PlayerCamera::GetSingleton()->worldFOV, 5.0f, 150.0f);
@@ -227,9 +227,9 @@ namespace PhotoMode
 			break;*/
 		case kGrid:
 			{
-				constexpr std::int32_t   GRID_WIDTH = 8;
-				constexpr std::int32_t   GRID_HEIGHT = 6;
-				constexpr float GRID_PADDING = 20.0f;
+				constexpr std::int32_t GRID_WIDTH = 8;
+				constexpr std::int32_t GRID_HEIGHT = 6;
+				constexpr float        GRID_PADDING = 20.0f;
 
 				const float cellWidth = (size.x - 2 * GRID_PADDING) / GRID_WIDTH;
 				const float cellHeight = (size.y - 2 * GRID_PADDING) / GRID_HEIGHT;

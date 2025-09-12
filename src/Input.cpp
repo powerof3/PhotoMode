@@ -412,7 +412,7 @@ namespace Input
 		case GAMEPAD_DIRECTX::kBack:
 			return { ImGuiKey_GamepadBack, false };
 		case GAMEPAD_DIRECTX::kLeftThumb:
-			return { ImGuiKey_GamepadL3, false }; 
+			return { ImGuiKey_GamepadL3, false };
 		case GAMEPAD_DIRECTX::kRightThumb:
 			return { ImGuiKey_GamepadR3, false };
 		case GAMEPAD_DIRECTX::kLeftShoulder:
@@ -458,7 +458,7 @@ namespace Input
 		case GAMEPAD_ORBIS::kPS3_Back:
 			return { ImGuiKey_GamepadBack, false };
 		case GAMEPAD_ORBIS::kPS3_L3:
-			return { ImGuiKey_GamepadL3, false }; 
+			return { ImGuiKey_GamepadL3, false };
 		case GAMEPAD_ORBIS::kPS3_R3:
 			return { ImGuiKey_GamepadR3, false };
 
@@ -598,7 +598,7 @@ namespace Input
 					const auto key = buttonEvent->GetIDCode();
 					auto       hotKey = key;
 
-					if (!GetHotKey(event->GetDevice(), hotKey) || (IsInputGamepad() || !cursorOverWindow) && TiltCamera(buttonEvent, hotKey) ) {
+					if (!GetHotKey(event->GetDevice(), hotKey) || (IsInputGamepad() || !cursorOverWindow) && TiltCamera(buttonEvent, hotKey)) {
 						continue;
 					}
 

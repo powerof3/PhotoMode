@@ -175,7 +175,7 @@ namespace PhotoMode
 		if (a_resetTabs) {
 			a_kbmInput ? ImGui::SetItemDefaultFocus() : ImGui::SetKeyboardFocusHere();
 		}
-		
+
 		if (ImGui::CheckBox(character->IsPlayerRef() ? "$PM_ShowPlayer"_T : "$PM_ShowCharacter"_T, &currentState.visible)) {
 			if (const auto root = character->Get3D()) {
 				root->CullGeometry(!currentState.visible);

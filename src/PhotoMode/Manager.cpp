@@ -429,7 +429,7 @@ namespace PhotoMode
 		bool kbmInput = MANAGER(Input)->IsInputKBM();
 
 		ImGui::Begin("$PM_Title_Menu"_T, nullptr, windowFlags);
-		{	
+		{
 			ImGui::ExtendWindowPastBorder();
 
 			if (resetWindow) {
@@ -493,7 +493,6 @@ namespace PhotoMode
 				ImGui::SetNextWindowBgAlpha(0.0f);  // child bg color is added ontop of window
 				ImGui::BeginChild("##PhotoModeChild", ImVec2(0, 0), ImGuiChildFlags_None, windowFlags);
 				{
-
 					ImGui::Spacing();
 
 					if (restoreLastFocusID) {
