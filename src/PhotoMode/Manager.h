@@ -36,6 +36,7 @@ namespace PhotoMode
 		void               ToggleUI();
 
 		void NavigateTab(bool a_left);
+		void UpdateKeyboardFocus();	
 
 		[[nodiscard]] float GetViewRoll(float a_fallback) const;
 		[[nodiscard]] float GetViewRoll() const;
@@ -130,6 +131,7 @@ namespace PhotoMode
 
 		bool    noItemsFocused{ false };
 		ImGuiID lastFocusedID{ 0 };
+		ImGuiID lastHoveredID{ 0 };
 		bool    restoreLastFocusID{ false };
 
 		float freeCameraSpeed{ 4.0f };

@@ -121,7 +121,7 @@ namespace Input
 		return true;
 	}
 
-	bool Manager::GetHotKey(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey)
+	bool Manager::GetHotKey(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey) const
 	{
 		// get input type
 		switch (a_device) {
@@ -151,8 +151,10 @@ namespace Input
 		}
 
 		if (const auto freeCameraState = static_cast<RE::FreeCameraState*>(RE::PlayerCamera::GetSingleton()->currentState.get())) {
-			constexpr auto getKey = [](std::string_view action, RE::INPUT_DEVICE device) {
-				return RE::ControlMap::GetSingleton()->GetMappedKey(action, device, RE::UserEvents::INPUT_CONTEXT_ID::kTFCMode);
+			const auto getKey = [this](std::string_view action, RE::INPUT_DEVICE device) {
+				auto key = RE::ControlMap::GetSingleton()->GetMappedKey(action, device, RE::UserEvents::INPUT_CONTEXT_ID::kTFCMode);
+				GetHotKey(device, key);
+				return key;
 			};
 
 			static auto mouseUp = getKey("WorldZUp", RE::INPUT_DEVICE::kMouse);
@@ -410,7 +412,7 @@ namespace Input
 		case GAMEPAD_DIRECTX::kBack:
 			return { ImGuiKey_GamepadBack, false };
 		case GAMEPAD_DIRECTX::kLeftThumb:
-			return { ImGuiKey_GamepadL3, false };
+			return { ImGuiKey_GamepadL3, false }; 
 		case GAMEPAD_DIRECTX::kRightThumb:
 			return { ImGuiKey_GamepadR3, false };
 		case GAMEPAD_DIRECTX::kLeftShoulder:
@@ -456,7 +458,7 @@ namespace Input
 		case GAMEPAD_ORBIS::kPS3_Back:
 			return { ImGuiKey_GamepadBack, false };
 		case GAMEPAD_ORBIS::kPS3_L3:
-			return { ImGuiKey_GamepadL3, false };
+			return { ImGuiKey_GamepadL3, false }; 
 		case GAMEPAD_ORBIS::kPS3_R3:
 			return { ImGuiKey_GamepadR3, false };
 
@@ -571,9 +573,22 @@ namespace Input
 				return EventResult::kContinue;
 			}
 
+			bool cursorMenuOpen = RE::UI::GetSingleton()->IsMenuOpen(RE::CursorMenu::MENU_NAME);
+			bool cursorOverWindow = cursorInit && MANAGER(PhotoMode)->IsCursorHoveringOverWindow();
+
 			for (auto event = *a_evn; event; event = event->next) {
 				if (!SetInputDevice(event->GetDevice())) {
 					continue;
+				}
+
+				if (IsInputKBM() && (!cursorInit || (!cursorMenuOpen && !panCamera))) {
+					ToggleCursor(true);
+					cursorInit = true;
+					MANAGER(PhotoMode)->UpdateKeyboardFocus();
+				} else if (IsInputGamepad() && (cursorInit || cursorMenuOpen)) {
+					ToggleCursor(false);
+					cursorInit = false;
+					MANAGER(PhotoMode)->UpdateKeyboardFocus();
 				}
 
 				// process inputs
@@ -582,9 +597,8 @@ namespace Input
 				} else if (const auto buttonEvent = event->AsButtonEvent()) {
 					const auto key = buttonEvent->GetIDCode();
 					auto       hotKey = key;
-					bool       cursorOverWindow = MANAGER(PhotoMode)->IsCursorHoveringOverWindow();
 
-					if (!GetHotKey(event->GetDevice(), hotKey) /* || !cursorOverWindow && TiltCamera(buttonEvent, key)*/) {
+					if (!GetHotKey(event->GetDevice(), hotKey) || (IsInputGamepad() || !cursorOverWindow) && TiltCamera(buttonEvent, hotKey) ) {
 						continue;
 					}
 

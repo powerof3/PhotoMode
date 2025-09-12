@@ -10,11 +10,14 @@ namespace Input
 		kGamepadOrbis     // ps4
 	};
 
-	class Manager final :
-		public REX::Singleton<Manager>,
-		public RE::BSTEventSink<RE::InputEvent*>
+	class Manager : public RE::BSTEventSink<RE::InputEvent*>
 	{
 	public:
+		static Manager* GetSingleton()
+		{
+			return &instance;
+		}
+
 		static void Register();
 		void        LoadMCMSettings(const CSimpleIniA& a_ini);
 
@@ -34,7 +37,7 @@ namespace Input
 
 	private:
 		bool                             SetInputDevice(RE::INPUT_DEVICE a_device);
-		bool                             GetHotKey(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey);
+		bool                             GetHotKey(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey) const;
 		bool                             TiltCamera(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const;
 		static ImGuiKey                  ToImGuiKey(KEY a_key);
 		static std::pair<ImGuiKey, bool> ToImGuiKey(GAMEPAD_DIRECTX a_key);
@@ -54,6 +57,12 @@ namespace Input
 		std::uint32_t screenshotMouse{ 0 };
 		std::uint32_t screenshotGamepad{ 0 };
 
+		bool cursorInit{ false };
+
 		DEVICE inputDevice{ DEVICE::kKeyboard };
+
+		static Manager instance;
 	};
+
+	inline constinit Manager Manager::instance;
 }

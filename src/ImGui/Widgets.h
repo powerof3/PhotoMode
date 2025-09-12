@@ -7,9 +7,9 @@ namespace ImGui
 {
 	bool ComboWithFilter(const char* label, int* current_item, const std::vector<std::string>& items, int popup_max_height_in_items = -1);
 
-	std::tuple<bool, bool> CenteredTextWithArrows(const char* label, std::string_view centerText);
-
 	bool CheckBox(const char* label, bool* a_toggle);
+	
+	std::tuple<bool, bool, bool> CenteredTextWithArrows(const char* label, std::string_view centerText);  // [hovered, clickedLeftArrow, clickedRightArrow]
 
 	template <class E>
 	bool EnumSlider(const char* label, E* index, const std::ranges::common_range auto& a_enum, bool a_translate = true)
@@ -24,9 +24,9 @@ namespace ImGui
 		}
 
 		LeftAlignedTextImpl(label);
-		auto [clickedLeft, clickedRight] = CenteredTextWithArrows(label, a_translate ? TRANSLATE(a_enum[uIndex]) : a_enum[uIndex]);
+		auto [hovered, clickedLeft, clickedRight] = CenteredTextWithArrows(label, a_translate ? TRANSLATE(a_enum[uIndex]) : a_enum[uIndex]);
 
-		if (IsWidgetFocused(label)) {
+		if (hovered || IsWidgetFocused(label)) {
 			const bool pressedLeft = clickedLeft || IsKeyPressed(ImGuiKey_LeftArrow) || IsKeyPressed(ImGuiKey_GamepadDpadLeft);
 			const bool pressedRight = clickedRight || IsKeyPressed(ImGuiKey_RightArrow) || IsKeyPressed(ImGuiKey_GamepadDpadRight);
 			if (pressedLeft) {
@@ -68,6 +68,7 @@ namespace ImGui
 		if (result) {
 			RE::PlaySound("UIMenuPrevNext");
 		}
+		ActivateOnHover();
 
 		PopStyleColor(3);
 
@@ -93,6 +94,7 @@ namespace ImGui
 		if (result) {
 			RE::PlaySound("UIMenuPrevNext");
 		}
+		ActivateOnHover();
 
 		PopStyleColor(3);
 

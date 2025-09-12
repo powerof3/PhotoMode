@@ -1,6 +1,7 @@
 #include "Widgets.h"
 
 #include "IconsFonts.h"
+#include "Input.h"
 #include "PhotoMode/Manager.h"
 
 namespace ImGui
@@ -180,11 +181,42 @@ namespace ImGui
 		return value_changed;
 	}
 
-	std::tuple<bool, bool> ImGui::CenteredTextWithArrows(const char* label, std::string_view centerText)
+	bool CheckBox(const char* label, bool* a_toggle)
+	{
+		bool selected = false;
+
+		static auto checkbox = MANAGER(IconFont)->GetCheckbox();
+		static auto checkboxFilled = MANAGER(IconFont)->GetCheckboxFilled();
+
+		BeginGroup();
+		{
+			const auto newLabel = LeftAlignedText(label);
+
+			AlignForWidth(checkbox->size.x);
+
+			FramelessImageButton(newLabel.c_str(), (ImTextureID)(*a_toggle ? checkboxFilled->srView.Get() : checkbox->srView.Get()), checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
+				IsWidgetFocused(newLabel) ? ImVec4(1, 1, 1, 1) : GetUserStyleColorVec4(USER_STYLE::kIconDisabled));
+		}
+		EndGroup();
+
+		if (MANAGER(Input)->IsInputKBM() ? IsItemHovered() : IsItemFocused()) {
+			if (IsItemClicked() || IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_GamepadFaceDown)) {
+				*a_toggle = !*a_toggle;
+				selected = true;
+			}
+		}
+
+		if (selected) {
+			RE::PlaySound("UIMenuFocus");
+		}
+		return selected;
+	}
+
+	std::tuple<bool, bool, bool> ImGui::CenteredTextWithArrows(const char* label, std::string_view centerText)
 	{
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
-			return { false, false };
+			return { false, false, false };
 
 		ImGuiContext&     g = *GImGui;
 		const ImGuiStyle& style = g.Style;
@@ -197,13 +229,20 @@ namespace ImGui
 
 		ItemSize(total_bb, style.FramePadding.y);
 		if (!ItemAdd(total_bb, id, &frame_bb, false))
-			return { false, false };
+			return { false, false, false };
 
 		// RenderNavHighlight(frame_bb, id);
 
-		bool hovered = IsMouseHoveringRect(frame_bb.Min, frame_bb.Max) && (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0;
-		if (hovered) {
-			SetHoveredID(id);
+		bool hovered = false;
+		bool kbmInput = MANAGER(Input)->IsInputKBM();
+
+		if (kbmInput) {
+			hovered = ItemHoverable(frame_bb, id, g.LastItemData.ItemFlags);
+			if (hovered) {
+				SetHoveredID(id);
+			}
+		} else {
+			hovered = IsWidgetFocused(id);
 		}
 
 		if (!hovered) {
@@ -227,38 +266,7 @@ namespace ImGui
 		auto hoveringLeft = AlignedImage(leftArrow->srView.Get(), leftArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(0, 0.5f), color);
 		auto hoveringRight = AlignedImage(rightArrow->srView.Get(), rightArrow->size, frame_bb.Min, frame_bb.Max, ImVec2(1.0, 0.5f), color);
 
-		return { hoveringLeft, hoveringRight };
-	}
-
-	bool CheckBox(const char* label, bool* a_toggle)
-	{
-		bool selected = false;
-
-		static auto checkbox = MANAGER(IconFont)->GetCheckbox();
-		static auto checkboxFilled = MANAGER(IconFont)->GetCheckboxFilled();
-
-		BeginGroup();
-		{
-			const auto newLabel = LeftAlignedText(label);
-
-			AlignForWidth(checkbox->size.x);
-
-			FramelessImageButton(newLabel.c_str(), (ImTextureID)(*a_toggle ? checkboxFilled->srView.Get() : checkbox->srView.Get()), checkbox->size, ImVec2(), ImVec2(1, 1), ImVec4(),
-				IsWidgetFocused(newLabel) ? ImVec4(1, 1, 1, 1) : GetUserStyleColorVec4(USER_STYLE::kIconDisabled));
-		}
-		EndGroup();
-
-		if (ImGui::IsItemHovered()) {
-			if (IsItemClicked() || IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_GamepadFaceDown)) {
-				*a_toggle = !*a_toggle;
-				selected = true;
-			}
-		}
-
-		if (selected) {
-			RE::PlaySound("UIMenuFocus");
-		}
-		return selected;
+		return { hovered, hoveringLeft, hoveringRight };
 	}
 
 	bool DragScalarEx(const char* label, ImGuiDataType data_type, void* p_data, float v_speed, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags)
@@ -488,11 +496,19 @@ namespace ImGui
 		if (!wasActive)
 			ImGui::PopStyleColor();
 
-		if (isActive) {
-			if (lastActiveTab != id) {
+		if (MANAGER(Input)->IsInputGamepad()) {
+			if (isActive) {
+				lastActiveTab = id;
+			} else if (ActivateOnHover()) {
 				RE::PlaySound("UIJournalTabsSD");
 			}
-			lastActiveTab = id;
+		} else {
+			if (isActive) {
+				if (lastActiveTab != id) {
+					RE::PlaySound("UIJournalTabsSD");
+				}
+				lastActiveTab = id;
+			}
 		}
 
 		return isActive;

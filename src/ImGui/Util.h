@@ -20,6 +20,9 @@ namespace ImGui
 	bool IsWidgetFocused(std::string_view label);
 	bool IsWidgetFocused(ImGuiID id);
 
+	bool ActivateOnHover();
+	void UnfocusOnEscape();
+
 	ImVec2 GetNativeViewportSize();
 	ImVec2 GetNativeViewportPos();
 	ImVec2 GetNativeViewportCenter();

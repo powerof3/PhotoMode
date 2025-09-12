@@ -1,5 +1,7 @@
 #include "Util.h"
 
+#include "Input.h"
+
 namespace ImGui
 {
 	int IndexOfKey(const std::vector<std::pair<int, double>>& pair_list, const int key)
@@ -109,7 +111,7 @@ namespace ImGui
 
 		GetCurrentWindow()->DrawList->AddImage((ImU64)texID, pos, pos + texture_size, ImVec2(0, 0), ImVec2(1, 1), colour);
 
-		return IsMouseHoveringRect(pos, pos + texture_size) && IsMouseClicked(0) && (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0;
+		return MANAGER(Input)->IsInputKBM() ? IsMouseHoveringRect(pos, pos + texture_size) && IsMouseClicked(0) && (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0 : false;
 	}
 
 	bool IsWidgetFocused()
@@ -125,7 +127,37 @@ namespace ImGui
 
 	bool IsWidgetFocused(ImGuiID id)
 	{
-		return GetHoveredID() == id && (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0;
+		bool isKBM = MANAGER(Input)->IsInputKBM();
+		return (isKBM ? GetHoveredID() == id : GetFocusID() == id) &&
+		       (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0;
+	}
+
+	bool ActivateOnHover()
+	{
+		if (MANAGER(Input)->IsInputGamepad()) {
+			if (!IsItemActive()) {
+				if (IsItemFocused()) {
+					ActivateItemByID(GetItemID());
+					return true;
+				}
+			} else {
+				UnfocusOnEscape();
+			}
+		}
+
+		return false;
+	}
+
+	void UnfocusOnEscape()
+	{
+		if (MANAGER(Input)->IsInputGamepad()) {
+			ImGuiContext& g = *GImGui;
+			if (IsKeyDown(ImGuiKey_NavGamepadCancel)) {
+				g.NavId = 0;
+				g.NavCursorVisible = false;
+				SetWindowFocus(nullptr);
+			}
+		}
 	}
 
 	ImVec2 GetNativeViewportPos()

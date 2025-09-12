@@ -170,8 +170,12 @@ namespace PhotoMode
 		return characterName.c_str();
 	}
 
-	void Character::Draw(bool a_resetTabs)
+	void Character::Draw(bool a_resetTabs, bool a_kbmInput)
 	{
+		if (a_resetTabs) {
+			a_kbmInput ? ImGui::SetItemDefaultFocus() : ImGui::SetKeyboardFocusHere();
+		}
+		
 		if (ImGui::CheckBox(character->IsPlayerRef() ? "$PM_ShowPlayer"_T : "$PM_ShowCharacter"_T, &currentState.visible)) {
 			if (const auto root = character->Get3D()) {
 				root->CullGeometry(!currentState.visible);
@@ -185,10 +189,6 @@ namespace PhotoMode
 			if (ImGui::BeginTabBar("Player#TopBar", 0)) {
 				// ugly af, improve later
 				const float width = ImGui::GetContentRegionAvail().x / 4;
-
-				if (a_resetTabs) {
-					ImGui::SetItemDefaultFocus();
-				}
 
 				if (character->GetFaceGenAnimationData()) {
 					ImGui::SetNextItemWidth(width);

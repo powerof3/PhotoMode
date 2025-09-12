@@ -104,7 +104,7 @@ namespace PhotoMode
 
 		const char* GetName() const;
 
-		void Draw(bool a_resetTabs);
+		void Draw(bool a_resetTabs, bool a_kbmInput);
 
 	private:
 		struct State

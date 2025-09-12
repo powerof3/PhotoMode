@@ -147,8 +147,6 @@ namespace PhotoMode
 		// refresh style
 		ImGui::Styles::GetSingleton()->RefreshStyle();
 
-		Input::Manager::ToggleCursor(true);
-
 		activated = true;
 		if (activeGlobal) {
 			activeGlobal->value = 1.0f;
@@ -322,6 +320,12 @@ namespace PhotoMode
 		} else {
 			currentTab = (currentTab + static_cast<uint32_t>(1)) % tabsSizeInt32;
 		}
+		UpdateKeyboardFocus();
+		RE::PlaySound("UIJournalTabsSD");
+	}
+
+	void Manager::UpdateKeyboardFocus()
+	{
 		updateKeyboardFocus = true;
 	}
 
@@ -417,13 +421,15 @@ namespace PhotoMode
 		const static auto third_width = size.x / 3;
 		const static auto third_height = size.y / 3;
 
+		constexpr auto windowFlags = ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDecoration;
+
 		ImGui::SetNextWindowPos(ImVec2(center.x + third_width, center.y + third_height * 0.8f), ImGuiCond_Always, ImVec2(0.5, 0.5));
 		ImGui::SetNextWindowSize(ImVec2(size.x / 3.25f, size.y / 3.125f));
 
-		constexpr auto windowFlags = ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDecoration;
+		bool kbmInput = MANAGER(Input)->IsInputKBM();
 
 		ImGui::Begin("$PM_Title_Menu"_T, nullptr, windowFlags);
-		{
+		{	
 			ImGui::ExtendWindowPastBorder();
 
 			if (resetWindow) {
@@ -458,10 +464,11 @@ namespace PhotoMode
 						} else {
 							ImGui::PushFont(MANAGER(IconFont)->GetLargeFont());
 						}
-						if (ImGui::Button(tabIcons[i], ImVec2(tabWidth, ImGui::GetFrameHeightWithSpacing()))) {
+						ImGui::Button(tabIcons[i], ImVec2(tabWidth, ImGui::GetFrameHeightWithSpacing()));
+						if (ImGui::IsItemClicked() && currentTab != i) {
 							currentTab = i;
 						}
-						hoveredTabs[i] = ImGui::IsItemHovered();
+						hoveredTabs[i] = ImGui::IsItemHovered(ImGuiHoveredFlags_NoNavOverride);
 						if (!activeTab) {
 							ImGui::PopStyleColor();
 						} else {
@@ -486,20 +493,18 @@ namespace PhotoMode
 				ImGui::SetNextWindowBgAlpha(0.0f);  // child bg color is added ontop of window
 				ImGui::BeginChild("##PhotoModeChild", ImVec2(0, 0), ImGuiChildFlags_None, windowFlags);
 				{
+
 					ImGui::Spacing();
 
 					if (restoreLastFocusID) {
-						ImGui::SetHoveredID(lastFocusedID);
+						kbmInput ? ImGui::SetHoveredID(lastHoveredID) : ImGui::SetFocusID(lastFocusedID, ImGui::GetCurrentWindow());
 
 						restoreLastFocusID = false;
 					} else if (updateKeyboardFocus) {
 						if (currentTab == TAB_TYPE::kCharacter) {
 							resetPlayerTabs = true;
 						}
-
-						ImGui::SetItemDefaultFocus();
-						RE::PlaySound("UIJournalTabsSD");
-
+						kbmInput ? ImGui::SetItemDefaultFocus() : ImGui::SetKeyboardFocusHere();
 						updateKeyboardFocus = false;
 					}
 
@@ -507,7 +512,7 @@ namespace PhotoMode
 					case TAB_TYPE::kCamera:
 						{
 							if (resetWindow) {
-								ImGui::SetItemDefaultFocus();
+								kbmInput ? ImGui::SetItemDefaultFocus() : ImGui::SetKeyboardFocusHere();
 								resetWindow = false;
 							}
 							cameraTab.Draw();
@@ -534,7 +539,7 @@ namespace PhotoMode
 								resetPlayerTabs = true;
 							}
 
-							characterTab[cachedCharacter->GetFormID()].Draw(resetPlayerTabs);
+							characterTab[cachedCharacter->GetFormID()].Draw(resetPlayerTabs, kbmInput);
 
 							if (resetPlayerTabs) {
 								resetPlayerTabs = false;
@@ -551,8 +556,9 @@ namespace PhotoMode
 						break;
 					}
 
-					noItemsFocused = !isCursorHoveringOverWindow;
-					lastFocusedID = ImGui::GetHoveredID();
+					noItemsFocused = kbmInput ? !isCursorHoveringOverWindow : (!ImGui::IsAnyItemFocused() || !ImGui::IsWindowFocused());
+					lastFocusedID = ImGui::GetFocusID();
+					lastHoveredID = ImGui::GetHoveredID();
 				}
 				ImGui::EndChild();
 			}
@@ -562,7 +568,9 @@ namespace PhotoMode
 				ImGui::PopStyleVar();
 			}
 
-			UpdateMouseHoveringOverWindow();
+			if (kbmInput) {
+				UpdateMouseHoveringOverWindow();
+			}
 		}
 		ImGui::End();
 	}

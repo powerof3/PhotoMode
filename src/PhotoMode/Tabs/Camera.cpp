@@ -75,7 +75,7 @@ namespace PhotoMode
 	}
 
 	void Camera::Draw()
-	{
+	{	
 		ImGui::EnumSlider("$PM_Grid"_T, &CameraGrid::gridType, CameraGrid::gridTypes);
 
 		ImGui::Slider("$PM_FieldOfView"_T, &RE::PlayerCamera::GetSingleton()->worldFOV, 5.0f, 150.0f);
@@ -227,8 +227,8 @@ namespace PhotoMode
 			break;*/
 		case kGrid:
 			{
-				constexpr int   GRID_WIDTH = 8;
-				constexpr int   GRID_HEIGHT = 6;
+				constexpr std::int32_t   GRID_WIDTH = 8;
+				constexpr std::int32_t   GRID_HEIGHT = 6;
 				constexpr float GRID_PADDING = 20.0f;
 
 				const float cellWidth = (size.x - 2 * GRID_PADDING) / GRID_WIDTH;
@@ -241,13 +241,13 @@ namespace PhotoMode
 				const float endY = pos.y + size.y - GRID_PADDING + cellHeight;
 
 				// Draw vertical lines
-				for (int i = 0; i <= GRID_WIDTH + 1; ++i) {
+				for (std::int32_t i = 0; i <= GRID_WIDTH + 1; ++i) {
 					const float x = startX + i * cellWidth;
 					drawList->AddLine(ImVec2(x, startY), ImVec2(x, endY), colour, thickness);
 				}
 
 				// Draw horizontal lines
-				for (int j = 0; j <= GRID_HEIGHT + 1; ++j) {
+				for (std::int32_t j = 0; j <= GRID_HEIGHT + 1; ++j) {
 					const float y = startY + j * cellHeight;
 					drawList->AddLine(ImVec2(startX, y), ImVec2(endX, y), colour, thickness);
 				}
