@@ -128,7 +128,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 	logger::info("Game version : {}", a_skse->RuntimeVersion().string());
 
-	SKSE::AllocTrampoline(98);
+	SKSE::AllocTrampoline(128);
 
 	Settings::GetSingleton()->Load(FileType::kDisplayTweaks, [](auto& ini) {
 		ImGui::Renderer::LoadSettings(ini);  // display tweaks scaling

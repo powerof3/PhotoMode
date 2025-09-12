@@ -32,12 +32,27 @@ namespace PhotoMode
 		static inline constexpr std::size_t            idx{ 0x33 };
 	};
 
+	struct ApplyFootIKErrorFeedback
+	{
+		static bool thunk(RE::Actor* a_actor)
+		{
+			if (a_actor && a_actor->IsPlayerRef() && MANAGER(PhotoMode)->IsActive()) {
+				return false;
+			}
+			return func(a_actor);
+		}
+		static inline REL::Relocation<decltype(thunk)> func;
+	};
+
 	void InstallHooks()
 	{
 		REL::Relocation<std::uintptr_t> getRot{ RELOCATION_ID(49814, 50744), 0x1B };  // FreeCamera::GetRotation
 		stl::write_thunk_call<FromEulerAnglesZXY>(getRot.address());
 
 		stl::write_vfunc<RE::TESIdleForm, SetFormEditorID>();
+
+		//REL::Relocation<std::uintptr_t> applyFootIKErrorFeedback{ RELOCATION_ID(42527, 43690) };  // Actor::ApplyFootIKErrorFeedback
+		//stl::hook_function_prologue<ApplyFootIKErrorFeedback, 5>(applyFootIKErrorFeedback.address());
 	}
 }
 

@@ -114,6 +114,11 @@ namespace PhotoMode
 			character->SetPosition(originalState.pos, true);
 		}
 		if (positionChanged || rotationChanged) {
+			auto charController = character->GetCharController();
+			if (charController) {
+				charController->flags.reset(RE::CHARACTER_FLAGS::kNoSim);
+			}
+			
 			character->UpdateActor3DPosition();
 
 			positionChanged = false;
@@ -275,7 +280,7 @@ namespace PhotoMode
 				}
 
 				ImGui::SetNextItemWidth(width);
-				if (ImGui::BeginTabItemEx("$PM_Transforms"_T)) {
+				if (ImGui::BeginTabItemEx("$PM_Transforms"_T)) {				
 					currentState.rotZ = RE::rad_to_deg(character->GetAngleZ());
 					if (ImGui::Slider("$PM_Rotation"_T, &currentState.rotZ, 0.0f, 360.0f)) {
 						character->SetHeading(RE::deg_to_rad(currentState.rotZ));
@@ -284,9 +289,13 @@ namespace PhotoMode
 
 					bool update = ImGui::Slider("$PM_PositionLeftRight"_T, &currentState.pos.x, -100.0f, 100.0f);
 					update |= ImGui::Slider("$PM_PositionNearFar"_T, &currentState.pos.y, -100.0f, 100.0f);
-					// update |= ImGui::Slider("Elevation", &currentState.pos.z, -100.0f, 100.0f);
+					update |= ImGui::Slider("$PM_Elevation"_T, &currentState.pos.z, -100.0f, 100.0f);
 
 					if (update) {
+						auto charController = character->GetCharController();
+						if (charController) {
+							charController->flags.set(RE::CHARACTER_FLAGS::kNoSim);
+						}
 						character->SetPosition({ originalState.pos + currentState.pos }, true);
 						positionChanged = true;
 					}
