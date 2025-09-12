@@ -91,6 +91,17 @@ namespace PhotoMode
 				pcCamera->worldFOV = fov;
 				MANAGER(PhotoMode)->SetViewRoll(viewRoll);
 
+				auto pcCell = RE::TESForm::LookupByID<RE::TESObjectCELL>(cell.GetNumericID());
+				if (pcCell && pcCell->IsAttached()) {
+					auto player = RE::PlayerCharacter::GetSingleton();
+					if (playerPos != RE::NiPoint3()) {
+						player->SetPosition(playerPos, true);
+					}
+					if (playerRot != RE::NiPoint3()) {
+						player->SetAngle(playerRot);
+					}
+				}
+
 				return Result<void>::Ok();
 			}
 		}
@@ -110,6 +121,44 @@ namespace PhotoMode
 
 		ImGui::PushID("CameraPositions");
 		{
+			ImGui::CheckBox("$PM_CameraPositions_SavePCTransform"_T, &savePlayerTransform);
+
+			if (!positions.empty()) {
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("$PM_CameraPositions_Select"_T);
+
+				ImGui::SameLine();
+
+				ImGui::PushStyleColor(ImGuiCol_NavCursor, ImGui::GetUserStyleColorVec4(ImGui::USER_STYLE::kComboBoxText));
+				ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetColorU32(ImGuiCol_TextDisabled));
+
+				ImGui::PushItemWidth(-150 * ImGui::Renderer::GetResolutionScale());
+				if (ImGui::ComboWithFilter("##CameraPosSelect", &selectedPositionIndex, GetPositionNames())) {
+					ImGui::SetKeyboardFocusHere(-1);
+				}
+				ImGui::PopItemWidth();
+				ImGui::PopStyleColor(2);
+
+				ImGui::SameLine();
+
+				ImGui::BeginDisabled(selectedPositionIndex < 0);
+				{
+					if (ImGui::OutlineButton(std::format("{}##CameraPosLoad", "$PM_Load"_T).c_str())) {
+						LoadSelectedCameraPosition();
+					}
+					ImGui::SameLine();
+					if (ImGui::OutlineButton(std::format("{}##CameraPosDelete", "$PM_Delete"_T).c_str())) {
+						DeleteSelectedCameraPosition();
+					}
+				}
+				ImGui::EndDisabled();
+			} else {
+				ImGui::Text("$PM_CameraPositions_None"_T);
+				ImGui::Text("$PM_CameraPositions_Help"_T);
+			}
+
+			ImGui::Spacing();
+
 			if (ImGui::OutlineButton(std::format("{}##CameraPosSave", "$PM_CameraPositions_Save"_T).c_str())) {
 				auto result = SaveCameraPositionEntry();
 				if (result) {
@@ -121,41 +170,7 @@ namespace PhotoMode
 				}
 			}
 
-			if (!positions.empty()) {
-				ImGui::AlignTextToFramePadding();
-				ImGui::Text("$PM_CameraPositions_Select"_T);
-
-				ImGui::SameLine();
-
-				ImGui::PushStyleColor(ImGuiCol_NavCursor, ImGui::GetUserStyleColorVec4(ImGui::USER_STYLE::kComboBoxText));
-				ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-
-				ImGui::PushItemWidth(-200 * ImGui::Renderer::GetResolutionScale());
-				if (ImGui::ComboWithFilter("##CameraPosSelect", &selectedPositionIndex, GetPositionNames())) {
-					ImGui::SetKeyboardFocusHere(-1);
-				}
-				ImGui::PopItemWidth();
-				ImGui::PopStyleColor(2);
-
-				ImGui::SameLine();
-
-				ImGui::BeginDisabled(selectedPositionIndex < 0);
-				{
-					if (ImGui::OutlineButton(std::format("{}##CameraPosLoad", "$PM_CameraPositions_Load"_T).c_str())) {
-						LoadSelectedCameraPosition();
-					}
-					ImGui::SameLine();
-					if (ImGui::OutlineButton(std::format("{}##CameraPosDelete", "$PM_CameraPositions_Delete"_T).c_str())) {
-						DeleteSelectedCameraPosition();
-					}
-				}
-				ImGui::EndDisabled();
-			} else {
-				ImGui::Text("$PM_CameraPositions_None"_T);
-				ImGui::Text("$PM_CameraPositions_Help"_T);
-			}
-
-			ImGui::Spacing();
+			ImGui::SameLine();
 
 			if (ImGui::OutlineButton(std::format("{}##CameraPosRefresh", "$PM_CameraPositions_Refresh"_T).c_str())) {
 				RefreshCameraPositions();
@@ -292,7 +307,7 @@ namespace PhotoMode
 		}
 
 		std::sort(positionList.begin(), positionList.end(), [](const CameraPosition& a, const CameraPosition& b) {
-			return a.name < b.name;
+			return a.timestamp > b.timestamp;
 		});
 
 		return Result<std::vector<CameraPosition>>::Ok(positionList);
@@ -323,6 +338,14 @@ namespace PhotoMode
 
 		position.fov = pcCamera->worldFOV;
 		position.viewRoll = MANAGER(PhotoMode)->GetViewRoll();
+
+		if (savePlayerTransform) {
+			position.playerPos = RE::PlayerCharacter::GetSingleton()->GetPosition();
+			position.playerRot = RE::PlayerCharacter::GetSingleton()->GetAngle();
+
+			auto cell = RE::PlayerCharacter::GetSingleton()->GetParentCell();
+			position.cell.SetNumericID(cell ? cell->GetFormID() : 0);
+		}
 
 		return position;
 	}

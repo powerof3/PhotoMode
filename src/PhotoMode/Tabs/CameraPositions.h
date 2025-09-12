@@ -49,12 +49,15 @@ namespace PhotoMode
 		static std::string GenerateTimestamp();
 
 		// members
-		std::string  name{};
-		std::string  timestamp{};
-		RE::NiPoint3 position{};
-		float        fov{ 75.0f };
-		float        viewRoll{ 0.0f };
-		RE::NiPoint2 freeCameraRotation{};
+		std::string           name{};
+		std::string           timestamp{};
+		RE::NiPoint3          position{};
+		float                 fov{ 75.0f };
+		float                 viewRoll{ 0.0f };
+		RE::NiPoint2          freeCameraRotation{};
+		RE::NiPoint3          playerPos{};
+		RE::NiPoint3          playerRot{};
+		RE::BGSNumericIDIndex cell{};
 	};
 
 	class CameraPositions
@@ -84,6 +87,7 @@ namespace PhotoMode
 		std::vector<std::string>      positionNames{};
 		std::int32_t                  selectedPositionIndex{ -1 };
 		mutable std::filesystem::path cameraPositionsDirectory{};
+		bool                          savePlayerTransform{ true };
 	};
 }
 
@@ -103,6 +107,30 @@ struct glz::meta<RE::NiPoint2>
 };
 
 template <>
+struct glz::meta<RE::NiMatrix3>
+{
+	static constexpr auto read = [](RE::NiMatrix3& input, const std::array<float, 3>& vec) {
+		input.SetEulerAnglesXYZ(RE::deg_to_rad(vec[0]), RE::deg_to_rad(vec[1]), RE::deg_to_rad(vec[2]));
+	};
+	static constexpr auto write = [](auto& input) -> auto {
+		std::array<float, 3> vec{};
+		input.ToEulerAnglesXYZ(vec[0], vec[1], vec[2]);
+		vec[0] = RE::rad_to_deg(vec[0]);
+		vec[1] = RE::rad_to_deg(vec[1]);
+		vec[2] = RE::rad_to_deg(vec[2]);
+		return vec;
+	};
+	static constexpr auto value = custom<read, write>;
+};
+
+template <>
+struct glz::meta<RE::BGSNumericIDIndex>
+{
+	using T = RE::BGSNumericIDIndex;
+	static constexpr auto value = array(&T::data1, &T::data2, &T::data3);
+};
+
+template <>
 struct glz::meta<PhotoMode::CameraPosition>
 {
 	using T = PhotoMode::CameraPosition;
@@ -112,5 +140,8 @@ struct glz::meta<PhotoMode::CameraPosition>
 		"position", &T::position,
 		"fov", &T::fov,
 		"viewRoll", &T::viewRoll,
-		"freeCameraRotation", &T::freeCameraRotation);
+		"rotation", &T::freeCameraRotation,
+		"pcPosition", &T::playerPos,
+		"pcRotation", &T::playerRot,
+		"pcCell", &T::cell);
 };
