@@ -23,7 +23,7 @@ namespace Input
 
 	bool Manager::CanNavigateWithMouse() const
 	{
-		return IsInputKBM() && navigateWithMouse;	
+		return IsInputKBM() && navigateWithMouse;
 	}
 
 	void Manager::Register()
@@ -103,6 +103,8 @@ namespace Input
 
 	bool Manager::SetInputDevice(RE::INPUT_DEVICE a_device)
 	{
+		lastInputDevice = inputDevice;
+
 		// get input type
 		switch (a_device) {
 		case RE::INPUT_DEVICE::kKeyboard:
@@ -587,6 +589,18 @@ namespace Input
 					continue;
 				}
 
+				auto& io = ImGui::GetIO();
+
+				if (lastInputDevice != inputDevice) {
+					if (IsInputKBM()) {
+						io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
+						io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+					} else {
+						io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+						io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
+					}
+				}
+
 				bool canNavigateWithMouse = CanNavigateWithMouse();
 
 				if (canNavigateWithMouse && (!cursorInit || (!cursorMenuOpen && !panCamera))) {
@@ -601,7 +615,7 @@ namespace Input
 
 				// process inputs
 				if (const auto charEvent = event->AsCharEvent()) {
-					ImGui::GetIO().AddInputCharacter(charEvent->keyCode);
+					io.AddInputCharacter(charEvent->keyCode);
 				} else if (const auto buttonEvent = event->AsButtonEvent()) {
 					const auto key = buttonEvent->GetIDCode();
 					auto       hotKey = key;
@@ -624,7 +638,7 @@ namespace Input
 						}
 					}
 
-					if (!ImGui::GetIO().WantTextInput) {
+					if (!io.WantTextInput) {
 						if (hotKey == hotKeys->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
 								QueueScreenshot(hotKey != GetDefaultScreenshotKey());
@@ -654,7 +668,7 @@ namespace Input
 
 					if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {
 						if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {
-							ImGui::GetIO().AddKeyEvent(ImGuiKey_Tab, buttonEvent->IsDown());
+							io.AddKeyEvent(ImGuiKey_Tab, buttonEvent->IsDown());
 						} else {
 							SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
 						}
