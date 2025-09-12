@@ -21,6 +21,11 @@ namespace Input
 		return inputDevice == DEVICE::kGamepadDirectX || inputDevice == DEVICE::kGamepadOrbis;
 	}
 
+	bool Manager::CanNavigateWithMouse() const
+	{
+		return IsInputKBM() && navigateWithMouse;	
+	}
+
 	void Manager::Register()
 	{
 		if (const auto inputMgr = RE::BSInputDeviceManager::GetSingleton()) {
@@ -32,6 +37,7 @@ namespace Input
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
 		keyHeldDuration = static_cast<float>(a_ini.GetDoubleValue("Controls", "iKeyHeldDuration", keyHeldDuration));
+		navigateWithMouse = a_ini.GetBoolValue("Controls", "bNavigateWithMouse", navigateWithMouse);
 	}
 
 	void Manager::LoadDefaultKeys()
@@ -581,7 +587,9 @@ namespace Input
 					continue;
 				}
 
-				if (IsInputKBM() && (!cursorInit || (!cursorMenuOpen && !panCamera))) {
+				bool canNavigateWithMouse = CanNavigateWithMouse();
+
+				if (canNavigateWithMouse && (!cursorInit || (!cursorMenuOpen && !panCamera))) {
 					ToggleCursor(true);
 					cursorInit = true;
 					MANAGER(PhotoMode)->UpdateKeyboardFocus();
@@ -602,7 +610,7 @@ namespace Input
 						continue;
 					}
 
-					if (hotKey == KEY::kLeftShift) {
+					if (canNavigateWithMouse && hotKey == KEY::kLeftShift) {
 						if (buttonEvent->IsHeld()) {
 							if (!cursorOverWindow) {
 								if (!panCamera) {

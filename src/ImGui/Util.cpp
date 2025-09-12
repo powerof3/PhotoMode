@@ -111,7 +111,7 @@ namespace ImGui
 
 		GetCurrentWindow()->DrawList->AddImage((ImU64)texID, pos, pos + texture_size, ImVec2(0, 0), ImVec2(1, 1), colour);
 
-		return MANAGER(Input)->IsInputKBM() ? IsMouseHoveringRect(pos, pos + texture_size) && IsMouseClicked(0) && (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0 : false;
+		return MANAGER(Input)->CanNavigateWithMouse() ? IsMouseHoveringRect(pos, pos + texture_size) && IsMouseClicked(0) && (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0 : false;
 	}
 
 	bool IsWidgetFocused()
@@ -127,14 +127,14 @@ namespace ImGui
 
 	bool IsWidgetFocused(ImGuiID id)
 	{
-		bool isKBM = MANAGER(Input)->IsInputKBM();
-		return (isKBM ? GetHoveredID() == id : GetFocusID() == id) &&
+		bool navigateWithMouse = MANAGER(Input)->CanNavigateWithMouse();
+		return (navigateWithMouse ? GetHoveredID() == id : GetFocusID() == id) &&
 		       (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) == 0;
 	}
 
 	bool ActivateOnHover()
 	{
-		if (MANAGER(Input)->IsInputGamepad()) {
+		if (MANAGER(Input)->IsInputGamepad() || !MANAGER(Input)->CanNavigateWithMouse()) {
 			if (!IsItemActive()) {
 				if (IsItemFocused()) {
 					ActivateItemByID(GetItemID());

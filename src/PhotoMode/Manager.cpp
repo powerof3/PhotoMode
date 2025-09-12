@@ -426,7 +426,7 @@ namespace PhotoMode
 		ImGui::SetNextWindowPos(ImVec2(center.x + third_width, center.y + third_height * 0.8f), ImGuiCond_Always, ImVec2(0.5, 0.5));
 		ImGui::SetNextWindowSize(ImVec2(size.x / 3.25f, size.y / 3.125f));
 
-		bool kbmInput = MANAGER(Input)->IsInputKBM();
+		bool navigateWithMouse = MANAGER(Input)->CanNavigateWithMouse();
 
 		ImGui::Begin("$PM_Title_Menu"_T, nullptr, windowFlags);
 		{
@@ -496,14 +496,14 @@ namespace PhotoMode
 					ImGui::Spacing();
 
 					if (restoreLastFocusID) {
-						kbmInput ? ImGui::SetHoveredID(lastHoveredID) : ImGui::SetFocusID(lastFocusedID, ImGui::GetCurrentWindow());
+						navigateWithMouse ? ImGui::SetHoveredID(lastHoveredID) : ImGui::SetFocusID(lastFocusedID, ImGui::GetCurrentWindow());
 
 						restoreLastFocusID = false;
 					} else if (updateKeyboardFocus) {
 						if (currentTab == TAB_TYPE::kCharacter) {
 							resetPlayerTabs = true;
 						}
-						kbmInput ? ImGui::SetItemDefaultFocus() : ImGui::SetKeyboardFocusHere();
+						navigateWithMouse ? ImGui::SetItemDefaultFocus() : ImGui::SetKeyboardFocusHere();
 						updateKeyboardFocus = false;
 					}
 
@@ -511,7 +511,7 @@ namespace PhotoMode
 					case TAB_TYPE::kCamera:
 						{
 							if (resetWindow) {
-								kbmInput ? ImGui::SetItemDefaultFocus() : ImGui::SetKeyboardFocusHere();
+								navigateWithMouse ? ImGui::SetItemDefaultFocus() : ImGui::SetKeyboardFocusHere();
 								resetWindow = false;
 							}
 							cameraTab.Draw();
@@ -538,7 +538,7 @@ namespace PhotoMode
 								resetPlayerTabs = true;
 							}
 
-							characterTab[cachedCharacter->GetFormID()].Draw(resetPlayerTabs, kbmInput);
+							characterTab[cachedCharacter->GetFormID()].Draw(resetPlayerTabs, navigateWithMouse);
 
 							if (resetPlayerTabs) {
 								resetPlayerTabs = false;
@@ -555,7 +555,7 @@ namespace PhotoMode
 						break;
 					}
 
-					noItemsFocused = kbmInput ? !isCursorHoveringOverWindow : (!ImGui::IsAnyItemFocused() || !ImGui::IsWindowFocused());
+					noItemsFocused = navigateWithMouse ? !isCursorHoveringOverWindow : (!ImGui::IsAnyItemFocused() || !ImGui::IsWindowFocused());
 					lastFocusedID = ImGui::GetFocusID();
 					lastHoveredID = ImGui::GetHoveredID();
 				}
@@ -567,7 +567,7 @@ namespace PhotoMode
 				ImGui::PopStyleVar();
 			}
 
-			if (kbmInput) {
+			if (navigateWithMouse) {
 				UpdateMouseHoveringOverWindow();
 			}
 		}

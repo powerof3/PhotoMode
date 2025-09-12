@@ -33,9 +33,6 @@
           }
         },
         {
-          "type": "empty"
-        },
-        {
           "text": "$PM_MiscKeybinds_Header",
           "type": "header"
         },
@@ -94,7 +91,13 @@
           }
         },
         {
-          "type": "empty"
+          "id": "bNavigateWithMouse:Controls",
+          "text": "$PM_NavigateWithMouse_Text",
+          "type": "toggle",
+          "help": "$PM_NavigateWithMouse_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
         },
         {
           "id": "fKeyHeldDuration:Controls",
@@ -131,9 +134,6 @@
           "valueOptions": {
             "sourceType": "ModSettingInt"
           }
-        },
-        {
-          "type": "empty"
         },
         {
           "text": "$PM_MiscKeybinds_GamePad_Header",
@@ -192,9 +192,6 @@
           "valueOptions": {
             "sourceType": "ModSettingInt"
           }
-        },
-        {
-          "type": "empty"
         },
         {
           "id": "iButtonScheme:Controls",

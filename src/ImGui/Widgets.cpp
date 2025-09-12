@@ -199,7 +199,7 @@ namespace ImGui
 		}
 		EndGroup();
 
-		if (MANAGER(Input)->IsInputKBM() ? IsItemHovered() : IsItemFocused()) {
+		if (MANAGER(Input)->CanNavigateWithMouse() ? IsItemHovered() : IsItemFocused()) {
 			if (IsItemClicked() || IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_GamepadFaceDown)) {
 				*a_toggle = !*a_toggle;
 				selected = true;
@@ -234,9 +234,9 @@ namespace ImGui
 		// RenderNavHighlight(frame_bb, id);
 
 		bool hovered = false;
-		bool kbmInput = MANAGER(Input)->IsInputKBM();
+		bool canNavigateWithMouse = MANAGER(Input)->CanNavigateWithMouse();
 
-		if (kbmInput) {
+		if (canNavigateWithMouse) {
 			hovered = ItemHoverable(frame_bb, id, g.LastItemData.ItemFlags);
 			if (hovered) {
 				SetHoveredID(id);
@@ -496,7 +496,7 @@ namespace ImGui
 		if (!wasActive)
 			ImGui::PopStyleColor();
 
-		if (MANAGER(Input)->IsInputGamepad()) {
+		if (MANAGER(Input)->IsInputGamepad() || !MANAGER(Input)->CanNavigateWithMouse()) {
 			if (isActive) {
 				lastActiveTab = id;
 			} else if (ActivateOnHover()) {

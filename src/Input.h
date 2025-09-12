@@ -24,6 +24,7 @@ namespace Input
 		DEVICE GetInputDevice() const;
 		bool   IsInputKBM() const;
 		bool   IsInputGamepad() const;
+		bool   CanNavigateWithMouse() const;
 
 		void          LoadDefaultKeys();
 		std::uint32_t GetDefaultScreenshotKey() const;
@@ -47,19 +48,16 @@ namespace Input
 		EventResult ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*) override;
 
 		// members
-		bool screenshotQueued{ false };
-		bool menuHidden{ false };
-		bool panCamera{ false };
-
-		float keyHeldDuration{ 0.5 };
-
+		DEVICE        inputDevice{ DEVICE::kKeyboard };
+		bool          screenshotQueued{ false };
+		bool          menuHidden{ false };
+		bool          panCamera{ false };
 		std::uint32_t screenshotKeyboard{ 0 };
 		std::uint32_t screenshotMouse{ 0 };
 		std::uint32_t screenshotGamepad{ 0 };
-
-		bool cursorInit{ false };
-
-		DEVICE inputDevice{ DEVICE::kKeyboard };
+		float         keyHeldDuration{ 0.5 };
+		bool          navigateWithMouse{ true };
+		bool          cursorInit{ false };
 
 		static Manager instance;
 	};

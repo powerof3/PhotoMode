@@ -321,7 +321,7 @@ namespace SKSE
 
 			// (Optional) Fallback to provide mouse position when focused (WM_MOUSEMOVE already provides this when hovered or captured)
 			// This also fills a short gap when clicking non-client area: WM_NCMOUSELEAVE -> modal OS move -> gap -> WM_NCMOUSEMOVE
-			if (!io.WantSetMousePos && bd->MouseTrackedArea == 0 && MANAGER(Input)->IsInputKBM()) {
+			if (!io.WantSetMousePos && bd->MouseTrackedArea == 0 && MANAGER(Input)->CanNavigateWithMouse()) {
 				auto menuCursor = RE::MenuCursor::GetSingleton();
 				io.AddMousePosEvent(menuCursor->cursorPosX, menuCursor->cursorPosY);
 			}

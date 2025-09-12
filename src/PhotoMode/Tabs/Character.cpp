@@ -175,10 +175,10 @@ namespace PhotoMode
 		return characterName.c_str();
 	}
 
-	void Character::Draw(bool a_resetTabs, bool a_kbmInput)
+	void Character::Draw(bool a_resetTabs, bool a_navigateWithMouse)
 	{
 		if (a_resetTabs) {
-			a_kbmInput ? ImGui::SetItemDefaultFocus() : ImGui::SetKeyboardFocusHere();
+			a_navigateWithMouse ? ImGui::SetItemDefaultFocus() : ImGui::SetKeyboardFocusHere();
 		}
 
 		if (ImGui::CheckBox(character->IsPlayerRef() ? "$PM_ShowPlayer"_T : "$PM_ShowCharacter"_T, &currentState.visible)) {
@@ -287,9 +287,9 @@ namespace PhotoMode
 						rotationChanged = true;
 					}
 
-					bool update = ImGui::Slider("$PM_PositionLeftRight"_T, &currentState.pos.x, -100.0f, 100.0f);
-					update |= ImGui::Slider("$PM_PositionNearFar"_T, &currentState.pos.y, -100.0f, 100.0f);
-					update |= ImGui::Slider("$PM_Elevation"_T, &currentState.pos.z, -100.0f, 100.0f);
+					bool update = ImGui::Slider("$PM_PositionLeftRight"_T, &currentState.pos.x, -150.0f, 150.0f);
+					update |= ImGui::Slider("$PM_PositionNearFar"_T, &currentState.pos.y, -150.0f, 150.0f);
+					update |= ImGui::Slider("$PM_Elevation"_T, &currentState.pos.z, -150.0f, 150.0f);
 
 					if (update) {
 						auto charController = character->GetCharController();
