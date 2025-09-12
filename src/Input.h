@@ -49,7 +49,7 @@ namespace Input
 
 		// members
 		DEVICE        inputDevice{ DEVICE::kKeyboard };
-		DEVICE        lastInputDevice{ DEVICE::kKeyboard };	
+		DEVICE        lastInputDevice{ DEVICE::kKeyboard };
 		bool          screenshotQueued{ false };
 		bool          menuHidden{ false };
 		bool          panCamera{ false };

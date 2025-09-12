@@ -118,7 +118,7 @@ namespace PhotoMode
 			if (charController) {
 				charController->flags.reset(RE::CHARACTER_FLAGS::kNoSim);
 			}
-			
+
 			character->UpdateActor3DPosition();
 
 			positionChanged = false;
@@ -280,7 +280,7 @@ namespace PhotoMode
 				}
 
 				ImGui::SetNextItemWidth(width);
-				if (ImGui::BeginTabItemEx("$PM_Transforms"_T)) {				
+				if (ImGui::BeginTabItemEx("$PM_Transforms"_T)) {
 					currentState.rotZ = RE::rad_to_deg(character->GetAngleZ());
 					if (ImGui::Slider("$PM_Rotation"_T, &currentState.rotZ, 0.0f, 360.0f)) {
 						character->SetHeading(RE::deg_to_rad(currentState.rotZ));
