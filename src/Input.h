@@ -51,7 +51,7 @@ namespace Input
 
 		// members
 		DEVICE        inputDevice{ DEVICE::kNone };
-		DEVICE        lastInputDevice{ DEVICE::kNone };	
+		DEVICE        lastInputDevice{ DEVICE::kNone };
 		bool          screenshotQueued{ false };
 		bool          menuHidden{ false };
 		bool          panCamera{ false };

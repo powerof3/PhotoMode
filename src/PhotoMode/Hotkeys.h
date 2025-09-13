@@ -29,7 +29,7 @@ namespace PhotoMode::Hotkeys
 		const IconFont::IconTexture* NextTabIcon() const;
 		const IconFont::IconTexture* PreviousTabIcon() const;
 		const IconFont::IconTexture* FreezeTimeIcon() const;
-		const IconFont::IconTexture* PanCameraIcon() const;		
+		const IconFont::IconTexture* PanCameraIcon() const;
 
 		std::set<const IconFont::IconTexture*> TogglePhotoModeIcons() const;
 
