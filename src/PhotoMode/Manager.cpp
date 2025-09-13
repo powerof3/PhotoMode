@@ -555,7 +555,9 @@ namespace PhotoMode
 						break;
 					}
 
-					noItemsFocused = navigateWithMouse ? !isCursorHoveringOverWindow : (!ImGui::IsAnyItemFocused() || !ImGui::IsWindowFocused());
+					noItemsFocused = navigateWithMouse ?
+					                     (!ImGui::IsAnyItemHovered() || !isCursorHoveringOverWindow) :
+					                     (!ImGui::IsAnyItemFocused() || !ImGui::IsWindowFocused());
 					lastFocusedID = ImGui::GetFocusID();
 					lastHoveredID = ImGui::GetHoveredID();
 				}
@@ -578,10 +580,11 @@ namespace PhotoMode
 	{
 		const static auto center = ImGui::GetNativeViewportCenter();
 		const static auto size = ImGui::GetNativeViewportSize();
+		const static auto offsetY = size.y / 25.0f;
 
-		const static auto offset = size.y / 20.25f;
+		ImGui::SetNextWindowPos(ImVec2(center.x, size.y - offsetY), ImGuiCond_Always, ImVec2(0.5, 0.5));
 
-		ImGui::SetNextWindowPos(ImVec2(center.x, size.y - offset), ImGuiCond_Always, ImVec2(0.5, 0.5));
+		bool canNavigateWithMouse = MANAGER(Input)->CanNavigateWithMouse();
 
 		ImGui::Begin("##Bar", nullptr, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize);  // same offset as control window
 		{
@@ -591,11 +594,13 @@ namespace PhotoMode
 			const static auto toggleMenusLabel = "$PM_TOGGLEMENUS"_T;
 			const auto        resetLabel = GetResetAll() ? "$PM_RESET_ALL"_T : "$PM_RESET"_T;
 			const static auto freezeTimeLabel = "$PM_FREEZETIME"_T;
+			const static auto panCameraLabel = "$PM_PAN_CAMERA"_T;
 
 			const auto& takePhotoIcon = MANAGER(Hotkeys)->TakePhotoIcon();
 			const auto& toggleMenusIcon = MANAGER(Hotkeys)->ToggleMenusIcon();
 			const auto& resetIcon = MANAGER(Hotkeys)->ResetIcon();
 			const auto& freezeTimeIcon = MANAGER(Hotkeys)->FreezeTimeIcon();
+			const auto& panCameraIcon = MANAGER(Hotkeys)->PanCameraIcon();
 
 			// const static auto togglePMLabel = "$PM_EXIT"_T;
 			// const auto& togglePMIcons = MANAGER(Hotkeys)->TogglePhotoModeIcons();
@@ -605,17 +610,22 @@ namespace PhotoMode
 
 			float width = 0.0f;
 
-			const auto calc_width = [&](const IconFont::IconTexture* a_icon, const char* a_textLabel) {
+			const auto calc_width = [&](const IconFont::IconTexture* a_icon, const char* a_textLabel, bool a_sameLine = true) {
 				width += a_icon->size.x;
 				width += style.ItemSpacing.x;
 				width += ImGui::CalcTextSize(a_textLabel).x;
-				width += style.ItemSpacing.x;
+				if (a_sameLine) {
+					width += style.ItemSpacing.x;
+				}
 			};
 
+			if (canNavigateWithMouse) {
+				calc_width(panCameraIcon, panCameraLabel);
+			}
 			calc_width(takePhotoIcon, takePhotoLabel);
 			calc_width(toggleMenusIcon, toggleMenusLabel);
 			calc_width(freezeTimeIcon, freezeTimeLabel);
-			calc_width(resetIcon, resetLabel);
+			calc_width(resetIcon, resetLabel, false);
 
 			/*for (const auto& icon : togglePMIcons) {
 				width += icon->size.x;
@@ -624,18 +634,23 @@ namespace PhotoMode
 			width += ImGui::CalcTextSize(togglePMLabel).x;*/
 
 			// align at center
-			ImGui::AlignForWidth(width);
+			//ImGui::AlignForWidth(width);
 
 			// draw
-			constexpr auto draw_button = [](const IconFont::IconTexture* a_icon, const char* a_textLabel) {
+			constexpr auto draw_button = [](const IconFont::IconTexture* a_icon, const char* a_textLabel, bool a_sameLine = true) {
 				ImGui::ButtonIconWithLabel(a_textLabel, a_icon, true);
-				ImGui::SameLine();
+				if (a_sameLine) {
+					ImGui::SameLine();
+				}
 			};
 
+			if (canNavigateWithMouse) {
+				draw_button(panCameraIcon, panCameraLabel);
+			}
 			draw_button(takePhotoIcon, takePhotoLabel);
 			draw_button(toggleMenusIcon, toggleMenusLabel);
 			draw_button(freezeTimeIcon, freezeTimeLabel);
-			draw_button(resetIcon, resetLabel);
+			draw_button(resetIcon, resetLabel, false);
 
 			// ImGui::ButtonIconWithLabel(togglePMLabel, togglePMIcons, true);
 		}

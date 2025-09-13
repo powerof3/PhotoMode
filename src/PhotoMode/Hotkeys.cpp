@@ -16,6 +16,7 @@ namespace PhotoMode::Hotkeys
 		nextTab.LoadKeys(a_ini, "iNextTab");
 		previousTab.LoadKeys(a_ini, "iPreviousTab");
 		freezeTime.LoadKeys(a_ini, "iFreezeTime");
+		panCamera.LoadKeys(a_ini, "iPanCamera");
 	}
 
 	void Manager::TogglePhotoMode(RE::InputEvent* const* a_event)
@@ -37,8 +38,7 @@ namespace PhotoMode::Hotkeys
 
 	std::uint32_t Manager::Key::GetKey() const
 	{
-		auto device = MANAGER(Input)->GetInputDevice();
-		return (device == Input::DEVICE::kKeyboard || device == Input::DEVICE::kMouse) ? keyboard : gamePad;
+		return MANAGER(Input)->IsInputKBM() ? keyboard : gamePad;
 	}
 
 	std::uint32_t Manager::Key::Keyboard() const
@@ -151,10 +151,14 @@ namespace PhotoMode::Hotkeys
 		return freezeTime.GetKey();
 	}
 
+	std::uint32_t Manager::PanCameraKey() const
+	{
+		return panCamera.GetKey();
+	}
+
 	std::uint32_t Manager::EscapeKey()
 	{
-		auto device = MANAGER(Input)->GetInputDevice();
-		return (device == Input::DEVICE::kKeyboard || device == Input::DEVICE::kMouse) ? KEY::kEscape : SKSE::InputMap::kGamepadButtonOffset_B;
+		return MANAGER(Input)->IsInputKBM() ? KEY::kEscape : SKSE::InputMap::kGamepadButtonOffset_B;
 	}
 
 	const IconFont::IconTexture* Manager::ResetIcon() const
@@ -187,9 +191,13 @@ namespace PhotoMode::Hotkeys
 		return MANAGER(IconFont)->GetIcon(freezeTime.GetKey());
 	}
 
+	const IconFont::IconTexture* Manager::PanCameraIcon() const
+	{
+		return MANAGER(IconFont)->GetIcon(panCamera.GetKey());
+	}
+
 	std::set<const IconFont::IconTexture*> Manager::TogglePhotoModeIcons() const
 	{
 		return MANAGER(IconFont)->GetIcons(togglePhotoMode.GetKeys());
 	}
-
 }

@@ -87,6 +87,17 @@ namespace ImGui
 		ImGui::TextUnformatted(label);
 	}
 
+	void ShadowedText(const char* label, ImU32 shadowColor, ImVec2 shadowOffset)
+	{
+		auto* drawList = ImGui::GetForegroundDrawList();
+
+		// Calculate text size
+		ImVec2 textPos(GetCursorScreenPos());
+
+		drawList->AddText(textPos + shadowOffset, shadowColor, label);
+		drawList->AddText(textPos, GetColorU32(ImGuiCol_Text), label);
+	}
+
 	bool FramelessImageButton(const char* str_id, ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col)
 	{
 		PushStyleColor(ImGuiCol_Button, ImVec4());

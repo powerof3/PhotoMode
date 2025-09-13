@@ -91,6 +91,16 @@
           }
         },
         {
+          "id": "iPanCameraKey:Controls",
+          "text": "$PM_PanCamera_Text",
+          "help": "$PM_PanCamera_Help",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
           "id": "bNavigateWithMouse:Controls",
           "text": "$PM_NavigateWithMouse_Text",
           "type": "toggle",

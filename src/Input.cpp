@@ -23,7 +23,7 @@ namespace Input
 
 	bool Manager::CanNavigateWithMouse() const
 	{
-		return IsInputKBM() && navigateWithMouse;
+		return IsInputKBM() && DoNavigateWithMouse();
 	}
 
 	void Manager::Register()
@@ -592,12 +592,15 @@ namespace Input
 				auto& io = ImGui::GetIO();
 
 				if (lastInputDevice != inputDevice) {
-					if (IsInputKBM()) {
-						io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
-						io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-					} else {
+					io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
+					io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
+
+					if (IsInputGamepad()) {
 						io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-						io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
+					} else {
+						if (IsInputKBM() && !DoNavigateWithMouse()) {
+							io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+						}
 					}
 				}
 
@@ -624,7 +627,7 @@ namespace Input
 						continue;
 					}
 
-					if (canNavigateWithMouse && hotKey == KEY::kLeftShift) {
+					if (canNavigateWithMouse && hotKey == hotKeys->PanCameraKey()) {
 						if (buttonEvent->IsHeld()) {
 							if (!cursorOverWindow) {
 								if (!panCamera) {

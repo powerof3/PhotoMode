@@ -4,6 +4,7 @@ namespace Input
 {
 	enum class DEVICE
 	{
+		kNone,
 		kKeyboard,
 		kMouse,
 		kGamepadDirectX,  // xbox
@@ -25,6 +26,7 @@ namespace Input
 		bool   IsInputKBM() const;
 		bool   IsInputGamepad() const;
 		bool   CanNavigateWithMouse() const;
+		bool   DoNavigateWithMouse() const { return navigateWithMouse; }
 
 		void          LoadDefaultKeys();
 		std::uint32_t GetDefaultScreenshotKey() const;
@@ -48,8 +50,8 @@ namespace Input
 		EventResult ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*) override;
 
 		// members
-		DEVICE        inputDevice{ DEVICE::kKeyboard };
-		DEVICE        lastInputDevice{ DEVICE::kKeyboard };
+		DEVICE        inputDevice{ DEVICE::kNone };
+		DEVICE        lastInputDevice{ DEVICE::kNone };	
 		bool          screenshotQueued{ false };
 		bool          menuHidden{ false };
 		bool          panCamera{ false };

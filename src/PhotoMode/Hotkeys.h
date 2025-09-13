@@ -20,6 +20,7 @@ namespace PhotoMode::Hotkeys
 		std::uint32_t        NextTabKey() const;
 		std::uint32_t        PreviousTabKey() const;
 		std::uint32_t        FreezeTimeKey() const;
+		std::uint32_t        PanCameraKey() const;
 		static std::uint32_t EscapeKey();
 
 		const IconFont::IconTexture* ResetIcon() const;
@@ -28,6 +29,7 @@ namespace PhotoMode::Hotkeys
 		const IconFont::IconTexture* NextTabIcon() const;
 		const IconFont::IconTexture* PreviousTabIcon() const;
 		const IconFont::IconTexture* FreezeTimeIcon() const;
+		const IconFont::IconTexture* PanCameraIcon() const;		
 
 		std::set<const IconFont::IconTexture*> TogglePhotoModeIcons() const;
 
@@ -77,6 +79,7 @@ namespace PhotoMode::Hotkeys
 		Key toggleMenus;
 		Key reset;
 		Key freezeTime;
+		Key panCamera;
 	};
 }
 namespace Hotkeys = PhotoMode::Hotkeys;
