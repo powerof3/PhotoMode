@@ -634,7 +634,7 @@ namespace PhotoMode
 			width += ImGui::CalcTextSize(togglePMLabel).x;*/
 
 			// align at center
-			//ImGui::AlignForWidth(width);
+			ImGui::AlignForWidth(width);
 
 			// draw
 			constexpr auto draw_button = [](const IconFont::IconTexture* a_icon, const char* a_textLabel, bool a_sameLine = true) {
