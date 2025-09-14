@@ -469,7 +469,7 @@ namespace ImGui
 		if (!isHovered) {
 			PopStyleColor();
 		}
-		
+
 		// Render grab
 		if (grab_bb.Max.x > grab_bb.Min.x)
 			window->DrawList->AddRectFilled(grab_bb.Min, grab_bb.Max, GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab), style.GrabRounding);
