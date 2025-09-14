@@ -597,7 +597,7 @@ namespace Input
 
 				auto& io = ImGui::GetIO();
 
-				if (lastInputDevice == DEVICE::kNone || inputDevice == DEVICE::kNone || lastInputDevice != inputDevice) {				
+				if (lastInputDevice == DEVICE::kNone || inputDevice == DEVICE::kNone || lastInputDevice != inputDevice) {
 					io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
 					io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
 
