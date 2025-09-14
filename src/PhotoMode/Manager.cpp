@@ -221,7 +221,8 @@ namespace PhotoMode
 
 		updateKeyboardFocus = false;
 
-		Input::Manager::ToggleCursor(false);
+		MANAGER(Input)->ToggleCursor(false);
+		MANAGER(Input)->ResetInputDevices();
 
 		activated = false;
 		if (activeGlobal) {

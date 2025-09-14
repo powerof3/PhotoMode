@@ -12,7 +12,6 @@ namespace ImGui
 	void        LeftAlignedTextImpl(const char* label, const std::string& newLabel = "");
 	std::string LeftAlignedText(const char* label);
 	void        CenteredText(const char* label, bool vertical = false);
-	void        ShadowedText(const char* label, ImU32 shadowColor = IM_COL32(0, 0, 0, 128), ImVec2 shadowOffset = ImVec2(2.0f, 2.0f));
 
 	bool FramelessImageButton(const char* str_id, ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
 	bool AlignedImage(ID3D11ShaderResourceView* texID, const ImVec2& texture_size, const ImVec2& min, const ImVec2& max, const ImVec2& align, ImU32 colour);

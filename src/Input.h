@@ -27,6 +27,7 @@ namespace Input
 		bool   IsInputGamepad() const;
 		bool   CanNavigateWithMouse() const;
 		bool   DoNavigateWithMouse() const { return navigateWithMouse; }
+		void   ResetInputDevices();
 
 		void          LoadDefaultKeys();
 		std::uint32_t GetDefaultScreenshotKey() const;

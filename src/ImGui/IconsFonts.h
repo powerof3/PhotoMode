@@ -221,5 +221,4 @@ namespace ImGui
 
 	void ButtonIconWithLabel(const char* a_text, const IconFont::IconTexture* a_texture, bool a_centerIcon);
 	void ButtonIconWithLabel(const char* a_text, const std::set<const IconFont::IconTexture*>& a_texture, bool a_centerIcon);
-	void ButtonIconWithLabelShadow(const char* a_text, const IconFont::IconTexture* a_texture, bool a_centerIcon);
 }

@@ -26,6 +26,12 @@ namespace Input
 		return IsInputKBM() && DoNavigateWithMouse();
 	}
 
+	void Manager::ResetInputDevices()
+	{
+		inputDevice = DEVICE::kNone;
+		lastInputDevice = DEVICE::kNone;
+	}
+
 	void Manager::Register()
 	{
 		if (const auto inputMgr = RE::BSInputDeviceManager::GetSingleton()) {
@@ -591,7 +597,7 @@ namespace Input
 
 				auto& io = ImGui::GetIO();
 
-				if (lastInputDevice != inputDevice) {
+				if (lastInputDevice == DEVICE::kNone || inputDevice == DEVICE::kNone || lastInputDevice != inputDevice) {				
 					io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
 					io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
 

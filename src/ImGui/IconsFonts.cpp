@@ -285,10 +285,3 @@ void ImGui::ButtonIconWithLabel(const char* a_text, const std::set<const IconFon
 	ImGui::SameLine();
 	ImGui::CenteredText(a_text, true);
 }
-
-void ImGui::ButtonIconWithLabelShadow(const char* a_text, const IconFont::IconTexture* a_texture, bool a_centerIcon)
-{
-	ImGui::ButtonIcon(a_texture, a_centerIcon);
-	ImGui::SameLine();
-	ImGui::ShadowedText(a_text);
-}
