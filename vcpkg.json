@@ -1,6 +1,6 @@
 {
   "name": "photo-mode",
-  "version-string": "1.9.1",
+  "version-string": "2.0.0",
   "description": "",
   "homepage": "",
   "license": "MIT",
@@ -20,5 +20,5 @@
     "unordered-dense",
     "xbyak"
   ],
-  "builtin-baseline": "b1e15efef6758eaa0beb0a8732cfa66f6a68a81d"
+  "builtin-baseline": "62efe42f53b1886a20cbeb22ee9a27736d20f149"
 }
