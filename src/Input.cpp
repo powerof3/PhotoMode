@@ -648,16 +648,16 @@ namespace Input
 					}
 
 					if (!io.WantTextInput) {
-						if (hotKey == hotKeys->TakePhotoKey()) {
+						if (hotKey == hotKeys->EscapeKey() && buttonEvent->IsUp()) {
+							photoMode->QuitOnEscape();
+						} else if (hotKey == hotKeys->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
 								QueueScreenshot(hotKey != GetDefaultScreenshotKey());
 							} else if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > keyHeldDuration) {
 								QueueScreenshot(true);
 							}
-						} else if (hotKey == hotKeys->ToggleMenusKey()) {
-							if (buttonEvent->IsDown()) {
-								photoMode->ToggleUI();
-							}
+						} else if (hotKey == hotKeys->ToggleMenusKey() && buttonEvent->IsDown()) {
+							photoMode->ToggleUI();
 						} else if (!photoMode->IsHidden()) {
 							if (hotKey == hotKeys->NextTabKey() && buttonEvent->IsDown()) {
 								photoMode->NavigateTab(false);
@@ -675,7 +675,7 @@ namespace Input
 						}
 					}
 
-					if (!photoMode->IsHidden() || hotKey == hotKeys->EscapeKey()) {
+					if (!photoMode->IsHidden()) {
 						if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {
 							io.AddKeyEvent(ImGuiKey_Tab, buttonEvent->IsDown());
 						} else {

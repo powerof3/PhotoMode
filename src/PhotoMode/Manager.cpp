@@ -301,6 +301,14 @@ namespace PhotoMode
 		}
 	}
 
+	void Manager::QuitOnEscape()
+	{
+		if (IsHidden() || noItemsFocused) {
+			Deactivate();
+			RE::PlaySound("UIMenuCancel");
+		}
+	}
+
 	bool Manager::GetResetAll() const
 	{
 		return resetAll;
@@ -402,13 +410,6 @@ namespace PhotoMode
 				CameraGrid::Draw();
 				DrawBar();
 				DrawControls();
-			}
-
-			if (ImGui::IsKeyReleased(ImGuiKey_Escape) || ImGui::IsKeyReleased(ImGuiKey_GamepadFaceRight)) {
-				if (IsHidden() || noItemsFocused) {
-					Deactivate();
-					RE::PlaySound("UIMenuCancel");
-				}
 			}
 		}
 		ImGui::End();

@@ -28,6 +28,7 @@ namespace PhotoMode
 		void               Deactivate();
 		void               ToggleActive();
 		void               Revert(bool a_deactivate = false);
+		void               QuitOnEscape();
 
 		bool GetResetAll() const;
 		void DoResetAll();
