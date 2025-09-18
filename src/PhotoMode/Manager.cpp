@@ -780,7 +780,7 @@ namespace PhotoMode
 				if (IsActive() && IsHidden()) {
 					ToggleUI();
 				}
-			} else if (IsActive()) {
+			} else if (IsActive() && MANAGER(Input)->DoNavigateWithMouse()) {
 				Input::Manager::ToggleCursor(true);
 			}
 		} else if (a_evn->menuName == RE::TweenMenu::MENU_NAME) {
