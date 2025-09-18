@@ -339,10 +339,11 @@ namespace SKSE
 
 		// Calling XInputGetState() every frame on disconnected gamepads is unfortunately too slow.
 		// Instead we refresh gamepad availability by calling XInputGetCapabilities() _only_ after receiving WM_DEVICECHANGE.
-		if (bd->WantUpdateHasGamepad) {
+		if (bd->WantUpdateHasGamepad || (io.ConfigFlags & ImGuiConfigFlags_IsTouchScreen) != 0) {
 			XINPUT_CAPABILITIES caps = {};
 			bd->HasGamepad = bd->XInputGetCapabilities ? (bd->XInputGetCapabilities(0, XINPUT_FLAG_GAMEPAD, &caps) == ERROR_SUCCESS) : false;
 			bd->WantUpdateHasGamepad = false;
+			io.ConfigFlags &= ~ImGuiConfigFlags_IsTouchScreen;
 		}
 
 		io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
