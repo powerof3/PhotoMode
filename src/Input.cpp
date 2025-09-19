@@ -603,7 +603,7 @@ namespace Input
 
 					if (IsInputGamepad()) {
 						io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-						io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen; // unused flag to force ImGui to update gamepad input from backend
+						io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;  // unused flag to force ImGui to update gamepad input from backend
 					} else {
 						if (IsInputKBM() && !DoNavigateWithMouse()) {
 							io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
