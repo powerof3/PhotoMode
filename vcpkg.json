@@ -1,10 +1,11 @@
 {
   "name": "photo-mode",
-  "version-string": "2.0.2",
+  "version-string": "2.0.3",
   "description": "",
   "homepage": "",
   "license": "MIT",
   "dependencies": [
+    "boost-unordered",
     "clib-util",
     "directxtex",
     "freetype",
@@ -17,8 +18,7 @@
     "rsm-binary-io",
     "spdlog",
     "srell",
-    "unordered-dense",
     "xbyak"
   ],
-  "builtin-baseline": "62efe42f53b1886a20cbeb22ee9a27736d20f149"
+  "builtin-baseline": "14bb451131ccf6be50a63a8d9dfe7980e46b5958"
 }

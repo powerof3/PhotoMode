@@ -18,7 +18,9 @@
 #include <DirectXMath.h>
 #include <DirectXTex.h>
 
-#include <ankerl/unordered_dense.h>
+#include <boost/unordered/unordered_flat_map.hpp>
+#include <boost/unordered/unordered_flat_set.hpp>
+#include <boost/unordered/unordered_node_map.hpp>
 #include <freetype/freetype.h>
 #include <glaze/glaze.hpp>
 #include <rapidfuzz/rapidfuzz_all.hpp>
@@ -57,22 +59,39 @@ using MOUSE = RE::BSWin32MouseDevice::Key;
 template <class T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-template <class K, class D>
-using Map = ankerl::unordered_dense::map<K, D>;
+template <class K, class D, class H = boost::hash<K>, class KEqual = std::equal_to<K>>
+using NodeMap = boost::unordered_node_map<K, D, H, KEqual>;
+
+template <class K, class D, class H = boost::hash<K>, class KEqual = std::equal_to<K>>
+using FlatMap = boost::unordered_flat_map<K, D, H, KEqual>;
+
+template <class K, class H = boost::hash<K>, class KEqual = std::equal_to<K>>
+using FlatSet = boost::unordered_flat_set<K, H, KEqual>;
 
 struct string_hash
 {
-	using is_transparent = void;  // enable heterogeneous overloads
-	using is_avalanching = void;  // mark class as high quality avalanching hash
+	using is_transparent = void;
 
-	[[nodiscard]] std::uint64_t operator()(std::string_view str) const noexcept
+	std::size_t operator()(const char* str) const
 	{
-		return ankerl::unordered_dense::hash<std::string_view>{}(str);
+		return boost::hash<std::string_view>{}(str);
+	}
+
+	std::size_t operator()(std::string_view str) const
+	{
+		return boost::hash<std::string_view>{}(str);
+	}
+
+	std::size_t operator()(const std::string& str) const
+	{
+		return boost::hash<std::string>{}(str);
 	}
 };
 
 template <class D>
-using StringMap = ankerl::unordered_dense::map<std::string, D, string_hash, std::equal_to<>>;
+using StringMap = FlatMap<std::string, D, string_hash, std::equal_to<>>;
+
+using StringSet = FlatSet<std::string, string_hash, std::equal_to<>>;
 
 namespace stl
 {

@@ -43,8 +43,8 @@ namespace PhotoMode
 		bool                                 updateOverlay{ false };
 		bool                                 hasOverlays{ false };
 
-		FileIndex                     folders{};
-		Map<std::uint32_t, FileIndex> folderFiles{};
+		FileIndex                         folders{};
+		FlatMap<std::uint32_t, FileIndex> folderFiles{};
 
 		float alpha{ 1.0f };
 	};

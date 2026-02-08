@@ -80,7 +80,7 @@ namespace IconFont
 		IconTexture upKey{ L"Up"sv };
 		IconTexture downKey{ L"Down"sv };
 
-		Map<KEY, IconTexture> keyboard{
+		FlatMap<KEY, IconTexture> keyboard{
 			{ KEY::kTab, IconTexture(L"Tab"sv) },
 			{ KEY::kPageUp, IconTexture(L"PgUp"sv) },
 			{ KEY::kPageDown, IconTexture(L"PgDn"sv) },
@@ -182,7 +182,7 @@ namespace IconFont
 			{ KEY::kKP_Enter, IconTexture(L"KeypadEnter"sv) }
 		};
 
-		Map<std::uint32_t, GamepadIcon> gamePad{
+		FlatMap<std::uint32_t, GamepadIcon> gamePad{
 			{ SKSE::InputMap::kGamepadButtonOffset_START, { IconTexture(L"360_Start"sv), IconTexture(L"PS3_Start"sv) } },
 			{ SKSE::InputMap::kGamepadButtonOffset_BACK, { IconTexture(L"360_Back"sv), IconTexture(L"PS3_Back"sv) } },
 			{ SKSE::InputMap::kGamepadButtonOffset_LEFT_THUMB, { IconTexture(L"360_LS"sv), IconTexture(L"PS3_L3"sv) } },
@@ -197,7 +197,7 @@ namespace IconFont
 			{ SKSE::InputMap::kGamepadButtonOffset_RT, { IconTexture(L"360_RT"sv), IconTexture(L"PS3_RT"sv) } },
 		};
 
-		Map<std::uint32_t, IconTexture> mouse{
+		FlatMap<std::uint32_t, IconTexture> mouse{
 			{ 256 + MOUSE::kLeftButton, IconTexture(L"Mouse1"sv) },
 			{ 256 + +MOUSE::kRightButton, IconTexture(L"Mouse2"sv) },
 			{ 256 + +MOUSE::kMiddleButton, IconTexture(L"Mouse3"sv) },

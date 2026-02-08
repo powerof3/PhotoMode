@@ -106,9 +106,9 @@ namespace PhotoMode
 		Camera cameraTab;
 		Time   timeTab;
 
-		Map<RE::FormID, Character> characterTab;
-		RE::Actor*                 cachedCharacter{ nullptr };
-		RE::Actor*                 prevCachedCharacter{ nullptr };
+		NodeMap<RE::FormID, Character> characterTab;
+		RE::Actor*                     cachedCharacter{ nullptr };
+		RE::Actor*                     prevCachedCharacter{ nullptr };
 
 		Filters  filterTab;
 		Overlays overlaysTab;

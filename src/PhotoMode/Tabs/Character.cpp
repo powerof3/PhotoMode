@@ -292,8 +292,7 @@ namespace PhotoMode
 					update |= ImGui::Slider("$PM_Elevation"_T, &currentState.pos.z, -150.0f, 150.0f);
 
 					if (update) {
-						auto charController = character->GetCharController();
-						if (charController) {
+						if (auto charController = character->GetCharController()) {
 							charController->flags.set(RE::CHARACTER_FLAGS::kNoSim);
 						}
 						character->SetPosition({ originalState.pos + currentState.pos }, true);

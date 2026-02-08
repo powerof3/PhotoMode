@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 set(NAME "po3_PhotoMode" CACHE STRING "")
-set(VERSION 2.0.2 CACHE STRING "")
+set(VERSION 2.0.3 CACHE STRING "")
 set(AE_VERSION 1)
 set(VR_VERSION 1)
 
@@ -132,12 +132,12 @@ else ()
 	)
 endif()
 
+find_package(boost_unordered CONFIG REQUIRED)
 find_package(directxtex CONFIG REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(glaze CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(rapidfuzz CONFIG REQUIRED)
-find_package(unordered_dense CONFIG REQUIRED)
 
 find_path(SRELL_INCLUDE_DIRS "srell.hpp")
 find_path(CLIB_UTIL_INCLUDE_DIRS "ClibUtil/utils.hpp")
@@ -200,12 +200,12 @@ target_link_libraries(
 	${PROJECT_NAME}
 	PRIVATE
 		${CommonLibName}::${CommonLibName}
+		Boost::unordered
 		Microsoft::DirectXTex
 		Freetype::Freetype
 		glaze::glaze
 		imgui::imgui
 		rapidfuzz::rapidfuzz
-		unordered_dense::unordered_dense
 )
 
 target_precompile_headers(
