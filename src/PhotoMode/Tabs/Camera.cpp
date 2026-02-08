@@ -1,22 +1,9 @@
 #include "Camera.h"
 
-#include "ENB/ENB.h"
 #include "ImGui/Widgets.h"
 
 namespace PhotoMode
 {
-	void Camera::ENBDOF::Get()
-	{
-		enabled = ENB::GetParameter<bool>("enbseries.ini", "EFFECT", "EnableDepthOfField");
-	}
-
-	void Camera::ENBDOF::SetParameter(std::uint32_t a_type) const
-	{
-		if ((a_type & kEnable) != 0) {
-			ENB::SetParameter(enabled, "enbseries.ini", "EFFECT", "EnableDepthOfField");
-		}
-	}
-
 	void Camera::OriginalState::Get()
 	{
 		fov = RE::PlayerCamera::GetSingleton()->worldFOV;
@@ -27,10 +14,6 @@ namespace PhotoMode
 		vanillaDOF.nearRange = DOF::nearRange;
 		vanillaDOF.farDist = DOF::farDist;
 		vanillaDOF.farRange = DOF::farRange;
-
-		/*if (ENB::IsInstalled()) {
-			enbDOF.Get();
-		}*/
 	}
 
 	void Camera::OriginalState::Revert(bool a_deactivate) const
@@ -50,7 +33,6 @@ namespace PhotoMode
 
 	void Camera::GetOriginalState()
 	{
-		// revertENB = false;
 		originalState.Get();
 	}
 
@@ -68,10 +50,6 @@ namespace PhotoMode
 		if (const auto& effect = RE::ImageSpaceManager::GetSingleton()->effects[RE::ImageSpaceManager::ImageSpaceEffectEnum::DepthOfField]) {
 			static_cast<RE::ImageSpaceEffectDepthOfField*>(effect)->enabled = true;
 		}
-
-		/*if (ENB::IsInstalled()) {
-			revertENB = true;
-		}*/
 	}
 
 	void Camera::Draw()
@@ -119,22 +97,6 @@ namespace PhotoMode
 
 		// Camera position management
 		cameraPositions.Draw();
-	}
-
-	void Camera::UpdateENBParams()
-	{
-		if (curDOF.enabled != lastDOF.enabled) {
-			curDOF.SetParameter(ENBDOF::kEnable);
-			lastDOF.enabled = curDOF.enabled;
-		}
-	}
-
-	void Camera::RevertENBParams()
-	{
-		if (revertENB) {
-			originalState.enbDOF.SetParameter(ENBDOF::kAll);
-			revertENB = false;
-		}
 	}
 
 	void CameraGrid::Draw()

@@ -15,27 +15,7 @@ namespace PhotoMode
 
 		void Draw();
 
-		void UpdateENBParams();
-		void RevertENBParams();
-
 	private:
-		// very, very basic support
-		struct ENBDOF
-		{
-			enum TYPE : std::uint8_t
-			{
-				kNone = 0,
-				kEnable,
-				kAll
-			};
-
-			void Get();
-			void SetParameter(std::uint32_t a_type) const;
-
-			// members
-			bool enabled;
-		};
-
 		struct OriginalState
 		{
 			void Get();
@@ -53,15 +33,11 @@ namespace PhotoMode
 				float farDist;
 				float farRange;
 			} vanillaDOF;
-
-			ENBDOF enbDOF{};
 		};
 
 		// members
 		OriginalState originalState{};
 
-		ENBDOF curDOF{};
-		ENBDOF lastDOF{};
 		bool   revertENB{ false };
 
 		float currentViewRoll{};

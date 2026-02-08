@@ -1,10 +1,6 @@
 set(headers ${headers}
 	src/Cache.h
 	src/Console.h
-	src/ENB/AntTweakBar.h
-	src/ENB/ENB.h
-	src/ENB/ENBSeriesAPI.h
-	src/ENB/ENBSeriesSDK.h
 	src/Graphics.h
 	src/Hooks.h
 	src/ImGui/Backend/imgui_impl_win32.h

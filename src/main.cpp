@@ -1,5 +1,4 @@
 #include "Console.h"
-#include "ENB/ENB.h"
 #include "Hooks.h"
 #include "ImGui/Renderer.h"
 #include "Input.h"
@@ -18,25 +17,6 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 			logger::info("{:*^30}", "POST LOAD");
 
 			Hooks::Install();
-
-			/*ENB::handle = static_cast<ENB_API::ENBSDKALT1001*>(RequestENBAPI(ENB_API::SDKVersion::V1001));
-			if (ENB::handle) {
-				ENB::handle->SetCallbackFunction([](ENBCallbackType a_calltype) {
-					switch (a_calltype) {
-					case ENBCallbackType::ENBCallback_BeginFrame:
-						MANAGER(PhotoMode)->UpdateENBParams();
-						break;
-					case ENBCallbackType::ENBCallback_EndFrame:
-						MANAGER(PhotoMode)->RevertENBParams();
-						break;
-					default:
-						break;
-					}
-				});
-				logger::info("Obtained ENB API");
-			} else {
-				logger::info("Unable to acquire ENB API");
-			}*/
 		}
 		break;
 	case SKSE::MessagingInterface::kInputLoaded:

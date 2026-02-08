@@ -10,6 +10,8 @@ namespace PhotoMode
 		void LoadOverlays();
 		void RevertOverlays();
 
+		bool HasOverlay() const;
+
 		ImGui::Texture*                   UpdateOverlay();
 		std::pair<ImGui::Texture*, float> GetCurrentOverlay() const;
 

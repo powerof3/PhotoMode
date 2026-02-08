@@ -74,6 +74,11 @@ namespace PhotoMode
 		alpha = 1.0f;
 	}
 
+	bool Overlays::HasOverlay() const
+	{
+		return updateOverlay || cachedOverlay != nullptr;
+	}
+
 	ImGui::Texture* Overlays::UpdateOverlay()
 	{
 		if (const auto it = overlays.find(folders.get_file()); it != overlays.end()) {

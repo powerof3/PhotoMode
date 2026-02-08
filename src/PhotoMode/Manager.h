@@ -46,10 +46,9 @@ namespace PhotoMode
 		void TryOpenFromTweenMenu();
 
 		void Draw();
+		void DrawOverlays();
 		bool OnFrameUpdate();
-
-		void UpdateENBParams();
-		void RevertENBParams();
+		bool HasOverlay() const;
 
 		void                              OnDataLoad();
 		std::pair<ImGui::Texture*, float> GetOverlay() const;

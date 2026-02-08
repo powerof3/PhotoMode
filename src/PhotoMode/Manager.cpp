@@ -190,6 +190,11 @@ namespace PhotoMode
 		return true;
 	}
 
+	bool Manager::HasOverlay() const
+	{
+		return overlaysTab.HasOverlay();
+	}
+
 	void Manager::Deactivate()
 	{
 		Revert(true);
@@ -321,9 +326,7 @@ namespace PhotoMode
 
 	void Manager::NavigateTab(bool a_left)
 	{
-		const auto tabsSizeInt32 = tabs.size() > std::numeric_limits<uint32_t>::max() ?
-		                               std::numeric_limits<uint32_t>::max() :
-		                               static_cast<uint32_t>(tabs.size());
+		constexpr auto tabsSizeInt32 = static_cast<uint32_t>(tabs.size());
 		if (a_left) {
 			currentTab = (currentTab - static_cast<uint32_t>(1) + tabsSizeInt32) % tabsSizeInt32;
 		} else {
@@ -363,21 +366,6 @@ namespace PhotoMode
 		}
 	}
 
-	void Manager::UpdateENBParams()
-	{
-		if (IsActive()) {
-			cameraTab.UpdateENBParams();
-		}
-	}
-
-	void Manager::RevertENBParams()
-	{
-		if (revertENB) {
-			cameraTab.RevertENBParams();
-			revertENB = false;
-		}
-	}
-
 	void Manager::OnDataLoad()
 	{
 		overlaysTab.LoadOverlays();
@@ -403,14 +391,25 @@ namespace PhotoMode
 
 		ImGui::Begin("##Main", nullptr, ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
 		{
-			// render hierachy
-			overlaysTab.DrawOverlays();
-
 			if (!IsHidden()) {
+				overlaysTab.DrawOverlays();
 				CameraGrid::Draw();
 				DrawBar();
 				DrawControls();
 			}
+		}
+		ImGui::End();
+	}
+
+	void Manager::DrawOverlays()
+	{
+		ImGui::SetNextWindowPos(ImGui::GetNativeViewportPos());
+		ImGui::SetNextWindowSize(ImGui::GetNativeViewportSize());
+
+		ImGui::Begin("##MainOverlay", nullptr, ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
+		{
+			// render hierachy
+			overlaysTab.DrawOverlays();
 		}
 		ImGui::End();
 	}

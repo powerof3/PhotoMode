@@ -39,7 +39,7 @@ namespace ImGui::Renderer
 			func();
 
 			if (const auto renderer = RE::BSGraphics::Renderer::GetSingleton()) {
-				const auto swapChain = (IDXGISwapChain*)renderer->data.renderWindows[0].swapChain;
+				const auto swapChain = reinterpret_cast<IDXGISwapChain*>(renderer->data.renderWindows[0].swapChain);
 				if (!swapChain) {
 					logger::error("couldn't find swapChain");
 					return;
@@ -51,8 +51,8 @@ namespace ImGui::Renderer
 					return;
 				}
 
-				const auto device = (ID3D11Device*)renderer->data.forwarder;
-				const auto context = (ID3D11DeviceContext*)renderer->data.context;
+				const auto device = reinterpret_cast<ID3D11Device*>(renderer->data.forwarder);
+				const auto context = reinterpret_cast<ID3D11DeviceContext*>(renderer->data.context);
 
 				logger::info("Initializing ImGui..."sv);
 
@@ -136,13 +136,53 @@ namespace ImGui::Renderer
 		static inline std::size_t                      idx{ 0x6 };
 	};
 
+	struct StopTimer
+	{
+		static void thunk(std::uint32_t timer)
+		{
+			func(timer);
+			
+			// Skip if Imgui is not loaded
+			if (!initialized.load()) {
+				return;
+			}
+
+			const auto photoMode = MANAGER(PhotoMode);
+			if (!photoMode->IsActive() || !photoMode->IsHidden() || !photoMode->HasOverlay()) {
+				return;
+			}
+
+			ImGui_ImplDX11_NewFrame();
+			SKSE::ImGui_ImplWin32_NewFrame();
+			{
+				// trick imgui into rendering at game's real resolution (ie. if upscaled with Display Tweaks)
+				static const auto screenSize = RE::BSGraphics::Renderer::GetScreenSize();
+
+				auto& io = ImGui::GetIO();
+				io.DisplaySize.x = static_cast<float>(screenSize.width);
+				io.DisplaySize.y = static_cast<float>(screenSize.height);
+			}
+			ImGui::NewFrame();
+			{
+				// disable windowing
+				GImGui->NavWindowingTarget = nullptr;
+
+				photoMode->DrawOverlays();
+			}
+			ImGui::EndFrame();
+			ImGui::Render();
+			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+		}
+		static inline REL::Relocation<decltype(thunk)> func;
+	};
+
 	void Install()
 	{
 		REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(75595, 77226), OFFSET(0x9, 0x275) };  // BSGraphics::InitD3D
 		stl::write_thunk_call<CreateD3DAndSwapChain>(target.address());
 
-		//REL::Relocation<std::uintptr_t> target2{ RELOCATION_ID(75461, 77246), 0x9 };  // BSGraphics::Renderer::End
-		//stl::write_thunk_call<StopTimer>(target2.address());
+		REL::Relocation<std::uintptr_t> target2{ RELOCATION_ID(75461, 77246), 0x9 };  // BSGraphics::Renderer::End
+		stl::write_thunk_call<StopTimer>(target2.address());
 
 		stl::write_vfunc<RE::HUDMenu, PostDisplay>();
 	}
