@@ -38,7 +38,7 @@ namespace PhotoMode
 		// members
 		OriginalState originalState{};
 
-		bool   revertENB{ false };
+		bool revertENB{ false };
 
 		float currentViewRoll{};
 		float currentViewRollDegrees{};

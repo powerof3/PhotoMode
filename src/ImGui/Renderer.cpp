@@ -141,7 +141,7 @@ namespace ImGui::Renderer
 		static void thunk(std::uint32_t timer)
 		{
 			func(timer);
-			
+
 			// Skip if Imgui is not loaded
 			if (!initialized.load()) {
 				return;
