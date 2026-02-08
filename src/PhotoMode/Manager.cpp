@@ -155,7 +155,7 @@ namespace PhotoMode
 
 	void Manager::TogglePlayerControls(bool a_enable)
 	{
-		RE::ControlMap::GetSingleton()->ToggleControls(controlFlags, a_enable);
+		RE::ControlMap::GetSingleton()->ToggleControls(controlFlags, a_enable, true);
 
 		if (const auto pcControls = RE::PlayerControls::GetSingleton()) {
 			pcControls->readyWeaponHandler->SetInputEventHandlingEnabled(a_enable);
@@ -298,7 +298,7 @@ namespace PhotoMode
 			RE::PlaySound("UIMenuOK");
 
 			const auto notification = std::format("{}", resetAll ? "$PM_ResetNotifAll"_T : TRANSLATE(tabResetNotifs[currentTab]));
-			RE::DebugNotification(notification.c_str());
+			RE::SendHUDMessage::ShowHUDMessage(notification.c_str());
 
 			if (resetAll) {
 				resetAll = false;

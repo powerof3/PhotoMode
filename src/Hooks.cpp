@@ -75,7 +75,7 @@ namespace Screenshot
 			MANAGER(Input)->OnScreenshotFinish();
 
 			if (skipVanillaScreenshot) {
-				RE::DebugNotification("$PM_ScreenshotNotif"_T);
+				RE::SendHUDMessage::ShowHUDMessage("$PM_ScreenshotNotif"_T);
 			}
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
