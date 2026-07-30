@@ -5,6 +5,7 @@
 #include "ImGui/Styles.h"
 #include "ImGui/Widgets.h"
 #include "Screenshots/Manager.h"
+#include "IGCSBridge/Bridge.h"  // IGCSDOF lifecycle + per-frame camera feed
 
 #include "Input.h"
 
@@ -148,6 +149,8 @@ namespace PhotoMode
 		ImGui::Styles::GetSingleton()->RefreshStyle();
 
 		activated = true;
+		// IGCSDOF: expose the native Photo Mode camera only while Photo Mode is active.
+		IGCSBridge::Bridge::GetSingleton()->OnPhotoModeActivated();
 		if (activeGlobal) {
 			activeGlobal->value = 1.0f;
 		}
@@ -186,6 +189,8 @@ namespace PhotoMode
 		TogglePlayerControls(false);
 
 		timeTab.OnFrameUpdate();
+		// IGCSDOF: publish the live camera packet and reconnect if the addon appears late.
+		IGCSBridge::Bridge::GetSingleton()->OnFrameUpdate();
 
 		return true;
 	}
@@ -197,6 +202,8 @@ namespace PhotoMode
 
 	void Manager::Deactivate()
 	{
+		// IGCSDOF: end any active screenshot session and clear the shared camera packet.
+		IGCSBridge::Bridge::GetSingleton()->OnPhotoModeDeactivated();
 		Revert(true);
 
 		//reset characters
