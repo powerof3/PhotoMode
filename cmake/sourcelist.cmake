@@ -10,6 +10,7 @@ set(sources ${sources}
 	src/ImGui/Util.cpp
 	src/ImGui/Widgets.cpp
 	src/Input.cpp
+	src/IGCSBridge/Bridge.cpp
 	src/PCH.cpp
 	src/Papyrus.cpp
 	src/PhotoMode/Hotkeys.cpp

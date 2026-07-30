@@ -13,6 +13,7 @@ set(headers ${headers}
 	src/ImGui/Util.h
 	src/ImGui/Widgets.h
 	src/Input.h
+	src/IGCSBridge/Bridge.h
 	src/PCH.h
 	src/Papyrus.h
 	src/PhotoMode/Hotkeys.h
