@@ -1,0 +1,6 @@
+src/IGCSBridge/Bridge.h
+src/IGCSBridge/Bridge.cpp
+src/Hooks.cpp
+src/PhotoMode/Manager.cpp
+cmake/sourcelist.cmake
+cmake/headerlist.cmake

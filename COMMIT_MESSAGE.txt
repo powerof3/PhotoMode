@@ -1,0 +1,8 @@
+Add direct IGCSDOF camera bridge
+
+- expose Photo Mode camera data directly to IgcsConnector
+- add multishot and panorama camera exports
+- use Photo Mode's native ZXY camera basis
+- preserve rotation and FOV during aperture samples
+- restore camera state when screenshot sessions end
+- keep verbose diagnostics behind a compile-time switch
