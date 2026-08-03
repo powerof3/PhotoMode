@@ -30,7 +30,11 @@ namespace Screenshot
 		std::error_code ec;
 		if (!folder.exists(ec)) {
 			logger::info("{} folder not found, creating it ({})", a_folder, ec.message());
-			std::filesystem::create_directory(a_folder);
+			ec.clear();
+			std::filesystem::create_directories(a_folder, ec);  // create parents too; don't throw if it fails
+			if (ec) {
+				logger::error("Failed to create {} folder ({})", a_folder, ec.message());
+			}
 			return;
 		}
 
@@ -130,7 +134,11 @@ namespace Screenshot
 		std::error_code ec;
 		if (!std::filesystem::exists(photoDirectory, ec)) {
 			logger::info("\tPhoto directory does not exist, creating it... ({})", ec.message());
-			std::filesystem::create_directory(photoDirectory);
+			ec.clear();
+			std::filesystem::create_directories(photoDirectory, ec);  // create parents too; don't throw if it fails
+			if (ec) {
+				logger::error("\tFailed to create photo directory ({})", ec.message());
+			}
 		}
 
 		logger::info("\tScreenshot directory : {}", photoDirectory.string());
@@ -160,7 +168,12 @@ namespace Screenshot
 	{
 		const auto get_photos_index = [this]() {
 			std::vector<Image> photos{};
-			for (const auto& entry : std::filesystem::directory_iterator(photoDirectory)) {
+			std::error_code    ec;
+			const auto         iterator = std::filesystem::directory_iterator(photoDirectory, ec);
+			if (ec) {
+				logger::info("\tPhoto directory unavailable, skipping index scan ({})", ec.message());
+			}
+			for (const auto& entry : iterator) {
 				if (entry.is_regular_file()) {
 					if (const auto& path = entry.path(); path.extension() == ".png") {
 						auto pathStr = entry.path().string();
