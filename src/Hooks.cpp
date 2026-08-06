@@ -2,6 +2,7 @@
 
 #include "Input.h"
 #include "PhotoMode/Manager.h"
+#include "IGCSBridge/Bridge.h"  // IGCSDOF: direct IgcsConnector bridge
 #include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
 
@@ -14,6 +15,22 @@ namespace PhotoMode
 			return func(a_matrix, a_z, a_x, MANAGER(PhotoMode)->GetViewRoll(a_y));
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
+	};
+
+	// IGCSDOF integration point: override the translation returned to the renderer
+	// while preserving Photo Mode's native rotation and FOV.
+	struct GetFreeCameraTranslation
+	{
+		static void thunk(RE::FreeCameraState* a_this, RE::NiPoint3& a_translation)
+		{
+			func(a_this, a_translation);
+			auto* bridge = IGCSBridge::Bridge::GetSingleton();
+			bridge->DiagnosticRenderHook(a_this, a_translation);
+			bridge->OverrideRenderedTranslation(a_translation);
+			bridge->DiagnosticAfterOverride(a_translation);
+		}
+		static inline REL::Relocation<decltype(thunk)> func;
+		static inline constexpr std::size_t idx{ 0x05 };
 	};
 
 	// TESDataHandler idle array is not populated
@@ -48,6 +65,9 @@ namespace PhotoMode
 	{
 		REL::Relocation<std::uintptr_t> getRot{ RELOCATION_ID(49814, 50744), 0x1B };  // FreeCamera::GetRotation
 		stl::write_thunk_call<FromEulerAnglesZXY>(getRot.address());
+		// IGCSDOF: intercept the rendered free-camera translation for aperture samples.
+		stl::write_vfunc<RE::FreeCameraState, GetFreeCameraTranslation>();
+		IGCSBridge::Bridge::GetSingleton()->LogHookInstallation(0, GetFreeCameraTranslation::idx);
 
 		stl::write_vfunc<RE::TESIdleForm, SetFormEditorID>();
 
