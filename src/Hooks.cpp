@@ -1,8 +1,8 @@
 #include "Hooks.h"
 
+#include "IGCSBridge/Bridge.h"  // IGCSDOF: direct IgcsConnector bridge
 #include "Input.h"
 #include "PhotoMode/Manager.h"
-#include "IGCSBridge/Bridge.h"  // IGCSDOF: direct IgcsConnector bridge
 #include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
 
@@ -30,7 +30,7 @@ namespace PhotoMode
 			bridge->DiagnosticAfterOverride(a_translation);
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
-		static inline constexpr std::size_t idx{ 0x05 };
+		static inline constexpr std::size_t            idx{ 0x05 };
 	};
 
 	// TESDataHandler idle array is not populated

@@ -1,11 +1,11 @@
 #include "Manager.h"
 
 #include "Hotkeys.h"
+#include "IGCSBridge/Bridge.h"  // IGCSDOF lifecycle + per-frame camera feed
 #include "ImGui/IconsFonts.h"
 #include "ImGui/Styles.h"
 #include "ImGui/Widgets.h"
 #include "Screenshots/Manager.h"
-#include "IGCSBridge/Bridge.h"  // IGCSDOF lifecycle + per-frame camera feed
 
 #include "Input.h"
 

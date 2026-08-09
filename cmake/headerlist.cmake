@@ -3,6 +3,7 @@ set(headers ${headers}
 	src/Console.h
 	src/Graphics.h
 	src/Hooks.h
+	src/IGCSBridge/Bridge.h
 	src/ImGui/Backend/imgui_impl_win32.h
 	src/ImGui/FormComboBox.h
 	src/ImGui/Graphics.h
@@ -13,7 +14,6 @@ set(headers ${headers}
 	src/ImGui/Util.h
 	src/ImGui/Widgets.h
 	src/Input.h
-	src/IGCSBridge/Bridge.h
 	src/PCH.h
 	src/Papyrus.h
 	src/PhotoMode/Hotkeys.h

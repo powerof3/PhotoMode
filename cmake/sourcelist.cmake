@@ -2,6 +2,7 @@ set(sources ${sources}
 	src/Console.cpp
 	src/Graphics.cpp
 	src/Hooks.cpp
+	src/IGCSBridge/Bridge.cpp
 	src/ImGui/Backend/imgui_impl_win32.cpp
 	src/ImGui/Graphics.cpp
 	src/ImGui/IconsFonts.cpp
@@ -10,7 +11,6 @@ set(sources ${sources}
 	src/ImGui/Util.cpp
 	src/ImGui/Widgets.cpp
 	src/Input.cpp
-	src/IGCSBridge/Bridge.cpp
 	src/PCH.cpp
 	src/Papyrus.cpp
 	src/PhotoMode/Hotkeys.cpp
