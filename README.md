@@ -31,13 +31,13 @@ git submodule update
 
 ### SSE
 ```
-cmake --preset vs2022-windows-vcpkg-se
+cmake --preset vs2022-se
 cmake --build build --config Release
 ```
 ### AE
 ```
-cmake --preset vs2022-windows-vcpkg-ae
+cmake --preset vs2022-ae
 cmake --build buildae --config Release
 ```
 ## License
-[MIT](LICENSE)
+[GPL-3.0](LICENSE)
