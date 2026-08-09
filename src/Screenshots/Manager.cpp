@@ -190,7 +190,7 @@ namespace Screenshot
 
 		auto mcmIndex = index;
 		auto photosIndex = get_photos_index();
-		auto vanillaScreenshotIndex = RE::GetINISetting("iScreenShotIndex:Display")->GetSInt();
+		auto vanillaScreenshotIndex = *"iScreenShotIndex:Display"_ini;
 		auto screenshotsIndex = screenshots.GetHighestIndex();
 		auto paintingsIndex = paintings.GetHighestIndex();
 
@@ -254,8 +254,8 @@ namespace Screenshot
 		if (auto result = DirectX::CaptureTexture(device.Get(), deviceContext.Get(), texture2D, inputImage); result == S_OK) {
 			skipVanillaScreenshot = true;
 
-			std::string pngPath = useCustomFolderDirectory ? std::format("{}\\Screenshot{}.png", photoDirectory.string(), GetIndex()) :
-			                                                 std::format("{}_{}.png", RE::GetINISetting("sScreenShotBaseName:Display")->GetString(), GetIndex());
+			std::string pngPath = useCustomFolderDirectory ? std::format("{}\\Screenshot_{}.png", photoDirectory.string(), GetIndex()) :
+			                                                 std::format("{}_{}.png", *"sScreenShotBaseName:Display"_pref, GetIndex());
 
 			// apply overlay
 			if (const auto [overlay, alpha] = MANAGER(PhotoMode)->GetOverlay(); overlay) {

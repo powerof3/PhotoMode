@@ -140,7 +140,7 @@ namespace LoadScreen
 			return;
 		}
 
-		const auto effect = a_canvas->properties[RE::BSGeometry::States::kEffect];
+		const auto& effect = a_canvas->shaderProperty;
 		if (!effect) {
 			return;
 		}

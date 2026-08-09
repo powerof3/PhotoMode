@@ -46,6 +46,7 @@
 using namespace std::literals;
 using namespace clib_util;
 using namespace string::literals;
+using namespace RE::literals;
 
 namespace logger = SKSE::log;
 
