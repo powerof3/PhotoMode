@@ -82,7 +82,6 @@ namespace
 	}
 	void BasisFromQuaternion(const RE::NiQuaternion& q, RE::NiPoint3& right, RE::NiPoint3& up, RE::NiPoint3& forward)
 	{
-
 		const RE::NiMatrix3 m = q.ToRotation();
 		right = m.GetVectorX();
 		up = m.GetVectorY();
@@ -159,7 +158,7 @@ namespace PhotoMode::IGCSBridge
 	{
 		Initialize();
 		//if (!cameraToolsBuffer) // Why every frame?
-			//TryConnectToIGCSConnector();
+		//TryConnectToIGCSConnector();
 
 		if constexpr (kVerboseDiagnostics) {
 			// Optional developer-only diagnostics. Disabled in normal GitHub builds.
@@ -576,8 +575,8 @@ namespace PhotoMode::IGCSBridge
 		axis = axis * (1.0f / sinAngle);
 		const float angle = std::atan2(sinAngle, cosAngle);
 		auto        rotate = [&](const RE::NiPoint3& v) {
-			const float c = std::cos(angle), ss = std::sin(angle);
-			return v * c + axis.Cross(v) * ss + axis * (axis.Dot(v) * (1.0f - c));
+            const float c = std::cos(angle), ss = std::sin(angle);
+            return v * c + axis.Cross(v) * ss + axis * (axis.Dot(v) * (1.0f - c));
 		};
 		const RE::NiPoint3 newRight = Normalize(rotate(base.right));
 		const RE::NiPoint3 newForward = Normalize(rotate(base.forward));
