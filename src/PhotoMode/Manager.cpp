@@ -225,6 +225,19 @@ namespace PhotoMode
 		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.reset(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
 
 		// reset variables
+		if (ImGui::GetCurrentContext()) {
+			auto& io = ImGui::GetIO();
+			io.ClearEventsQueue();
+			io.ClearInputKeys();
+			io.ClearInputMouse();
+
+			ImGuiContext& g = *GImGui;
+			ImGui::ClearActiveID();
+			g.OpenPopupStack.clear();
+			g.NavId = 0;
+			ImGui::FocusWindow(nullptr);
+		}
+
 		hiddenUI = false;
 
 		noItemsFocused = false;
