@@ -75,7 +75,7 @@ namespace Screenshot
 
 			auto path = entry.path();
 
-			bool                 badTexture = true;
+			bool                 badTexture = false;
 			DirectX::TexMetadata info;
 			if (const auto widePath = stl::utf8_to_utf16(path.string())) {
 				const auto hr = GetMetadataFromDDSFile(widePath->c_str(), DirectX::DDS_FLAGS_NONE, info);
@@ -102,8 +102,12 @@ namespace Screenshot
 		}
 
 		for (const auto& badTexture : badTextures) {
+			std::error_code ec2;
 			logger::info("\tDeleting invalid texture ({})", badTexture.string());
-			std::filesystem::remove(badTexture);
+			std::filesystem::remove(badTexture, ec2);
+			if (ec2) {
+				logger::warn("\t\tFailed to delete {} ({})", badTexture.string(), ec2.message());
+			}
 		}
 
 		for (auto& [from, to] : goodTextures) {
@@ -246,7 +250,7 @@ namespace Screenshot
 
 		auto mcmIndex = index;
 		auto photosIndex = get_photos_index();
-		auto vanillaScreenshotIndex = "iScreenShotIndex:Display"_ini.value_or(-1);
+		auto vanillaScreenshotIndex = "iScreenShotIndex:Display"_pref.value_or(-1);
 		auto screenshotsIndex = screenshots.GetHighestIndex();
 		auto paintingsIndex = paintings.GetHighestIndex();
 
