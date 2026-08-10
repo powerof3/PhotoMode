@@ -1,7 +1,5 @@
 #pragma once
 
-#include <atomic>
-
 namespace PhotoMode::IGCSBridge
 {
 	class Bridge : public REX::Singleton<Bridge>
@@ -53,16 +51,11 @@ namespace PhotoMode::IGCSBridge
 		void BuildFocusAnchor();
 		void ApplyFocusAnchorConvergence(CameraSnapshot& a_sample) const;
 
-		static RE::NiPoint3 Add(const RE::NiPoint3& a_lhs, const RE::NiPoint3& a_rhs);
-		static RE::NiPoint3 Scale(const RE::NiPoint3& a_value, float a_scale);
-		static Basis        BuildBasis(float a_pitch, float a_yaw, float a_roll);
+		static Basis BuildBasis(float a_pitch, float a_yaw, float a_roll);
 
 		void                WriteStatus(std::string_view a_text) const;
 		void                AppendDiagnostic(std::string_view a_text) const;
-		static float        Length(const RE::NiPoint3& a_value);
-		static float        Dot(const RE::NiPoint3& a_lhs, const RE::NiPoint3& a_rhs);
 		static RE::NiPoint3 Normalize(const RE::NiPoint3& a_value);
-		static RE::NiPoint3 Cross(const RE::NiPoint3& a_lhs, const RE::NiPoint3& a_rhs);
 		static bool         IsFinite(const RE::NiPoint3& a_value);
 
 		std::filesystem::path statusFile;

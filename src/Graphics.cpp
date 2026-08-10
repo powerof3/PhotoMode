@@ -6,9 +6,13 @@ namespace Texture
 	{
 		a_path = clib_util::string::tolower(a_path);
 
-		a_path = srell::regex_replace(a_path, srell::regex("/+|\\\\+"), "\\");
-		a_path = srell::regex_replace(a_path, srell::regex("^\\\\+"), "");
-		a_path = srell::regex_replace(a_path, srell::regex(R"(.*?[^\s]textures\\|^textures\\)", srell::regex::icase), "");
+		static const srell::regex slashPattern("/+|\\\\+");
+		static const srell::regex leadingSlashPattern("^\\\\+");
+		static const srell::regex texturesPattern(R"(.*?[^\s]textures\\|^textures\\)", srell::regex::icase);
+
+		a_path = srell::regex_replace(a_path, slashPattern, "\\");
+		a_path = srell::regex_replace(a_path, leadingSlashPattern, "");
+		a_path = srell::regex_replace(a_path, texturesPattern, "");
 
 		return a_path;
 	}
@@ -54,7 +58,7 @@ namespace Texture
 
 		for (std::size_t i = 0; i < numThreads; ++i) {
 			std::size_t startRow = i * rowsPerThread;
-			std::size_t endRow = (i + 1) * rowsPerThread;
+			std::size_t endRow = (i == numThreads - 1) ? height : (i + 1) * rowsPerThread;
 
 			threads.emplace_back(std::jthread(processRows, startRow, endRow));
 		}
@@ -146,7 +150,7 @@ namespace Texture
 
 		for (std::size_t i = 0; i < numThreads; ++i) {
 			std::size_t startRow = i * rowsPerThread;
-			std::size_t endRow = (i + 1) * rowsPerThread;
+			std::size_t endRow = (i == numThreads - 1) ? height : (i + 1) * rowsPerThread;
 
 			threads.emplace_back(std::jthread(processRows, startRow, endRow));
 		}
@@ -199,9 +203,13 @@ std::string Mesh::Sanitize(std::string& a_path)
 {
 	a_path = clib_util::string::tolower(a_path);
 
-	a_path = srell::regex_replace(a_path, srell::regex("/+|\\\\+"), "\\");
-	a_path = srell::regex_replace(a_path, srell::regex("^\\\\+"), "");
-	a_path = srell::regex_replace(a_path, srell::regex(R"(.*?[^\s]meshes\\|^meshes\\)", srell::regex::icase), "");
+	static const srell::regex slashPattern("/+|\\\\+");
+	static const srell::regex leadingSlashPattern("^\\\\+");
+	static const srell::regex meshesPattern(R"(.*?[^\s]meshes\\|^meshes\\)", srell::regex::icase);
+
+	a_path = srell::regex_replace(a_path, slashPattern, "\\");
+	a_path = srell::regex_replace(a_path, leadingSlashPattern, "");
+	a_path = srell::regex_replace(a_path, meshesPattern, "");
 
 	return a_path;
 }

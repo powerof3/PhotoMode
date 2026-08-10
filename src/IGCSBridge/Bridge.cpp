@@ -1,13 +1,6 @@
 #include "Bridge.h"
 #include "PhotoMode/Manager.h"
 #include <Psapi.h>
-#include <algorithm>
-#include <cmath>
-#include <cstring>
-#include <fstream>
-#include <limits>
-#include <numbers>
-#pragma comment(lib, "Psapi.lib")
 
 namespace
 {
@@ -51,15 +44,7 @@ namespace
 		std::memcpy(b + o, m, sizeof(m));
 	}
 
-	struct Quaternion
-	{
-		float x{};
-		float y{};
-		float z{};
-		float w{ 1.0f };
-	};
-
-	void WriteQuaternion(std::uint8_t* b, std::size_t o, const Quaternion& q)
+	void WriteQuaternion(std::uint8_t* b, std::size_t o, const RE::NiQuaternion& q)
 	{
 		WriteFloat(b, o + 0, q.x);
 		WriteFloat(b, o + 4, q.y);
@@ -67,47 +52,23 @@ namespace
 		WriteFloat(b, o + 12, q.w);
 	}
 
-	Quaternion QuaternionFromBasis(const RE::NiPoint3& right, const RE::NiPoint3& up, const RE::NiPoint3& forward)
+	RE::NiQuaternion QuaternionFromBasis(const RE::NiPoint3& right, const RE::NiPoint3& up, const RE::NiPoint3& forward)
 	{
 		// Skyrim's validated camera basis is left-handed: cross(Right, Up) = -Forward.
 		// A rotation quaternion can encode only a proper right-handed rotation (determinant +1).
 		// Therefore the quaternion matrix uses camera Backward (-Forward) as its third column,
 		// which matches the conventional camera local +Z axis. The explicit Forward vector in the
 		// IGCS buffer remains unchanged and continues to be the actual viewing direction.
-		const RE::NiPoint3 backward{ -forward.x, -forward.y, -forward.z };
-		const float        m00 = right.x, m01 = up.x, m02 = backward.x;
-		const float        m10 = right.y, m11 = up.y, m12 = backward.y;
-		const float        m20 = right.z, m21 = up.z, m22 = backward.z;
+		const RE::NiPoint3 backward = -forward;
 
-		Quaternion  q{};
-		const float trace = m00 + m11 + m22;
-		if (trace > 0.0f) {
-			const float s = std::sqrt(trace + 1.0f) * 2.0f;
-			q.w = 0.25f * s;
-			q.x = (m21 - m12) / s;
-			q.y = (m02 - m20) / s;
-			q.z = (m10 - m01) / s;
-		} else if (m00 > m11 && m00 > m22) {
-			const float s = std::sqrt(1.0f + m00 - m11 - m22) * 2.0f;
-			q.w = (m21 - m12) / s;
-			q.x = 0.25f * s;
-			q.y = (m01 + m10) / s;
-			q.z = (m02 + m20) / s;
-		} else if (m11 > m22) {
-			const float s = std::sqrt(1.0f + m11 - m00 - m22) * 2.0f;
-			q.w = (m02 - m20) / s;
-			q.x = (m01 + m10) / s;
-			q.y = 0.25f * s;
-			q.z = (m12 + m21) / s;
-		} else {
-			const float s = std::sqrt(1.0f + m22 - m00 - m11) * 2.0f;
-			q.w = (m10 - m01) / s;
-			q.x = (m02 + m20) / s;
-			q.y = (m12 + m21) / s;
-			q.z = 0.25f * s;
-		}
-		// Guard against accumulated float error and guarantee a valid unit quaternion.
-		const float lenSq = q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
+		const RE::NiMatrix3 m{
+			{ right.x, up.x, backward.x },
+			{ right.y, up.y, backward.y },
+			{ right.z, up.z, backward.z }
+		};
+
+		RE::NiQuaternion q{ m };
+		const float      lenSq = q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
 		if (lenSq > 1.0e-12f) {
 			const float invLen = 1.0f / std::sqrt(lenSq);
 			q.x *= invLen;
@@ -115,24 +76,17 @@ namespace
 			q.z *= invLen;
 			q.w *= invLen;
 		} else {
-			q = {};
+			q = { 1.0f, 0.0f, 0.0f, 0.0f };
 		}
 		return q;
 	}
-	void BasisFromQuaternion(const Quaternion& q, RE::NiPoint3& right, RE::NiPoint3& up, RE::NiPoint3& forward)
+	void BasisFromQuaternion(const RE::NiQuaternion& q, RE::NiPoint3& right, RE::NiPoint3& up, RE::NiPoint3& forward)
 	{
-		const float xx = q.x * q.x, yy = q.y * q.y, zz = q.z * q.z;
-		const float xy = q.x * q.y, xz = q.x * q.z, yz = q.y * q.z;
-		const float wx = q.w * q.x, wy = q.w * q.y, wz = q.w * q.z;
-		// Standard column-vector rotation matrix. Columns are Right, Up, Forward.
-		right = { 1.0f - 2.0f * (yy + zz), 2.0f * (xy + wz), 2.0f * (xz - wy) };
-		up = { 2.0f * (xy - wz), 1.0f - 2.0f * (xx + zz), 2.0f * (yz + wx) };
-		forward = { 2.0f * (xz + wy), 2.0f * (yz - wx), 1.0f - 2.0f * (xx + yy) };
-	}
 
-	float Dot3(const RE::NiPoint3& a, const RE::NiPoint3& b)
-	{
-		return a.x * b.x + a.y * b.y + a.z * b.z;
+		const RE::NiMatrix3 m = q.ToRotation();
+		right = m.GetVectorX();
+		up = m.GetVectorY();
+		forward = m.GetVectorZ();
 	}
 
 	void WriteViewMatrix(std::uint8_t* b, std::size_t o, const RE::NiPoint3& r, const RE::NiPoint3& u, const RE::NiPoint3& f, const RE::NiPoint3& p)
@@ -141,7 +95,7 @@ namespace
 		// Skyrim's view basis is left-handed (cross(Right,Up)=-Forward), while the
 		// quaternion is encoded with Backward as local +Z. Use the same proper
 		// right-handed basis here: Right / Up / Backward.
-		const RE::NiPoint3 backward{ -f.x, -f.y, -f.z };
+		const RE::NiPoint3 backward = -f;
 		float              m[16]{};
 		// Row-major world-to-view matrix. Translation is -dot(axis, cameraPosition).
 		m[0] = r.x;
@@ -156,9 +110,9 @@ namespace
 		m[9] = u.z;
 		m[10] = backward.z;
 		m[11] = 0.0f;
-		m[12] = -Dot3(r, p);
-		m[13] = -Dot3(u, p);
-		m[14] = -Dot3(backward, p);
+		m[12] = -r.Dot(p);
+		m[13] = -u.Dot(p);
+		m[14] = -backward.Dot(p);
 		m[15] = 1.0f;
 		std::memcpy(b + o, m, sizeof(m));
 	}
@@ -204,8 +158,8 @@ namespace PhotoMode::IGCSBridge
 	void Bridge::OnFrameUpdate()
 	{
 		Initialize();
-		if (!cameraToolsBuffer)
-			TryConnectToIGCSConnector();
+		//if (!cameraToolsBuffer) // Why every frame?
+			//TryConnectToIGCSConnector();
 
 		if constexpr (kVerboseDiagnostics) {
 			// Optional developer-only diagnostics. Disabled in normal GitHub builds.
@@ -300,9 +254,9 @@ namespace PhotoMode::IGCSBridge
 				reinterpret_cast<std::uintptr_t>(&camera->worldFOV)));
 			CameraSnapshot snap{};
 			if (CaptureCamera(snap)) {
-				const Basis      b = BuildBasis(snap.pitch, snap.yaw, snap.roll);
-				const Quaternion q = QuaternionFromBasis(b.right, b.up, b.forward);
-				RE::NiPoint3     qr{}, qu{}, qb{};
+				const Basis            b = BuildBasis(snap.pitch, snap.yaw, snap.roll);
+				const RE::NiQuaternion q = QuaternionFromBasis(b.right, b.up, b.forward);
+				RE::NiPoint3           qr{}, qu{}, qb{};
 				BasisFromQuaternion(q, qr, qu, qb);
 				const RE::NiPoint3 qf{ -qb.x, -qb.y, -qb.z };
 				AppendDiagnostic(std::format(
@@ -313,13 +267,13 @@ namespace PhotoMode::IGCSBridge
 					b.right.x, b.right.y, b.right.z, b.up.x, b.up.y, b.up.z, b.forward.x, b.forward.y, b.forward.z));
 				AppendDiagnostic(std::format(
 					"QUAT ROUNDTRIP Q=({:.9f},{:.9f},{:.9f},{:.9f}) DOT_R={:.9f} DOT_U={:.9f} DOT_F={:.9f} HAND={:.9f}",
-					q.x, q.y, q.z, q.w, Dot(Normalize(qr), Normalize(b.right)), Dot(Normalize(qu), Normalize(b.up)), Dot(Normalize(qf), Normalize(b.forward)), Dot(Cross(qr, qu), qf)));
+					q.x, q.y, q.z, q.w, Normalize(qr).Dot(Normalize(b.right)), Normalize(qu).Dot(Normalize(b.up)), Normalize(qf).Dot(Normalize(b.forward)), qr.Cross(qu).Dot(qf)));
 			}
 		}
 		AppendDiagnostic(std::format("CONNECTOR BUFFER=0x{:016X}", reinterpret_cast<std::uintptr_t>(cameraToolsBuffer)));
 		if (cameraToolsBuffer) {
-			const Quaternion q{ ReadFloat(cameraToolsBuffer, 20), ReadFloat(cameraToolsBuffer, 24), ReadFloat(cameraToolsBuffer, 28), ReadFloat(cameraToolsBuffer, 32) };
-			RE::NiPoint3     qr{}, qu{}, qb{};
+			const RE::NiQuaternion q{ ReadFloat(cameraToolsBuffer, 32), ReadFloat(cameraToolsBuffer, 20), ReadFloat(cameraToolsBuffer, 24), ReadFloat(cameraToolsBuffer, 28) };
+			RE::NiPoint3           qr{}, qu{}, qb{};
 			BasisFromQuaternion(q, qr, qu, qb);
 			const RE::NiPoint3 qf{ -qb.x, -qb.y, -qb.z };
 			const RE::NiPoint3 bu{ ReadFloat(cameraToolsBuffer, 164), ReadFloat(cameraToolsBuffer, 168), ReadFloat(cameraToolsBuffer, 172) };
@@ -333,7 +287,7 @@ namespace PhotoMode::IGCSBridge
 				br.x, br.y, br.z, bu.x, bu.y, bu.z, bf.x, bf.y, bf.z, ReadFloat(cameraToolsBuffer, 200), ReadFloat(cameraToolsBuffer, 204), ReadFloat(cameraToolsBuffer, 208)));
 			AppendDiagnostic(std::format(
 				"BUFFER QUAT Q=({:.9f},{:.9f},{:.9f},{:.9f}) QUAT_BASIS_DOTS R={:.9f} U={:.9f} F={:.9f} HAND={:.9f}",
-				q.x, q.y, q.z, q.w, Dot(Normalize(qr), Normalize(br)), Dot(Normalize(qu), Normalize(bu)), Dot(Normalize(qf), Normalize(bf)), Dot(Cross(qr, qu), qf)));
+				q.x, q.y, q.z, q.w, Normalize(qr).Dot(Normalize(br)), Normalize(qu).Dot(Normalize(bu)), Normalize(qf).Dot(Normalize(bf)), qr.Cross(qu).Dot(qf)));
 			std::string nonZero = "BUFFER NONZERO FLOATS:";
 			for (std::size_t off = 4; off < 256; off += 4) {
 				const float v = ReadFloat(cameraToolsBuffer, off);
@@ -351,36 +305,12 @@ namespace PhotoMode::IGCSBridge
 		AppendDiagnostic("============================================================");
 	}
 
-	RE::NiPoint3 Bridge::Add(const RE::NiPoint3& a, const RE::NiPoint3& b)
-	{
-		return { a.x + b.x, a.y + b.y, a.z + b.z };
-	}
-	RE::NiPoint3 Bridge::Scale(const RE::NiPoint3& v, float s)
-	{
-		return { v.x * s, v.y * s, v.z * s };
-	}
-
-	float Bridge::Length(const RE::NiPoint3& v)
-	{
-		return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-	}
-
-	float Bridge::Dot(const RE::NiPoint3& a, const RE::NiPoint3& b)
-	{
-		return a.x * b.x + a.y * b.y + a.z * b.z;
-	}
-
 	RE::NiPoint3 Bridge::Normalize(const RE::NiPoint3& v)
 	{
-		const float length = Length(v);
+		const float length = v.Length();
 		if (length <= 0.000001f)
 			return {};
-		return Scale(v, 1.0f / length);
-	}
-
-	RE::NiPoint3 Bridge::Cross(const RE::NiPoint3& a, const RE::NiPoint3& b)
-	{
-		return { a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x };
+		return v * (1.0f / length);
 	}
 
 	bool Bridge::IsFinite(const RE::NiPoint3& v)
@@ -451,8 +381,7 @@ namespace PhotoMode::IGCSBridge
 		runtimeExpectedLR = offsets[directionIndex][0] * kVisibleDistance;
 		runtimeExpectedUD = offsets[directionIndex][1] * kVisibleDistance;
 		const Basis basis = BuildBasis(runtimePose.pitch, runtimePose.yaw, runtimePose.roll);
-		runtimeExpected = Add(runtimeBase.position,
-			Add(Scale(basis.right, runtimeExpectedLR), Scale(basis.up, runtimeExpectedUD)));
+		runtimeExpected = runtimeBase.position + basis.right * runtimeExpectedLR + basis.up * runtimeExpectedUD;
 		runtimePose.position = runtimeExpected;
 		runtimePose.valid = true;
 		ApplyCamera(runtimePose);
@@ -491,21 +420,20 @@ namespace PhotoMode::IGCSBridge
 		//
 		// This reproduces the nine native floats exactly. View roll is then applied
 		// around Forward while preserving cross(Right, Forward) = Up.
-		const float cp = std::cos(pitch);
-		const float sp = std::sin(pitch);
-		const float cy = std::cos(yaw);
-		const float sy = std::sin(yaw);
+		RE::NiMatrix3 m;
+		m.EulerAnglesToAxesZXY(pitch, 0.0f, yaw);
+
+		const RE::NiPoint3 nativeRight = m.GetVectorX();
+		const RE::NiPoint3 nativeForward = m.GetVectorY();
+		const RE::NiPoint3 nativeUp = m.GetVectorZ();
+
 		const float cr = std::cos(roll);
 		const float sr = std::sin(roll);
 
-		const RE::NiPoint3 nativeRight{ cy, -sy, 0.0f };
-		const RE::NiPoint3 nativeForward{ sy * cp, cy * cp, -sp };
-		const RE::NiPoint3 nativeUp{ sy * sp, cy * sp, cp };
-
 		Basis result{};
 		result.forward = nativeForward;
-		result.right = Add(Scale(nativeRight, cr), Scale(nativeUp, sr));
-		result.up = Add(Scale(nativeUp, cr), Scale(nativeRight, -sr));
+		result.right = nativeRight * cr + nativeUp * sr;
+		result.up = nativeUp * cr - nativeRight * sr;
 		return result;
 	}
 
@@ -613,15 +541,13 @@ namespace PhotoMode::IGCSBridge
 		if (!sessionBase.valid)
 			return;
 		LoadFocusConfiguration();
-		const Basis  basis = BuildBasis(sessionBase.pitch, sessionBase.yaw, sessionBase.roll);
-		const float  verticalHalf = std::tan(sessionBase.fov * 0.5f * kDegToRad);
-		const float  horizontalHalf = verticalHalf * focusAspectRatio;
-		const float  ndcX = focusScreenX * 2.0f - 1.0f;
-		const float  ndcY = 1.0f - focusScreenY * 2.0f;
-		RE::NiPoint3 ray = Add(basis.forward,
-			Add(Scale(basis.right, ndcX * horizontalHalf), Scale(basis.up, ndcY * verticalHalf)));
-		ray = Normalize(ray);
-		focusAnchorWorld = Add(sessionBase.position, Scale(ray, focusDistance));
+		const Basis        basis = BuildBasis(sessionBase.pitch, sessionBase.yaw, sessionBase.roll);
+		const float        verticalHalf = std::tan(sessionBase.fov * 0.5f * kDegToRad);
+		const float        horizontalHalf = verticalHalf * focusAspectRatio;
+		const float        ndcX = focusScreenX * 2.0f - 1.0f;
+		const float        ndcY = 1.0f - focusScreenY * 2.0f;
+		const RE::NiPoint3 ray = Normalize(basis.forward + basis.right * (ndcX * horizontalHalf) + basis.up * (ndcY * verticalHalf));
+		focusAnchorWorld = sessionBase.position + ray * focusDistance;
 		focusAnchorValid = IsFinite(focusAnchorWorld);
 		AppendDiagnostic(std::format(
 			"V19 FOCUS ANCHOR: screen=({:.6f},{:.6f}) distance={:.6f} aspect={:.6f} world=({:.9f},{:.9f},{:.9f}) valid={}",
@@ -638,32 +564,28 @@ namespace PhotoMode::IGCSBridge
 		const float        horizontalHalf = verticalHalf * focusAspectRatio;
 		const float        ndcX = focusScreenX * 2.0f - 1.0f;
 		const float        ndcY = 1.0f - focusScreenY * 2.0f;
-		const RE::NiPoint3 localRay = Normalize(Add(base.forward,
-			Add(Scale(base.right, ndcX * horizontalHalf), Scale(base.up, ndcY * verticalHalf))));
-		const RE::NiPoint3 targetRay = Normalize(RE::NiPoint3{
-			focusAnchorWorld.x - sample.position.x,
-			focusAnchorWorld.y - sample.position.y,
-			focusAnchorWorld.z - sample.position.z });
+		const RE::NiPoint3 localRay = Normalize(base.forward + base.right * (ndcX * horizontalHalf) + base.up * (ndcY * verticalHalf));
+		const RE::NiPoint3 targetRay = Normalize(focusAnchorWorld - sample.position);
 
 		// Minimal rotation mapping the original focus ray onto the new target ray.
-		RE::NiPoint3 axis = Cross(localRay, targetRay);
-		const float  sinAngle = Length(axis);
-		const float  cosAngle = std::clamp(Dot(localRay, targetRay), -1.0f, 1.0f);
+		RE::NiPoint3 axis = localRay.Cross(targetRay);
+		const float  sinAngle = axis.Length();
+		const float  cosAngle = std::clamp(localRay.Dot(targetRay), -1.0f, 1.0f);
 		if (sinAngle < 1.0e-8f)
 			return;
-		axis = Scale(axis, 1.0f / sinAngle);
+		axis = axis * (1.0f / sinAngle);
 		const float angle = std::atan2(sinAngle, cosAngle);
 		auto        rotate = [&](const RE::NiPoint3& v) {
-            const float c = std::cos(angle), ss = std::sin(angle);
-            return Add(Add(Scale(v, c), Scale(Cross(axis, v), ss)), Scale(axis, Dot(axis, v) * (1.0f - c)));
+			const float c = std::cos(angle), ss = std::sin(angle);
+			return v * c + axis.Cross(v) * ss + axis * (axis.Dot(v) * (1.0f - c));
 		};
 		const RE::NiPoint3 newRight = Normalize(rotate(base.right));
 		const RE::NiPoint3 newForward = Normalize(rotate(base.forward));
 		sample.pitch = std::asin(std::clamp(newForward.z, -1.0f, 1.0f));
 		sample.yaw = std::atan2(newForward.x, newForward.y);
 		const Basis zeroRoll = BuildBasis(sample.pitch, sample.yaw, 0.0f);
-		const float cr = Dot(newRight, zeroRoll.right);
-		const float sr = Dot(newRight, zeroRoll.up);
+		const float cr = newRight.Dot(zeroRoll.right);
+		const float sr = newRight.Dot(zeroRoll.up);
 		sample.roll = std::atan2(sr, cr);
 	}
 
@@ -721,9 +643,9 @@ namespace PhotoMode::IGCSBridge
 			startBasis.right.z, startBasis.forward.z, startBasis.up.z));
 		AppendDiagnostic(std::format(
 			"V20 ORTHONORMAL CHECK: |R|={:.9f} |F|={:.9f} |U|={:.9f} R.F={:.9f} R.U={:.9f} F.U={:.9f} cross(R,F).U={:.9f}",
-			Length(startBasis.right), Length(startBasis.forward), Length(startBasis.up),
-			Dot(startBasis.right, startBasis.forward), Dot(startBasis.right, startBasis.up), Dot(startBasis.forward, startBasis.up),
-			Dot(Cross(startBasis.right, startBasis.forward), startBasis.up)));
+			startBasis.right.Length(), startBasis.forward.Length(), startBasis.up.Length(),
+			startBasis.right.Dot(startBasis.forward), startBasis.right.Dot(startBasis.up), startBasis.forward.Dot(startBasis.up),
+			startBasis.right.Cross(startBasis.forward).Dot(startBasis.up)));
 		AppendDiagnostic("V20 BASIS NOTE: axes come from Photo Mode's native FromEulerAnglesZXY matrix: columns are Right / Forward / Up.");
 		AppendDiagnostic("V20 ROTATION POLICY: Pitch/Yaw/Roll are fixed for all samples. No toe-in is applied.");
 		DumpCameraAndConnectorState("SESSION START SNAPSHOT");
@@ -779,7 +701,7 @@ namespace PhotoMode::IGCSBridge
 		const float lr = currentLeftRight * kLeftRightScale * kLeftRightSign;
 		const float ud = currentUpDown * kUpDownScale * kUpDownSign;
 		currentSample = sessionBase;
-		currentSample.position = Add(sessionBase.position, Add(Scale(basis.right, lr), Scale(basis.up, ud)));
+		currentSample.position = sessionBase.position + basis.right * lr + basis.up * ud;
 		// V20 deliberately keeps the camera orientation fixed. Any remaining focus drift
 		// is therefore projection/focus-distance related, not toe-in.
 		currentSample.valid = true;
@@ -823,7 +745,7 @@ namespace PhotoMode::IGCSBridge
 				const Basis basis = BuildBasis(sessionBase.pitch, sessionBase.yaw, sessionBase.roll);
 				const float lr = autoLR * kLeftRightScale * kLeftRightSign;
 				const float ud = autoUD * kUpDownScale * kUpDownSign;
-				autoExpectedFinal = Add(sessionBase.position, Add(Scale(basis.right, lr), Scale(basis.up, ud)));
+				autoExpectedFinal = sessionBase.position + basis.right * lr + basis.up * ud;
 				autoFinalPending = true;
 				const float rotationDrift = std::sqrt(
 					(state->rotation.x - sessionBase.pitch) * (state->rotation.x - sessionBase.pitch) +
@@ -843,7 +765,7 @@ namespace PhotoMode::IGCSBridge
 			const Basis basis = sessionBase.valid ? BuildBasis(sessionBase.pitch, sessionBase.yaw, sessionBase.roll) : Basis{};
 			const float lr = currentLeftRight * kLeftRightScale * kLeftRightSign;
 			const float ud = currentUpDown * kUpDownScale * kUpDownSign;
-			const auto  expected = sessionBase.valid ? Add(sessionBase.position, Add(Scale(basis.right, lr), Scale(basis.up, ud))) : original;
+			const auto  expected = sessionBase.valid ? sessionBase.position + basis.right * lr + basis.up * ud : original;
 			AppendDiagnostic(std::format(
 				"F10 CAPTURE PRE: STATE=({:.9f},{:.9f},{:.9f}) PREHOOK=({:.9f},{:.9f},{:.9f}) SESSION={} LR={:.9f} UD={:.9f} EXPECTED=({:.9f},{:.9f},{:.9f})",
 				state->translation.x, state->translation.y, state->translation.z, original.x, original.y, original.z,
@@ -883,7 +805,7 @@ namespace PhotoMode::IGCSBridge
 			} else {
 				diagInjection = DiagnosticInjection::Right;
 				diagPreHook = original;
-				diagExpectedFinal = Add(diagBaseRender, Scale(diagBasis.right, 1.0f));
+				diagExpectedFinal = diagBaseRender + diagBasis.right;
 				diagCaptureFinalPending = true;
 				AppendDiagnostic("F7 AUTO RIGHT armed: no manual camera movement required.");
 			}
@@ -897,7 +819,7 @@ namespace PhotoMode::IGCSBridge
 			} else {
 				diagInjection = DiagnosticInjection::Up;
 				diagPreHook = original;
-				diagExpectedFinal = Add(diagBaseRender, Scale(diagBasis.up, 1.0f));
+				diagExpectedFinal = diagBaseRender + diagBasis.up;
 				diagCaptureFinalPending = true;
 				AppendDiagnostic("F8 AUTO UP armed: no manual camera movement required.");
 			}
@@ -907,20 +829,20 @@ namespace PhotoMode::IGCSBridge
 			if (!diagBaseValid || !diagRightValid || !diagUpValid) {
 				AppendDiagnostic("F5 REPORT incomplete: press F6, F7, wait briefly, then F8 and wait briefly.");
 			} else {
-				const auto rightDelta = Add(diagRightRender, Scale(diagBaseRender, -1.0f));
-				const auto upDelta = Add(diagUpRender, Scale(diagBaseRender, -1.0f));
+				const auto rightDelta = diagRightRender - diagBaseRender;
+				const auto upDelta = diagUpRender - diagBaseRender;
 				const auto rightNorm = Normalize(rightDelta);
 				const auto upNorm = Normalize(upDelta);
 				AppendDiagnostic("========== F5 SKYRIM AUTO-INJECTION REPORT ==========");
 				AppendDiagnostic(std::format("RIGHT_FINAL=({:.9f},{:.9f},{:.9f}) DELTA=({:.9f},{:.9f},{:.9f}) NORM=({:.9f},{:.9f},{:.9f}) CALC=({:.9f},{:.9f},{:.9f}) DOT={:.9f}",
 					diagRightRender.x, diagRightRender.y, diagRightRender.z,
 					rightDelta.x, rightDelta.y, rightDelta.z, rightNorm.x, rightNorm.y, rightNorm.z,
-					diagBasis.right.x, diagBasis.right.y, diagBasis.right.z, Dot(rightNorm, diagBasis.right)));
+					diagBasis.right.x, diagBasis.right.y, diagBasis.right.z, rightNorm.Dot(diagBasis.right)));
 				AppendDiagnostic(std::format("UP_FINAL=({:.9f},{:.9f},{:.9f}) DELTA=({:.9f},{:.9f},{:.9f}) NORM=({:.9f},{:.9f},{:.9f}) CALC=({:.9f},{:.9f},{:.9f}) DOT={:.9f}",
 					diagUpRender.x, diagUpRender.y, diagUpRender.z,
 					upDelta.x, upDelta.y, upDelta.z, upNorm.x, upNorm.y, upNorm.z,
-					diagBasis.up.x, diagBasis.up.y, diagBasis.up.z, Dot(upNorm, diagBasis.up)));
-				AppendDiagnostic(std::format("ORTHOGONALITY RIGHT_DOT_UP={:.9f}", Dot(rightNorm, upNorm)));
+					diagBasis.up.x, diagBasis.up.y, diagBasis.up.z, upNorm.Dot(diagBasis.up)));
+				AppendDiagnostic(std::format("ORTHOGONALITY RIGHT_DOT_UP={:.9f}", rightNorm.Dot(upNorm)));
 				AppendDiagnostic("======================================================");
 			}
 		}
@@ -931,13 +853,13 @@ namespace PhotoMode::IGCSBridge
 		if constexpr (!kVerboseDiagnostics)
 			return;
 		if (runtimeTestActive && runtimeLogPending) {
-			const auto  error = Add(finalTranslation, Scale(runtimeExpected, -1.0f));
-			const float errorLength = Length(error);
+			const auto  error = finalTranslation - runtimeExpected;
+			const float errorLength = error.Length();
 			const Basis basis = BuildBasis(runtimePose.pitch, runtimePose.yaw, runtimePose.roll);
-			const auto  delta = Add(finalTranslation, Scale(runtimeBase.position, -1.0f));
-			const float measuredLR = Dot(delta, basis.right);
-			const float measuredUD = Dot(delta, basis.up);
-			const float forwardLeak = Dot(delta, basis.forward);
+			const auto  delta = finalTranslation - runtimeBase.position;
+			const float measuredLR = delta.Dot(basis.right);
+			const float measuredUD = delta.Dot(basis.up);
+			const float forwardLeak = delta.Dot(basis.forward);
 			const float coordinateScale = std::max({ std::abs(runtimeBase.position.x), std::abs(runtimeBase.position.y), std::abs(runtimeBase.position.z), 1.0f });
 			const float adaptiveTolerance = std::max(0.001f, std::nextafter(coordinateScale, std::numeric_limits<float>::infinity()) - coordinateScale) * 2.0f;
 			const bool  pass = errorLength <= adaptiveTolerance && std::abs(forwardLeak) <= adaptiveTolerance;
@@ -951,13 +873,13 @@ namespace PhotoMode::IGCSBridge
 			runtimeLogPending = false;
 		}
 		if (autoFinalPending) {
-			const auto  error = Add(finalTranslation, Scale(autoExpectedFinal, -1.0f));
-			const float errorLen = Length(error);
+			const auto  error = finalTranslation - autoExpectedFinal;
+			const float errorLen = error.Length();
 			const Basis basis = BuildBasis(sessionBase.pitch, sessionBase.yaw, sessionBase.roll);
-			const auto  renderedDelta = Add(finalTranslation, Scale(sessionBase.position, -1.0f));
-			const float renderedLR = Dot(renderedDelta, basis.right);
-			const float renderedUD = Dot(renderedDelta, basis.up);
-			const float forwardLeak = Dot(renderedDelta, basis.forward);
+			const auto  renderedDelta = finalTranslation - sessionBase.position;
+			const float renderedLR = renderedDelta.Dot(basis.right);
+			const float renderedUD = renderedDelta.Dot(basis.up);
+			const float forwardLeak = renderedDelta.Dot(basis.forward);
 			maxRenderPositionError = std::max(maxRenderPositionError, errorLen);
 			maxRenderForwardLeak = std::max(maxRenderForwardLeak, std::abs(forwardLeak));
 			AppendDiagnostic(std::format(
@@ -977,13 +899,13 @@ namespace PhotoMode::IGCSBridge
 			const float     aspect = viewportHeight > 0.0f ? viewportWidth / viewportHeight : 1.0f;
 			const float     tanHalfHorizontalFov = std::tan((sessionBase.fov * kDegToRad) * 0.5f);
 			for (const float d : focusDistances) {
-				const auto  planePoint = Add(sessionBase.position, Scale(basis.forward, d));
-				const float signedDistanceFromSample = Dot(Add(planePoint, Scale(finalTranslation, -1.0f)), basis.forward);
+				const auto  planePoint = sessionBase.position + basis.forward * d;
+				const auto  sampleToAnchor = planePoint - finalTranslation;
+				const float signedDistanceFromSample = sampleToAnchor.Dot(basis.forward);
 				const float planeDistanceError = signedDistanceFromSample - d;
-				const auto  sampleToAnchor = Add(planePoint, Scale(finalTranslation, -1.0f));
-				const float cameraX = Dot(sampleToAnchor, basis.right);
-				const float cameraY = Dot(sampleToAnchor, basis.up);
-				const float cameraZ = Dot(sampleToAnchor, basis.forward);
+				const float cameraX = sampleToAnchor.Dot(basis.right);
+				const float cameraY = sampleToAnchor.Dot(basis.up);
+				const float cameraZ = sampleToAnchor.Dot(basis.forward);
 				float       ndcX = 0.0f;
 				float       ndcY = 0.0f;
 				float       pixelX = 0.0f;
@@ -1001,12 +923,12 @@ namespace PhotoMode::IGCSBridge
 					autoPendingSerial, d, planePoint.x, planePoint.y, planePoint.z, cameraX, cameraY, cameraZ, ndcX, ndcY, pixelX, pixelY, viewportWidth, viewportHeight));
 				AppendDiagnostic(std::format(
 					"FOCUS_PLANE sample={} referenceDistance={:.3f} signedDistanceFromSample={:.9f} distanceError={:.9f} planeNormalDotForward={:.9f}",
-					autoPendingSerial, d, signedDistanceFromSample, planeDistanceError, Dot(basis.forward, basis.forward)));
+					autoPendingSerial, d, signedDistanceFromSample, planeDistanceError, basis.forward.Dot(basis.forward)));
 			}
 			// Compare all orientation representations published to the connector during the real render.
 			if (cameraToolsBuffer) {
-				const Quaternion q{ ReadFloat(cameraToolsBuffer, 20), ReadFloat(cameraToolsBuffer, 24), ReadFloat(cameraToolsBuffer, 28), ReadFloat(cameraToolsBuffer, 32) };
-				RE::NiPoint3     qr{}, qu{}, qb{};
+				const RE::NiQuaternion q{ ReadFloat(cameraToolsBuffer, 32), ReadFloat(cameraToolsBuffer, 20), ReadFloat(cameraToolsBuffer, 24), ReadFloat(cameraToolsBuffer, 28) };
+				RE::NiPoint3           qr{}, qu{}, qb{};
 				BasisFromQuaternion(q, qr, qu, qb);
 				const RE::NiPoint3 qf{ -qb.x, -qb.y, -qb.z };
 				const RE::NiPoint3 bu{ ReadFloat(cameraToolsBuffer, 164), ReadFloat(cameraToolsBuffer, 168), ReadFloat(cameraToolsBuffer, 172) };
@@ -1014,8 +936,8 @@ namespace PhotoMode::IGCSBridge
 				const RE::NiPoint3 bf{ ReadFloat(cameraToolsBuffer, 188), ReadFloat(cameraToolsBuffer, 192), ReadFloat(cameraToolsBuffer, 196) };
 				AppendDiagnostic(std::format(
 					"ORIENTATION_COMPARE sample={} CALC_vs_BUFFER R={:.9f} U={:.9f} F={:.9f} QUAT_vs_BUFFER R={:.9f} U={:.9f} F={:.9f} BUFFER_HAND={:.9f}",
-					autoPendingSerial, Dot(Normalize(basis.right), Normalize(br)), Dot(Normalize(basis.up), Normalize(bu)), Dot(Normalize(basis.forward), Normalize(bf)),
-					Dot(Normalize(qr), Normalize(br)), Dot(Normalize(qu), Normalize(bu)), Dot(Normalize(qf), Normalize(bf)), Dot(Cross(br, bu), bf)));
+					autoPendingSerial, Normalize(basis.right).Dot(Normalize(br)), Normalize(basis.up).Dot(Normalize(bu)), Normalize(basis.forward).Dot(Normalize(bf)),
+					Normalize(qr).Dot(Normalize(br)), Normalize(qu).Dot(Normalize(bu)), Normalize(qf).Dot(Normalize(bf)), br.Cross(bu).Dot(bf)));
 			}
 			autoFinalPending = false;
 			++autoLoggedSamples;
@@ -1024,8 +946,8 @@ namespace PhotoMode::IGCSBridge
 		if (!diagCaptureFinalPending || diagInjection == DiagnosticInjection::None)
 			return;
 
-		const auto error = Add(finalTranslation, Scale(diagExpectedFinal, -1.0f));
-		const auto delta = Add(finalTranslation, Scale(diagBaseRender, -1.0f));
+		const auto error = finalTranslation - diagExpectedFinal;
+		const auto delta = finalTranslation - diagBaseRender;
 		if (diagInjection == DiagnosticInjection::Right) {
 			diagRightRender = finalTranslation;
 			diagRightValid = true;
@@ -1064,7 +986,7 @@ namespace PhotoMode::IGCSBridge
 		const Basis basis = BuildBasis(sessionBase.pitch, sessionBase.yaw, sessionBase.roll);
 		const float lr = currentLeftRight * kLeftRightScale * kLeftRightSign;
 		const float ud = currentUpDown * kUpDownScale * kUpDownSign;
-		t = Add(sessionBase.position, Add(Scale(basis.right, lr), Scale(basis.up, ud)));
+		t = sessionBase.position + basis.right * lr + basis.up * ud;
 		return true;
 	}
 

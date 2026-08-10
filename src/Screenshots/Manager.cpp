@@ -7,7 +7,7 @@
 namespace Screenshot
 {
 	Image::Image(std::string_view a_path, std::uint32_t a_index) :
-		path(std::format("{}/screenshot{}.dds", a_path, a_index)),
+		path(std::format("{}/Screenshot_{}.dds", a_path, a_index)),
 		index(a_index)
 	{}
 
@@ -15,7 +15,7 @@ namespace Screenshot
 		path(Texture::Sanitize(a_path))
 	{
 		srell::smatch       matches;
-		static srell::regex screenshotPattern{ R"(screenshot(\d+))" };
+		static srell::regex screenshotPattern{ R"(screenshot_?(\d+))" };
 		if (srell::regex_search(path, matches, screenshotPattern)) {
 			if (matches.size() > 1) {
 				index = string::to_num<std::int32_t>(matches[1].str());

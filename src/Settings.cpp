@@ -47,17 +47,17 @@ void Settings::Load(FileType type, INIFunc a_func, bool a_generate) const
 	}
 }
 
-void Settings::Save(FileType type, INIFunc a_func, bool a_generate) const
+void Settings::Save(FileType type, INIFunc a_func) const
 {
 	switch (type) {
 	case FileType::kFonts:
-		LoadINI(fontsPath, a_func, a_generate);
+		LoadINI(fontsPath, a_func, true);
 		break;
 	case FileType::kStyles:
-		LoadINI(stylesPath, a_func, a_generate);
+		LoadINI(stylesPath, a_func, true);
 		break;
 	case FileType::kMCM:
-		LoadINI(defaultMCMPath, a_func, a_generate);
+		LoadINI(defaultMCMPath, a_func, true);
 		break;
 	default:
 		break;

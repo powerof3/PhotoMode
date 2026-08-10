@@ -19,7 +19,7 @@ public:
 	}
 
 	void Load(FileType type, INIFunc a_func, bool a_generate = false) const;
-	void Save(FileType type, INIFunc a_func, bool a_generate = false) const;
+	void Save(FileType type, INIFunc a_func) const;
 
 	void LoadMCMSettings() const;
 

@@ -206,6 +206,7 @@ target_link_libraries(
 		glaze::glaze
 		imgui::imgui
 		rapidfuzz::rapidfuzz
+		Psapi.lib
 )
 
 target_precompile_headers(
