@@ -27,6 +27,11 @@ namespace PhotoMode
 	void Time::GetOriginalState()
 	{
 		originalState.Get();
+	
+		if (const auto sky = RE::Sky::GetSingleton()) {
+			originalWeather = sky->currentWeather;
+		}
+
 		weathers.InitForms();
 	}
 
