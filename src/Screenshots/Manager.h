@@ -36,9 +36,10 @@ namespace Screenshot
 
 		// members
 		std::vector<Image>         images{};
-		std::array<std::size_t, 2> previousIndex{ std::numeric_limits<std::size_t>::max() };
+		std::array<std::size_t, 2> previousIndex{ std::numeric_limits<std::size_t>::max(), std::numeric_limits<std::size_t>::max() };
 
 	private:
+		void        ProcessImages(std::string_view a_folder);
 		std::size_t GetRandomIndex();
 	};
 

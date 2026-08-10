@@ -15,12 +15,17 @@ namespace Screenshot
 		path(Texture::Sanitize(a_path))
 	{
 		srell::smatch       matches;
-		static srell::regex screenshotPattern{ R"(screenshot_?(\d+))" };
+		static srell::regex screenshotPattern{ R"(Screenshot_?(\d+))", srell::regex::icase };
 		if (srell::regex_search(path, matches, screenshotPattern)) {
 			if (matches.size() > 1) {
 				index = string::to_num<std::int32_t>(matches[1].str());
 			}
 		}
+	}
+
+	void Collection::AddImage(Image& a_image)
+	{
+		images.emplace_back(a_image);
 	}
 
 	void Collection::LoadImages(std::string_view a_folder)
@@ -38,37 +43,88 @@ namespace Screenshot
 			return;
 		}
 
-		std::vector<std::string> badTextures{};
-
-		for (const auto& entry : std::filesystem::directory_iterator(a_folder)) {
-			if (entry.is_regular_file()) {
-				if (const auto& path = entry.path(); path.extension() == ".dds") {
-					auto pathStr = entry.path().string();
-
-					DirectX::TexMetadata info;
-					GetMetadataFromDDSFile(stl::utf8_to_utf16(pathStr)->c_str(), DirectX::DDS_FLAGS_NONE, info);
-
-					if (info.width % 4 != 0 || info.height % 4 != 0) {
-						badTextures.push_back(pathStr);
-						continue;
-					}
-
-					images.push_back(pathStr);
-				}
-			}
-		}
+		ProcessImages(a_folder);
 
 		std::sort(images.begin(), images.end());
-
-		for (auto& badTexture : badTextures) {
-			logger::info("\tDeleting invalid texture ({})", badTexture);
-			std::filesystem::remove(badTexture);
-		}
 	}
 
-	void Collection::AddImage(Image& a_image)
+	// screenshot69.dds -> Screenshot_69.dds
+	void Collection::ProcessImages(std::string_view a_folder)
 	{
-		images.emplace_back(a_image);
+		static const srell::regex oldPattern{ R"(^screenshot_?(\d+)\.dds$)", srell::regex::icase };
+
+		std::error_code ec;
+		const auto      iterator = std::filesystem::directory_iterator(a_folder, ec);
+		if (ec) {
+			return;
+		}
+
+		struct GoodTexture
+		{
+			std::filesystem::path path;
+			std::filesystem::path renameTo;
+		};
+
+		std::vector<GoodTexture>           goodTextures{};
+		std::vector<std::filesystem::path> badTextures{};
+
+		for (const auto& entry : iterator) {
+			if (!entry.is_regular_file() || entry.path().extension() != ".dds") {
+				continue;
+			}
+
+			auto path = entry.path();
+
+			bool                 badTexture = true;
+			DirectX::TexMetadata info;
+			if (const auto widePath = stl::utf8_to_utf16(path.string())) {
+				const auto hr = GetMetadataFromDDSFile(widePath->c_str(), DirectX::DDS_FLAGS_NONE, info);
+				badTexture = FAILED(hr) || info.width % 4 != 0 || info.height % 4 != 0;
+			}
+			if (badTexture) {
+				badTextures.push_back(path);
+				continue;
+			}
+
+			GoodTexture texture;
+			texture.path = path;
+
+			const auto    fileName = path.filename().string();
+			srell::smatch matches;
+			if (srell::regex_match(fileName, matches, oldPattern)) {
+				const auto newPattern = std::format("Screenshot_{}.dds", string::to_num<std::int32_t>(matches[1].str()));
+				if (fileName != newPattern) {
+					texture.renameTo = path.parent_path() / newPattern;
+				}
+			}
+
+			goodTextures.push_back(std::move(texture));
+		}
+
+		for (const auto& badTexture : badTextures) {
+			logger::info("\tDeleting invalid texture ({})", badTexture.string());
+			std::filesystem::remove(badTexture);
+		}
+
+		for (auto& [from, to] : goodTextures) {
+			if (!to.empty()) {
+				std::error_code ec2;
+				if (std::filesystem::exists(to, ec2) && !std::filesystem::equivalent(from, to, ec2)) {
+					logger::warn("\tSkipped renaming {} -> {} (already exists)", from.filename().string(), to.filename().string());
+				} else {
+					std::filesystem::rename(from, to, ec2);
+					if (ec2) {
+						logger::warn("\tFailed to rename {} -> {} ({})", from.filename().string(), to.filename().string(), ec2.message());
+					} else {
+						logger::info("\tRenamed texture {} -> {}", from.filename().string(), to.filename().string());
+						from = to;
+					}
+				}
+			}
+
+			auto finalPath = from.string();
+			images.push_back(finalPath);
+		}
 	}
 
 	std::size_t Collection::GetRandomIndex()
@@ -84,7 +140,7 @@ namespace Screenshot
 		std::size_t idx;
 		do {
 			idx = RNG().generate<std::size_t>(0, maxIndex - 1);
-		} while (idx == previousIndex[0] || idx == previousIndex[1]);
+		} while (idx == previousIndex[0] || (maxIndex > 2 && idx == previousIndex[1]));
 
 		previousIndex[1] = previousIndex[0];
 		previousIndex[0] = idx;
@@ -190,7 +246,7 @@ namespace Screenshot
 
 		auto mcmIndex = index;
 		auto photosIndex = get_photos_index();
-		auto vanillaScreenshotIndex = *"iScreenShotIndex:Display"_ini;
+		auto vanillaScreenshotIndex = "iScreenShotIndex:Display"_ini.value_or(-1);
 		auto screenshotsIndex = screenshots.GetHighestIndex();
 		auto paintingsIndex = paintings.GetHighestIndex();
 
@@ -294,12 +350,10 @@ namespace Screenshot
 			return;
 		}
 
-		Image screenshotImage(screenshotFolder, GetIndex());
-		Image paintingImage(paintingFolder, GetIndex());
-
 		const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
 
 		// regular
+		Image screenshotImage(screenshotFolder, GetIndex());
 		if (compressTextures) {
 			DirectX::ScratchImage outputImage;
 
@@ -310,9 +364,12 @@ namespace Screenshot
 		} else {
 			Texture::SaveToDDS(a_ssImage, screenshotImage.path);
 		}
+		screenshots.AddImage(screenshotImage);
 
 		// painting
 		if (applyPaintFilter) {
+			Image paintingImage(paintingFolder, GetIndex());
+
 			DirectX::ScratchImage outputImage;
 			Texture::OilPaintingFilter(a_paintingImage.GetImages(), paintFilter.radius, paintFilter.intensity, outputImage);
 
@@ -326,10 +383,9 @@ namespace Screenshot
 			}
 
 			outputImage.Release();
-		}
 
-		screenshots.AddImage(screenshotImage);
-		paintings.AddImage(paintingImage);
+			paintings.AddImage(paintingImage);
+		}
 	}
 
 	std::string Manager::GetRandomScreenshot()
