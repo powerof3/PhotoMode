@@ -13,12 +13,7 @@ namespace ImGui
 
 	Texture::~Texture()
 	{
-		if (srView) {
-			srView.Reset();
-		}
-		if (image) {
-			image.reset();
-		}
+		Unload();
 	}
 
 	bool Texture::Load(bool a_resizeToScreenRes)
@@ -63,5 +58,11 @@ namespace ImGui
 		}
 
 		return result;
+	}
+
+	void Texture::Unload()
+	{
+		srView.Reset();
+		image.reset();
 	}
 }

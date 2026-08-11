@@ -40,12 +40,6 @@ namespace PhotoMode
 		hasOverlays = !overlays.empty();
 
 		if (hasOverlays) {
-			for (auto& files : overlays | std::views::values) {
-				for (auto& overlay : files | std::views::values) {
-					overlay.Load(true);
-				}
-			}
-
 			std::uint32_t index = 0;
 
 			for (auto& [folder, files] : imagePaths) {
@@ -63,7 +57,11 @@ namespace PhotoMode
 
 	void Overlays::RevertOverlays()
 	{
+		if (cachedOverlay) {
+			cachedOverlay->Unload();
+		}
 		cachedOverlay = nullptr;
+
 		updateOverlay = false;
 
 		folders.index = 0;
@@ -81,14 +79,24 @@ namespace PhotoMode
 
 	ImGui::Texture* Overlays::UpdateOverlay()
 	{
+		ImGui::Texture* newOverlay = nullptr;
+
 		if (const auto it = overlays.find(folders.get_file()); it != overlays.end()) {
 			const auto file = GetFiles().get_file();
 			if (const auto fileIt = it->second.find(file); fileIt != it->second.end()) {
-				return &fileIt->second;
+				newOverlay = &fileIt->second;
 			}
 		}
 
-		return nullptr;
+		if (cachedOverlay && newOverlay != cachedOverlay) {
+			cachedOverlay->Unload(); 
+		}
+
+		if (newOverlay && !newOverlay->IsLoaded()) {
+			newOverlay->Load(true);
+		}
+
+		return newOverlay;
 	}
 
 	std::pair<ImGui::Texture*, float> Overlays::GetCurrentOverlay() const

@@ -11,6 +11,8 @@ namespace ImGui
 		virtual ~Texture();
 
 		virtual bool Load(bool a_resizeToScreenRes);
+		void         Unload();
+		bool         IsLoaded() const { return srView != nullptr; }
 
 		// members
 		std::wstring                           path{};
