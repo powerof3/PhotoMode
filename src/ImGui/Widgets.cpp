@@ -1,5 +1,6 @@
 #include "Widgets.h"
 
+#include "IconsFontAwesome6.h"
 #include "IconsFonts.h"
 #include "Input.h"
 #include "PhotoMode/Manager.h"
@@ -11,24 +12,24 @@ namespace ImGui
 	// Author: David Briscoe
 	//
 	// Modified ComboWithFilter with rapidFuzz
-	// Using dear imgui, v1.89 WIP
+	// Using dear imgui, v1.92.0 WIP
 	//
 	// Adds arrow/pgup/pgdn navigation, Enter to confirm, max_height_in_items, and
 	// fixed focus on open and avoids drawing past window edges.
-	//
-	// Licensed as CC0/public domain.
-	//
+	// My contributions are CC0/public domain.
+
 	// Posted in issue: https://github.com/ocornut/imgui/issues/1658#issuecomment-1086193100
+	// Demo: https://github.com/idbrii/cpp-imgui/blob/demo-combo-fuzz/examples/example_win32_directx12/main.cpp#L272-L283
 
 	bool ComboWithFilter(const char* label, int* current_item, const std::vector<std::string>& items, int popup_max_height_in_items /*= -1*/)
 	{
-		const bool allow_repeat = ImGuiInputFlags_Repeat;
-
 		ImGuiContext& g = *GImGui;
 
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
 			return false;
+
+		const ImGuiStyle& style = g.Style;
 
 		int items_count = static_cast<int>(items.size());
 
@@ -49,19 +50,26 @@ namespace ImGui
 
 		int show_count = items_count;
 
-		std::vector<std::pair<int, double>> itemScoreVector;
+		static ImGuiID                             filter_id = 0;
+		static std::string                         filter_pattern;
+		static std::vector<std::pair<int, double>> itemScoreVector;
+
 		if (is_filtering) {
-			// Filter before opening to ensure we show the correct size window.
-			// We won't get in here unless the popup is open.
-			for (int i = 0; i < items_count; i++) {
-				auto score = rapidfuzz::fuzz::partial_token_ratio(pattern_buffer, items[i].c_str());
-				if (score >= 65.0) {
-					itemScoreVector.push_back(std::make_pair(i, score));
+			if (filter_id != id || filter_pattern != pattern_buffer) {
+				filter_id = id;
+				filter_pattern = pattern_buffer;
+				itemScoreVector.clear();
+
+				for (int i = 0; i < items_count; i++) {
+					auto score = rapidfuzz::fuzz::partial_token_ratio(filter_pattern, items[i]);
+					if (score >= 65.0) {
+						itemScoreVector.push_back(std::make_pair(i, score));
+					}
 				}
+				std::ranges::sort(itemScoreVector, [&](const auto& a, const auto& b) {
+					return (b.second < a.second);
+				});
 			}
-			std::ranges::sort(itemScoreVector, [](const auto& a, const auto& b) {
-				return (b.second < a.second);
-			});
 			const int current_score_idx = IndexOfKey(itemScoreVector, focus_idx);
 			if (current_score_idx < 0 && !itemScoreVector.empty()) {
 				focus_idx = itemScoreVector[0].first;
@@ -97,18 +105,28 @@ namespace ImGui
 			ImGui::SetKeyboardFocusHere();
 		InputText("##ComboWithFilter_inputText", pattern_buffer, 256, ImGuiInputTextFlags_AutoSelectAll);
 
+		const ImVec2 label_size = CalcTextSize(ICON_FA_MAGNIFYING_GLASS, NULL, true);
+		const ImVec2 search_icon_pos(
+			ImGui::GetItemRectMax().x - label_size.x - style.ItemInnerSpacing.x * 2,
+			ImGui::GetItemRectMin().y + style.FramePadding.y);
+		RenderText(search_icon_pos, ICON_FA_MAGNIFYING_GLASS);
+
 		ImGui::PopStyleColor(3);
 
 		int move_delta = 0;
 		// Use Shortcut to prevent NavEnableKeyboard from also responding to nav.
-		if (Shortcut(ImGuiKey_UpArrow, allow_repeat) || IsKeyPressed(ImGuiKey_GamepadDpadUp)) {
+		if (Shortcut(ImGuiKey_UpArrow, ImGuiInputFlags_Repeat) || IsKeyPressed(ImGuiKey_GamepadDpadUp)) {
 			--move_delta;
-		} else if (Shortcut(ImGuiKey_DownArrow, allow_repeat) || IsKeyPressed(ImGuiKey_GamepadDpadDown)) {
+		} else if (Shortcut(ImGuiKey_DownArrow, ImGuiInputFlags_Repeat) || IsKeyPressed(ImGuiKey_GamepadDpadDown)) {
 			++move_delta;
 		} else if (Shortcut(ImGuiKey_PageUp, ImGuiInputFlags_None)) {
 			move_delta -= popup_max_height_in_items;
 		} else if (Shortcut(ImGuiKey_PageDown, ImGuiInputFlags_None)) {
 			move_delta += popup_max_height_in_items;
+		} else if (Shortcut(ImGuiKey_Home, ImGuiInputFlags_None)) {
+			move_delta = -items_count;
+		} else if (Shortcut(ImGuiKey_End, ImGuiInputFlags_None)) {
+			move_delta = items_count;
 		}
 
 		if (move_delta != 0) {
@@ -118,11 +136,12 @@ namespace ImGui
 					const int count = static_cast<int>(itemScoreVector.size());
 					current_score_idx = ImClamp(current_score_idx + move_delta, 0, count - 1);
 					focus_idx = itemScoreVector[current_score_idx].first;
+					RE::PlaySound("UIMenuPrevNext");
 				}
 			} else {
 				focus_idx = ImClamp(focus_idx + move_delta, 0, items_count - 1);
+				RE::PlaySound("UIMenuPrevNext");
 			}
-			RE::PlaySound("UIMenuPrevNext");
 		}
 
 		// Copied from ListBoxHeader
@@ -158,7 +177,7 @@ namespace ImGui
 			ImGui::EndListBox();
 
 			const bool repeat = false;
-			if (IsKeyPressed(ImGuiKey_Enter, repeat) || IsKeyPressed(ImGuiKey_Space, repeat) || IsKeyPressed(ImGuiKey_NavGamepadActivate)) {
+			if ((IsKeyPressed(ImGuiKey_Enter, repeat) || IsKeyPressed(ImGuiKey_NavGamepadActivate))) {
 				value_changed = true;
 				*current_item = focus_idx;
 				CloseCurrentPopup();

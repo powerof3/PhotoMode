@@ -142,7 +142,8 @@ namespace ImGui
 			}
 		}
 
-		void GetFormResultFromCombo(std::function<void(T*)> a_func, RE::Actor* a_actor = nullptr)
+		template <class F>
+		void GetFormResultFromCombo(F&& a_func, RE::Actor* a_actor = nullptr)
 		{
 			T* formResult;
 
