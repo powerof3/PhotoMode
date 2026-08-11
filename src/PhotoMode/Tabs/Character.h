@@ -96,6 +96,14 @@ namespace PhotoMode
 	class Character
 	{
 	public:
+		enum class Tab : std::uint8_t
+		{
+			kExpressions = 0,
+			kPoses,
+			kEffects,
+			kTransforms
+		};
+		
 		Character() = default;
 		Character(RE::Actor* a_actor);
 
@@ -103,6 +111,19 @@ namespace PhotoMode
 		void RevertState();
 
 		const char* GetName() const;
+
+		void SaveFormComboStates()
+		{
+			effectShadersState.SaveState(effectShaders);
+			idlesState.SaveState(idles);
+			effectVFXState.SaveState(effectVFX);
+		}
+		void RestoreFormComboStates()
+		{
+			effectShadersState.RestoreState(effectShaders);
+			idlesState.RestoreState(idles);
+			effectVFXState.RestoreState(effectVFX);
+		}
 
 		void Draw(bool a_resetTabs, bool a_navigateWithMouse);
 
@@ -123,10 +144,9 @@ namespace PhotoMode
 		RE::Actor*  character{ nullptr };
 		std::string characterName{};
 
-		// names should ideally be pulled from a shared map with different indices for characters but this will do
-		ImGui::FormComboBoxFiltered<RE::TESEffectShader>    effectShaders{ "$PM_EffectShaders" };
-		ImGui::FormComboBoxFiltered<RE::TESIdleForm>        idles{ "$PM_Idles" };
-		ImGui::FormComboBoxFiltered<RE::BGSReferenceEffect> effectVFX{ "$PM_VisualEffects" };
+		ImGui::FormComboBoxState effectShadersState;
+		ImGui::FormComboBoxState idlesState;
+		ImGui::FormComboBoxState effectVFXState;
 
 		MFG::Data mfgData{};
 
@@ -140,5 +160,11 @@ namespace PhotoMode
 		bool vfxPlayed{ false };
 		bool idlePlayed{ false };
 		bool mfgEdited{ false };
+
+		Tab lastTab{ Tab::kExpressions };
+
+		inline static ImGui::FormComboBoxFiltered<RE::TESEffectShader>    effectShaders{ "$PM_EffectShaders" };
+		inline static ImGui::FormComboBoxFiltered<RE::TESIdleForm>        idles{ "$PM_Idles" };
+		inline static ImGui::FormComboBoxFiltered<RE::BGSReferenceEffect> effectVFX{ "$PM_VisualEffects" };
 	};
 }

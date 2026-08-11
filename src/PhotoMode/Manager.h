@@ -107,8 +107,8 @@ namespace PhotoMode
 		Time   timeTab;
 
 		NodeMap<RE::FormID, Character> characterTab;
-		RE::Actor*                     cachedCharacter{ nullptr };
-		RE::Actor*                     prevCachedCharacter{ nullptr };
+		RE::TESObjectREFRPtr           cachedCharacter{ nullptr };
+		RE::TESObjectREFRPtr           prevCachedCharacter{ nullptr };
 
 		Filters  filterTab;
 		Overlays overlaysTab;

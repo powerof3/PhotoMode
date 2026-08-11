@@ -111,7 +111,7 @@ namespace PhotoMode
 
 		const auto player = RE::PlayerCharacter::GetSingleton();
 		characterTab.emplace(player->GetFormID(), Character(player));
-		cachedCharacter = player;
+		cachedCharacter.reset(player);
 
 		filterTab.GetOriginalState();
 
@@ -542,19 +542,28 @@ namespace PhotoMode
 						break;
 					case TAB_TYPE::kCharacter:
 						{
-							const auto consoleRef = RE::Console::GetSelectedRef();
+							const auto& consoleRef = RE::Console::GetSelectedRef();
 							if (!consoleRef || !consoleRef->Is(RE::FormType::ActorCharacter) || consoleRef->IsDisabled() || consoleRef->IsDeleted() || !consoleRef->Is3DLoaded()) {
 								prevCachedCharacter = cachedCharacter;
-								cachedCharacter = RE::PlayerCharacter::GetSingleton();
+								cachedCharacter.reset(RE::PlayerCharacter::GetSingleton());
 							} else {
 								prevCachedCharacter = cachedCharacter;
-								cachedCharacter = consoleRef->As<RE::Actor>();
-								if (!characterTab.contains(cachedCharacter->GetFormID())) {
-									characterTab.emplace(cachedCharacter->GetFormID(), Character(cachedCharacter));
-								}
+								cachedCharacter = consoleRef;
 							}
 
 							if (cachedCharacter != prevCachedCharacter) {
+								if (prevCachedCharacter) {
+									if (const auto it = characterTab.find(prevCachedCharacter->GetFormID()); it != characterTab.end()) {
+										it->second.SaveFormComboStates();
+									}
+								}
+
+								if (auto it = characterTab.find(cachedCharacter->GetFormID()); it == characterTab.end()) {
+									characterTab.emplace(cachedCharacter->GetFormID(), Character(cachedCharacter->As<RE::Actor>()));
+								} else {
+									it->second.RestoreFormComboStates();
+								}
+
 								resetPlayerTabs = true;
 							}
 

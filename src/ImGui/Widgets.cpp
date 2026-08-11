@@ -99,6 +99,7 @@ namespace ImGui
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, GetUserStyleColorVec4(USER_STYLE::kComboBoxTextBox));
 		ImGui::PushStyleColor(ImGuiCol_Text, GetUserStyleColorVec4(USER_STYLE::kComboBoxText));
 		ImGui::PushStyleColor(ImGuiCol_NavCursor, ImVec4());
+
 		ImGui::PushItemWidth(-FLT_MIN);
 		// Filter input
 		if (!is_already_open)
@@ -115,9 +116,9 @@ namespace ImGui
 
 		int move_delta = 0;
 		// Use Shortcut to prevent NavEnableKeyboard from also responding to nav.
-		if (Shortcut(ImGuiKey_UpArrow, ImGuiInputFlags_Repeat) || IsKeyPressed(ImGuiKey_GamepadDpadUp)) {
+		if (Shortcut(ImGuiKey_UpArrow, ImGuiInputFlags_Repeat) || Shortcut(ImGuiKey_GamepadDpadUp, ImGuiInputFlags_Repeat)) {
 			--move_delta;
-		} else if (Shortcut(ImGuiKey_DownArrow, ImGuiInputFlags_Repeat) || IsKeyPressed(ImGuiKey_GamepadDpadDown)) {
+		} else if (Shortcut(ImGuiKey_DownArrow, ImGuiInputFlags_Repeat) || Shortcut(ImGuiKey_GamepadDpadDown, ImGuiInputFlags_Repeat)) {
 			++move_delta;
 		} else if (Shortcut(ImGuiKey_PageUp, ImGuiInputFlags_None)) {
 			move_delta -= popup_max_height_in_items;
@@ -153,31 +154,47 @@ namespace ImGui
 
 		ImGui::PushStyleColor(ImGuiCol_NavCursor, ImVec4());
 		if (ImGui::BeginListBox("##ComboWithFilter_itemList", size)) {
-			for (int i = 0; i < show_count; i++) {
-				int idx = is_filtering ? itemScoreVector[i].first : i;
-				PushID(reinterpret_cast<void*>(static_cast<intptr_t>(idx)));
-				const bool  item_selected = (idx == focus_idx);
-				const char* item_text = items[idx].c_str();
-				if (Selectable(item_text, item_selected)) {
-					value_changed = true;
-					*current_item = idx;
-					CloseCurrentPopup();
-					RE::PlaySound("UIMenuFocus");
-				}
+			ImGuiListClipper clipper;
+			clipper.Begin(show_count);
+			
+			const int focus_display_idx = is_filtering ? IndexOfKey(itemScoreVector, focus_idx) : focus_idx;
+			if (focus_display_idx >= 0 && focus_display_idx < show_count) {
+				clipper.IncludeItemByIndex(focus_display_idx);
+			}
 
-				if (item_selected) {
-					SetItemDefaultFocus();
-					// SetItemDefaultFocus doesn't work so also check IsWindowAppearing.
-					if (move_delta != 0 || IsWindowAppearing()) {
-						SetScrollHereY();
+			const auto header_color = GetStyleColorVec4(ImGuiCol_Header);
+			
+			while (clipper.Step()) {
+				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
+					int idx = is_filtering ? itemScoreVector[i].first : i;
+					PushID(reinterpret_cast<void*>(static_cast<intptr_t>(idx)));
+					const bool  item_selected = (idx == focus_idx);
+					const char* item_text = items[idx].c_str();
+					if (item_selected) {
+						PushStyleColor(ImGuiCol_HeaderHovered, header_color);
+						PushStyleColor(ImGuiCol_HeaderActive, header_color);
 					}
+					if (Selectable(item_text, item_selected)) {
+						value_changed = true;
+						*current_item = idx;
+						CloseCurrentPopup();
+						RE::PlaySound("UIMenuFocus");
+					}
+					if (item_selected) {
+						PopStyleColor(2);
+						SetItemDefaultFocus();
+						// SetItemDefaultFocus doesn't work so also check IsWindowAppearing.
+						if (move_delta != 0 || IsWindowAppearing()) {
+							SetScrollHereY();
+						}
+					}
+					PopID();
 				}
-				PopID();
 			}
 			ImGui::EndListBox();
 
 			const bool repeat = false;
-			if ((IsKeyPressed(ImGuiKey_Enter, repeat) || IsKeyPressed(ImGuiKey_NavGamepadActivate))) {
+			if ((IsKeyPressed(ImGuiKey_Enter, repeat) || IsKeyPressed(ImGuiKey_NavGamepadActivate, repeat))) {
 				value_changed = true;
 				*current_item = focus_idx;
 				CloseCurrentPopup();

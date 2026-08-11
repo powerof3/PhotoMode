@@ -41,7 +41,16 @@ namespace ImGui
 					}
 				}
 				SortForms();
+				index = edids.empty() ? 0 : std::clamp(index, 0, static_cast<std::int32_t>(edids.size()) - 1);
 			}
+		}
+		std::int32_t GetIndex() const
+		{
+			return index;
+		}
+		void SetIndex(std::int32_t a_index)
+		{
+			index = edids.empty() ? 0 : std::clamp(a_index, 0, static_cast<std::int32_t>(edids.size()) - 1);
 		}
 		void ResetIndex()
 		{
@@ -79,11 +88,14 @@ namespace ImGui
 		bool                     valid{ false };
 	};
 
+	struct FormComboBoxState;
+
 	// modName, forms
 	template <class T>
 	class FormComboBoxFiltered
 	{
 	public:
+	
 		FormComboBoxFiltered(std::string a_name) :
 			name(std::move(a_name))
 		{}
@@ -97,12 +109,12 @@ namespace ImGui
 				modName = ffForms;
 			}
 
-			modNameForms[allMods].AddForm(a_edid, a_form);
-			modNameForms[modName].AddForm(a_edid, a_form);
+			modForms[allMods].AddForm(a_edid, a_form);
+			modForms[modName].AddForm(a_edid, a_form);
 		}
 		void InitForms()
 		{
-			if (modNameForms.empty()) {
+			if (modForms.empty()) {
 				if constexpr (!std::is_same_v<T, RE::TESIdleForm>) {
 					for (const auto& form : RE::TESDataHandler::GetSingleton()->GetFormArray<T>()) {
 						if (form) {
@@ -114,7 +126,7 @@ namespace ImGui
 						AddForm(edid, form);
 					}
 				}
-				for (auto& [modName, formData] : modNameForms) {
+				for (auto& [modName, formData] : modForms) {
 					formData.SortForms();
 				}
 			}
@@ -124,15 +136,15 @@ namespace ImGui
 			// FF FORMS
 
 			if (modNames.empty()) {
-				modNames.reserve(modNameForms.size());
+				modNames.reserve(modForms.size());
 				modNames.emplace_back(TRANSLATE_S(allMods));
 
 				for (const auto& file : RE::TESDataHandler::GetSingleton()->files) {
-					if (modNameForms.contains(file->fileName)) {
+					if (modForms.contains(file->fileName)) {
 						modNames.emplace_back(file->fileName);
 					}
 				}
-				if (modNameForms.contains(ffForms)) {
+				if (modForms.contains(ffForms)) {
 					containsFF = true;
 					modNames.emplace_back(TRANSLATE_S(ffForms));
 				}
@@ -144,7 +156,7 @@ namespace ImGui
 		{
 			curMod = allMods;
 			index = 0;
-			for (auto& [modName, formData] : modNameForms) {
+			for (auto& [modName, formData] : modForms) {
 				formData.ResetIndex();
 				formData.SetValid(false);
 			}
@@ -183,7 +195,7 @@ namespace ImGui
 				ImGui::PopItemWidth();
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 
-				formResult = modNameForms[curMod].GetComboWithFilterResult(a_actor);
+				formResult = modForms[curMod].GetComboWithFilterResult(a_actor);
 
 				ImGui::PopItemWidth();
 				ImGui::PopID();
@@ -196,16 +208,49 @@ namespace ImGui
 			}
 		}
 
-	private:
+	private:	
+		friend struct FormComboBoxState;
+		
 		// members
-		std::string name;
-		bool        translated{ false };
-
-		StringMap<FormComboBox<T>> modNameForms{};
+		StringMap<FormComboBox<T>> modForms{};
 		std::vector<std::string>   modNames{};
+		std::string                name;
+		std::string                curMod{ allMods };
 		std::int32_t               index{};
 		bool                       containsFF{ false };
+		bool                       translated{ false };
+	};
 
-		std::string curMod{ allMods };
+	struct FormComboBoxState
+	{
+		template <class T>
+		void SaveState(const FormComboBoxFiltered<T>& a_formCombo)
+		{
+			modIndex = a_formCombo.index;
+			curMod = a_formCombo.curMod;
+			for (const auto& [modName, formData] : a_formCombo.modForms) {
+				modFormIndices.insert_or_assign(modName, formData.GetIndex());
+			}
+		}
+
+		template <class T>
+		void RestoreState(FormComboBoxFiltered<T>& a_formCombo)
+		{
+			a_formCombo.index = modIndex;
+			a_formCombo.curMod = curMod;
+			for (auto& [modName, formData] : a_formCombo.modForms) {
+				if (const auto it = modFormIndices.find(modName); it != modFormIndices.end()) {
+					formData.SetIndex(it->second);
+				} else {
+					formData.SetIndex(0);
+				}
+				formData.SetValid(false);
+			}
+		}
+
+		// members
+		std::int32_t            modIndex{ 0 };
+		std::string             curMod{ allMods };
+		StringMap<std::int32_t> modFormIndices{};
 	};
 }

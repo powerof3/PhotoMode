@@ -81,9 +81,9 @@ namespace PhotoMode
 		if (a_actor->IsPlayerRef()) {
 			characterName = TRANSLATE_S("$PM_Player");
 		} else if (const auto actorbase = a_actor->GetActorBase(); actorbase && actorbase->IsUnique()) {
-			characterName = a_actor->GetName();
+			characterName = a_actor->GetDisplayFullName();
 		} else {
-			characterName = std::format("{} [0x{:X}]", a_actor->GetName(), a_actor->GetFormID());
+			characterName = std::format("{} [0x{:X}]", a_actor->GetDisplayFullName(), a_actor->GetFormID());
 		}
 
 		GetOriginalState();
@@ -139,16 +139,12 @@ namespace PhotoMode
 		}
 
 		// revert idles
-		idles.Reset();
 		if (idlePlayed) {
 			RevertIdle();
 			idlePlayed = false;
 		}
 
 		// revert effects
-		effectShaders.Reset();
-		effectVFX.Reset();
-
 		if (vfxPlayed || effectsPlayed) {
 			if (const auto processLists = RE::ProcessLists::GetSingleton()) {
 				const auto handle = character->CreateRefHandle();
@@ -197,7 +193,11 @@ namespace PhotoMode
 
 				if (character->GetFaceGenAnimationData()) {
 					ImGui::SetNextItemWidth(width);
-					if (ImGui::BeginTabItemEx("$PM_Expressions"_T, nullptr, a_resetTabs ? ImGuiTabItemFlags_SetSelected : 0)) {
+					if (ImGui::BeginTabItemEx("$PM_Expressions"_T, nullptr, (a_resetTabs && lastTab == Tab::kExpressions) ? ImGuiTabItemFlags_SetSelected : 0)) {
+						if (!a_resetTabs) {
+							lastTab = Tab::kExpressions;
+						}
+
 						using namespace MFG;
 
 						if (ImGui::EnumSlider("$PM_Expression"_T, &mfgData.expressionData.modifier, expressions)) {
@@ -245,7 +245,10 @@ namespace PhotoMode
 				}
 
 				ImGui::SetNextItemWidth(width);
-				if (ImGui::BeginTabItemEx("$PM_Poses"_T)) {
+				if (ImGui::BeginTabItemEx("$PM_Poses"_T, nullptr, (a_resetTabs && lastTab == Tab::kPoses) ? ImGuiTabItemFlags_SetSelected : 0)) {
+					if (!a_resetTabs) {
+						lastTab = Tab::kPoses;
+					}
 					idles.GetFormResultFromCombo([&](const auto& a_idle) {
 						if (idlePlayed) {
 							RevertIdle();
@@ -262,7 +265,10 @@ namespace PhotoMode
 				}
 
 				ImGui::SetNextItemWidth(width);
-				if (ImGui::BeginTabItemEx("$PM_Effects"_T)) {
+				if (ImGui::BeginTabItemEx("$PM_Effects"_T, nullptr, (a_resetTabs && lastTab == Tab::kEffects) ? ImGuiTabItemFlags_SetSelected : 0)) {
+					if (!a_resetTabs) {
+						lastTab = Tab::kEffects;
+					}
 					effectShaders.GetFormResultFromCombo([&](const auto& a_effectShader) {
 						character->ApplyEffectShader(a_effectShader);
 						effectsPlayed = true;
@@ -280,7 +286,10 @@ namespace PhotoMode
 				}
 
 				ImGui::SetNextItemWidth(width);
-				if (ImGui::BeginTabItemEx("$PM_Transforms"_T)) {
+				if (ImGui::BeginTabItemEx("$PM_Transforms"_T, nullptr, (a_resetTabs && lastTab == Tab::kTransforms) ? ImGuiTabItemFlags_SetSelected : 0)) {
+					if (!a_resetTabs) {
+						lastTab = Tab::kTransforms;
+					}
 					currentState.rotZ = RE::rad_to_deg(character->GetAngleZ());
 					if (ImGui::Slider("$PM_Rotation"_T, &currentState.rotZ, 0.0f, 360.0f)) {
 						character->SetHeading(RE::deg_to_rad(currentState.rotZ));
