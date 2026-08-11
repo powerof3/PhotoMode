@@ -577,7 +577,7 @@ namespace PhotoMode
 					}
 
 					noItemsFocused = navigateWithMouse ?
-					                     (!ImGui::IsAnyItemHovered() || !isCursorHoveringOverWindow) :
+					                     !ImGui::IsAnyItemActive() :
 					                     (!ImGui::IsAnyItemFocused() || !ImGui::IsWindowFocused());
 					lastFocusedID = ImGui::GetFocusID();
 					lastHoveredID = ImGui::GetHoveredID();

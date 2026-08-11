@@ -648,10 +648,19 @@ namespace Input
 						}
 					}
 
+					if (hotKey == hotKeys->EscapeKey()) {
+						if (buttonEvent->IsDown()) {
+							blockEscape = io.WantTextInput || ImGui::IsAnyItemActive();
+						} else if (buttonEvent->IsUp()) {
+							if (!io.WantTextInput && !blockEscape) {
+								photoMode->QuitOnEscape();
+							}
+							blockEscape = false;
+						}
+					}
+
 					if (!io.WantTextInput) {
-						if (hotKey == hotKeys->EscapeKey() && buttonEvent->IsUp()) {
-							photoMode->QuitOnEscape();
-						} else if (hotKey == hotKeys->TakePhotoKey()) {
+						if (hotKey == hotKeys->TakePhotoKey()) {
 							if (buttonEvent->IsDown()) {
 								QueueScreenshot(hotKey != GetDefaultScreenshotKey());
 							} else if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > keyHeldDuration) {

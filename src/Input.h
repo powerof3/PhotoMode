@@ -61,6 +61,7 @@ namespace Input
 		std::uint32_t screenshotGamepad{ 0 };
 		float         keyHeldDuration{ 0.5 };
 		bool          navigateWithMouse{ true };
+		bool          blockEscape{ false };
 		bool          cursorInit{ false };
 
 		static Manager instance;
