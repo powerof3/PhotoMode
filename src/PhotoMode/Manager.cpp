@@ -330,7 +330,6 @@ namespace PhotoMode
 	{
 		if (IsHidden() || noItemsFocused) {
 			Deactivate();
-			RE::PlaySound("UIMenuCancel");
 		}
 	}
 

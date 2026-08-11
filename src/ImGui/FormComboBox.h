@@ -36,6 +36,7 @@ namespace ImGui
 						edids.push_back(edid);
 					}
 				}
+				std::ranges::sort(edids);
 			}
 		}
 		void ResetIndex()

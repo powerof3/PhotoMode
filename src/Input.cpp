@@ -650,7 +650,7 @@ namespace Input
 
 					if (hotKey == hotKeys->EscapeKey()) {
 						if (buttonEvent->IsDown()) {
-							blockEscape = io.WantTextInput || (navigateWithMouse && ImGui::IsAnyItemActive());
+							blockEscape = io.WantTextInput || (CanNavigateWithMouse() && ImGui::IsAnyItemActive());
 						} else if (buttonEvent->IsUp()) {
 							if (!io.WantTextInput && !blockEscape) {
 								photoMode->QuitOnEscape();
