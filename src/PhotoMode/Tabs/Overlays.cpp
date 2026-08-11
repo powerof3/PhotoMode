@@ -89,7 +89,7 @@ namespace PhotoMode
 		}
 
 		if (cachedOverlay && newOverlay != cachedOverlay) {
-			cachedOverlay->Unload(); 
+			cachedOverlay->Unload();
 		}
 
 		if (newOverlay && !newOverlay->IsLoaded()) {
