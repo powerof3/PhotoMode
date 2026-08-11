@@ -103,7 +103,7 @@ namespace PhotoMode
 			kEffects,
 			kTransforms
 		};
-		
+
 		Character() = default;
 		Character(RE::Actor* a_actor);
 

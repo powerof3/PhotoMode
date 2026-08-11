@@ -156,14 +156,14 @@ namespace ImGui
 		if (ImGui::BeginListBox("##ComboWithFilter_itemList", size)) {
 			ImGuiListClipper clipper;
 			clipper.Begin(show_count);
-			
+
 			const int focus_display_idx = is_filtering ? IndexOfKey(itemScoreVector, focus_idx) : focus_idx;
 			if (focus_display_idx >= 0 && focus_display_idx < show_count) {
 				clipper.IncludeItemByIndex(focus_display_idx);
 			}
 
 			const auto header_color = GetStyleColorVec4(ImGuiCol_Header);
-			
+
 			while (clipper.Step()) {
 				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
 					int idx = is_filtering ? itemScoreVector[i].first : i;

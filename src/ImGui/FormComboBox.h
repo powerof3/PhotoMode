@@ -95,7 +95,6 @@ namespace ImGui
 	class FormComboBoxFiltered
 	{
 	public:
-	
 		FormComboBoxFiltered(std::string a_name) :
 			name(std::move(a_name))
 		{}
@@ -208,9 +207,9 @@ namespace ImGui
 			}
 		}
 
-	private:	
+	private:
 		friend struct FormComboBoxState;
-		
+
 		// members
 		StringMap<FormComboBox<T>> modForms{};
 		std::vector<std::string>   modNames{};
