@@ -150,13 +150,16 @@ namespace ImGui
 
 	void UnfocusOnEscape()
 	{
-		if (MANAGER(Input)->IsInputGamepad()) {
-			ImGuiContext& g = *GImGui;
-			if (IsKeyDown(ImGuiKey_NavGamepadCancel)) {
-				g.NavId = 0;
-				g.NavCursorVisible = false;
-				SetWindowFocus(nullptr);
-			}
+		ImGuiContext& g = *GImGui;
+
+		const bool cancel = MANAGER(Input)->IsInputGamepad() ?
+		                        IsKeyDown(ImGuiKey_NavGamepadCancel, ImGuiInputFlags_None) :
+		                        IsKeyDown(ImGuiKey_Escape, ImGuiInputFlags_None);
+		if (cancel) {
+			ClearActiveID();
+			g.NavId = 0;
+			g.NavCursorVisible = false;
+			SetWindowFocus(nullptr);
 		}
 	}
 
