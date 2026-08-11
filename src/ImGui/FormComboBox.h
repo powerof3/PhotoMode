@@ -18,6 +18,10 @@ namespace ImGui
 				edids.push_back(a_edid);
 			}
 		}
+		void SortForms()
+		{
+			std::ranges::sort(edids);
+		}
 		void UpdateValidForms(RE::Actor* a_actor = nullptr)
 		{
 			if (valid) {
@@ -36,7 +40,7 @@ namespace ImGui
 						edids.push_back(edid);
 					}
 				}
-				std::ranges::sort(edids);
+				SortForms();
 			}
 		}
 		void ResetIndex()
@@ -109,6 +113,9 @@ namespace ImGui
 					for (auto& [edid, form] : PhotoMode::cachedIdles) {
 						AddForm(edid, form);
 					}
+				}
+				for (auto& [modName, formData] : modNameForms) {
+					formData.SortForms();
 				}
 			}
 
