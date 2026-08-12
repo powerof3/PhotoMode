@@ -16,6 +16,7 @@ set(headers ${headers}
 	src/Input.h
 	src/PCH.h
 	src/Papyrus.h
+	src/PhotoMode/Favorites.h
 	src/PhotoMode/Hotkeys.h
 	src/PhotoMode/Manager.h
 	src/PhotoMode/Tabs/Camera.h

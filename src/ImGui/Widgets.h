@@ -5,7 +5,7 @@
 
 namespace ImGui
 {
-	bool ComboWithFilter(const char* label, int* current_item, const std::vector<std::string>& items, int popup_max_height_in_items = -1);
+	bool ComboWithFilter(const char* label, int* current_item, const std::vector<std::string>& items,const StringSet* a_favorites = nullptr, std::string* a_favToggled = nullptr, int popup_max_height_in_items = -1);
 
 	bool CheckBox(const char* label, bool* a_toggle);
 

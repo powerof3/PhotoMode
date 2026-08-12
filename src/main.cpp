@@ -3,6 +3,7 @@
 #include "ImGui/Renderer.h"
 #include "Input.h"
 #include "Papyrus.h"
+#include "PhotoMode/Favorites.h"
 #include "PhotoMode/Manager.h"
 #include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
@@ -36,6 +37,8 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 			MANAGER(LoadScreen)->InitLoadScreenObjects();
 			MANAGER(Screenshot)->LoadScreenshots();
 			MANAGER(PhotoMode)->OnDataLoad();
+
+			MANAGER(Favorites)->LoadFavorites();
 
 			Console::Install();
 		}

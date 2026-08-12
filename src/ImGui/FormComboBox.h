@@ -1,21 +1,38 @@
 #pragma once
 
 #include "Hooks.h"
+#include "IconsFontAwesome6.h"
 #include "ImGui/Widgets.h"
+#include "PhotoMode/Favorites.h"
 
 namespace ImGui
 {
 	constexpr auto allMods = "$PM_ALL"sv;
+	constexpr auto favForms = "$PM_Favorites"sv;
 	constexpr auto ffForms = "$PM_FF_Forms"sv;
 
 	template <class T>
 	class FormComboBox
 	{
 	public:
+		T* GetForm(const std::string& a_edid) const
+		{
+			const auto it = edidForms.find(a_edid);
+			return it != edidForms.end() ? it->second : nullptr;
+		}
 		void AddForm(const std::string& a_edid, T* a_form)
 		{
 			if (edidForms.emplace(a_edid, a_form).second) {
 				edids.push_back(a_edid);
+			}
+		}
+		void RemoveForm(const std::string& a_edid)
+		{
+			if (edidForms.erase(a_edid)) {
+				if (const auto it = std::ranges::find(edids, a_edid); it != edids.end()) {
+					edids.erase(it);
+				}
+				ClampIndex();
 			}
 		}
 		void SortForms()
@@ -41,16 +58,18 @@ namespace ImGui
 					}
 				}
 				SortForms();
-				index = edids.empty() ? 0 : std::clamp(index, 0, static_cast<std::int32_t>(edids.size()) - 1);
+				ClampIndex();
 			}
 		}
+
 		std::int32_t GetIndex() const
 		{
 			return index;
 		}
 		void SetIndex(std::int32_t a_index)
 		{
-			index = edids.empty() ? 0 : std::clamp(a_index, 0, static_cast<std::int32_t>(edids.size()) - 1);
+			index = a_index;
+			ClampIndex();
 		}
 		void ResetIndex()
 		{
@@ -64,15 +83,20 @@ namespace ImGui
 				}
 			}
 		}
+		void ClampIndex()
+		{
+			index = edids.empty() ? 0 : std::clamp(index, 0, static_cast<std::int32_t>(edids.size()) - 1);
+		}
+
 		void SetValid(bool a_valid)
 		{
 			valid = a_valid;
 		}
 
-		T* GetComboWithFilterResult(RE::Actor* a_actor = nullptr)
+		T* GetComboWithFilterResult(RE::Actor* a_actor = nullptr, const StringSet* a_favorites = nullptr, std::string* a_favToggled = nullptr)
 		{
 			UpdateValidForms(a_actor);
-			if (ImGui::ComboWithFilter("##forms", &index, edids)) {
+			if (ImGui::ComboWithFilter("##forms", &index, edids, a_favorites, a_favToggled)) {
 				// avoid losing focus
 				ImGui::SetKeyboardFocusHere(-1);
 				return edidForms.find(edids[index])->second;
@@ -96,7 +120,8 @@ namespace ImGui
 	{
 	public:
 		FormComboBoxFiltered(std::string a_name) :
-			name(std::move(a_name))
+			name(a_name),
+			rawName(std::move(a_name))
 		{}
 
 		void AddForm(const std::string& a_edid, T* a_form)
@@ -125,18 +150,29 @@ namespace ImGui
 						AddForm(edid, form);
 					}
 				}
+
+				auto&       favModForms = modForms[favForms];
+				const auto& allModForms = modForms[allMods];
+				for (const auto& edid : MANAGER(Favorites)->GetFavorites(rawName)) {
+					if (const auto form = allModForms.GetForm(edid)) {
+						favModForms.AddForm(edid, form);
+					}
+				}
+
 				for (auto& [modName, formData] : modForms) {
 					formData.SortForms();
 				}
 			}
 
 			// ALL
+			// FAVORITES
 			// ...mods
 			// FF FORMS
 
 			if (modNames.empty()) {
 				modNames.reserve(modForms.size());
 				modNames.emplace_back(TRANSLATE_S(allMods));
+				modNames.emplace_back(TRANSLATE_S(favForms));
 
 				for (const auto& file : RE::TESDataHandler::GetSingleton()->files) {
 					if (modForms.contains(file->fileName)) {
@@ -184,6 +220,8 @@ namespace ImGui
 				if (ImGui::ComboWithFilter("##mods", &index, modNames)) {
 					if (index == 0) {
 						curMod = allMods;
+					} else if (index == 1) {
+						curMod = favForms;
 					} else if (containsFF && index == modNames.size() - 1) {
 						curMod = ffForms;
 					} else {
@@ -194,7 +232,11 @@ namespace ImGui
 				ImGui::PopItemWidth();
 				ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
 
-				formResult = modForms[curMod].GetComboWithFilterResult(a_actor);
+				std::string favToggled;
+				formResult = modForms[curMod].GetComboWithFilterResult(a_actor, &MANAGER(Favorites)->GetFavorites(rawName), &favToggled);
+				if (!favToggled.empty()) {
+					ToggleFavorite(favToggled);
+				}
 
 				ImGui::PopItemWidth();
 				ImGui::PopID();
@@ -210,10 +252,25 @@ namespace ImGui
 	private:
 		friend struct FormComboBoxState;
 
+		void ToggleFavorite(const std::string& a_edid)
+		{
+			MANAGER(Favorites)->ToggleFavorite(rawName, a_edid);
+
+			auto& favModForms = modForms[favForms];
+			if (favModForms.GetForm(a_edid)) {
+				favModForms.RemoveForm(a_edid);
+			} else if (const auto form = modForms[allMods].GetForm(a_edid)) {
+				favModForms.AddForm(a_edid, form);
+				favModForms.SortForms();
+				favModForms.SetValid(false);
+			}
+		}
+
 		// members
 		StringMap<FormComboBox<T>> modForms{};
 		std::vector<std::string>   modNames{};
-		std::string                name;
+		std::string                name{};
+		std::string                rawName{};
 		std::string                curMod{ allMods };
 		std::int32_t               index{};
 		bool                       containsFF{ false };

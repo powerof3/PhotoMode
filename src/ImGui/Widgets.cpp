@@ -21,7 +21,7 @@ namespace ImGui
 	// Posted in issue: https://github.com/ocornut/imgui/issues/1658#issuecomment-1086193100
 	// Demo: https://github.com/idbrii/cpp-imgui/blob/demo-combo-fuzz/examples/example_win32_directx12/main.cpp#L272-L283
 
-	bool ComboWithFilter(const char* label, int* current_item, const std::vector<std::string>& items, int popup_max_height_in_items /*= -1*/)
+	bool ComboWithFilter(const char* label, int* current_item, const std::vector<std::string>& items, const StringSet* a_favorites, std::string* a_favToggled, int popup_max_height_in_items /*= -1*/)
 	{
 		ImGuiContext& g = *GImGui;
 
@@ -145,6 +145,16 @@ namespace ImGui
 			}
 		}
 
+		static bool disable_highlight = false;
+		if (!is_already_open) {
+			disable_highlight = false;
+		}
+		if (move_delta != 0) {
+			disable_highlight = true;
+		} else if (g.IO.MouseDelta.x != 0.0f || g.IO.MouseDelta.y != 0.0f) {
+			disable_highlight = false;
+		}
+
 		// Copied from ListBoxHeader
 		// If popup_max_height_in_items == -1, default height is maximum 7.
 		float  height_in_items_f = (popup_max_height_in_items < 0 ? ImMin(items_count, 7) : popup_max_height_in_items) + 0.25f;
@@ -153,7 +163,16 @@ namespace ImGui
 		size.y = GetTextLineHeightWithSpacing() * height_in_items_f + g.Style.FramePadding.y * 2.0f;
 
 		ImGui::PushStyleColor(ImGuiCol_NavCursor, ImVec4());
+		if (disable_highlight) {
+			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4());
+			ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4());
+		}
+
 		if (ImGui::BeginListBox("##ComboWithFilter_itemList", size)) {
+			const bool  has_favorites = a_favorites != nullptr;
+			const float star_width = has_favorites ? CalcTextSize(ICON_FA_STAR).x + style.FramePadding.x * 2.0f : 0.0f;
+			const float select_width = has_favorites ? GetContentRegionAvail().x - star_width - style.ItemSpacing.x : 0.0f;
+
 			ImGuiListClipper clipper;
 			clipper.Begin(show_count);
 
@@ -174,11 +193,26 @@ namespace ImGui
 						PushStyleColor(ImGuiCol_HeaderHovered, header_color);
 						PushStyleColor(ImGuiCol_HeaderActive, header_color);
 					}
-					if (Selectable(item_text, item_selected)) {
+					if (Selectable(item_text, item_selected, ImGuiSelectableFlags_None, ImVec2(select_width, 0.0f))) {
 						value_changed = true;
 						*current_item = idx;
 						CloseCurrentPopup();
 						RE::PlaySound("UIMenuFocus");
+					}
+					if (has_favorites) {
+						SameLine();				
+						PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));		
+						PushStyleColor(ImGuiCol_Text, a_favorites->contains(items[idx]) ? IM_COL32(255, 255, 106, 255) : GetColorU32(ImGuiCol_TextDisabled));
+						PushStyleColor(ImGuiCol_HeaderHovered, ImVec4());
+						PushStyleColor(ImGuiCol_HeaderActive, ImVec4());		
+						if (Selectable(ICON_FA_STAR, false, ImGuiSelectableFlags_NoAutoClosePopups, ImVec2(star_width, 0.0f))) {
+							if (a_favToggled) {
+								*a_favToggled = items[idx];
+							}
+							RE::PlaySound("UIMenuFocus");
+						}
+						PopStyleVar();
+						PopStyleColor(3);
 					}
 					if (item_selected) {
 						PopStyleColor(2);
@@ -192,6 +226,16 @@ namespace ImGui
 				}
 			}
 			ImGui::EndListBox();
+
+			if (has_favorites && a_favToggled) {
+				const bool focus_visible = is_filtering ?
+				                               IndexOfKey(itemScoreVector, focus_idx) >= 0 :
+				                               (focus_idx >= 0 && focus_idx < items_count);
+				if (focus_visible && Shortcut(ImGuiMod_Ctrl | ImGuiKey_F)) {
+					*a_favToggled = items[focus_idx];
+					RE::PlaySound("UIMenuFocus");
+				}
+			}
 
 			const bool repeat = false;
 			if ((IsKeyPressed(ImGuiKey_Enter, repeat) || IsKeyPressed(ImGuiKey_NavGamepadActivate, repeat))) {
@@ -208,6 +252,9 @@ namespace ImGui
 			}
 		}
 		ImGui::PopStyleColor();
+		if (disable_highlight) {
+			ImGui::PopStyleColor(2);
+		}
 		ImGui::PopItemWidth();
 		ImGui::EndCombo();
 

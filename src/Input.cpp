@@ -545,7 +545,24 @@ namespace Input
 			if (analog) {
 				io.AddKeyAnalogEvent(key, a_value, a_keyPressed);
 			} else {
-				io.AddKeyEvent(key, a_keyPressed);
+				switch (key) {
+				case ImGuiKey_LeftCtrl:
+				case ImGuiKey_RightCtrl:
+					io.AddKeyEvent(ImGuiMod_Ctrl, a_keyPressed);
+					break;
+				case ImGuiKey_LeftShift:
+				case ImGuiKey_RightShift:
+					io.AddKeyEvent(ImGuiMod_Shift, a_keyPressed);
+					break;
+				case ImGuiKey_LeftAlt:
+				case ImGuiKey_RightAlt:
+					io.AddKeyEvent(ImGuiMod_Alt, a_keyPressed);
+					break;
+				default:
+					break;
+				}
+
+				io.AddKeyEvent(key, a_keyPressed);		
 			}
 		}
 	}
@@ -625,7 +642,9 @@ namespace Input
 
 				// process inputs
 				if (const auto charEvent = event->AsCharEvent()) {
-					io.AddInputCharacter(charEvent->keyCode);
+					if (!io.KeyCtrl) {
+						io.AddInputCharacter(charEvent->keyCode);
+					}
 				} else if (const auto buttonEvent = event->AsButtonEvent()) {
 					const auto key = buttonEvent->GetIDCode();
 					auto       hotKey = key;
