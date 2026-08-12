@@ -14,9 +14,9 @@ namespace Screenshot
 	Image::Image(std::string& a_path) :
 		path(Texture::Sanitize(a_path))
 	{
-		srell::smatch       matches;
-		static srell::regex screenshotPattern{ R"(Screenshot_?(\d+))", srell::regex::icase };
-		if (srell::regex_search(path, matches, screenshotPattern)) {
+		boost::smatch       matches;
+		static boost::regex screenshotPattern{ R"(Screenshot_?(\d+))", boost::regex::icase };
+		if (boost::regex_search(path, matches, screenshotPattern)) {
 			if (matches.size() > 1) {
 				index = string::to_num<std::int32_t>(matches[1].str());
 			}
@@ -51,7 +51,7 @@ namespace Screenshot
 	// screenshot69.dds -> Screenshot_69.dds
 	void Collection::ProcessImages(std::string_view a_folder)
 	{
-		static const srell::regex oldPattern{ R"(^screenshot_?(\d+)\.dds$)", srell::regex::icase };
+		static const boost::regex oldPattern{ R"(^screenshot_?(\d+)\.dds$)", boost::regex::icase };
 
 		std::error_code ec;
 		const auto      iterator = std::filesystem::directory_iterator(a_folder, ec);
@@ -90,8 +90,8 @@ namespace Screenshot
 			texture.path = path;
 
 			const auto    fileName = path.filename().string();
-			srell::smatch matches;
-			if (srell::regex_match(fileName, matches, oldPattern)) {
+			boost::smatch matches;
+			if (boost::regex_match(fileName, matches, oldPattern)) {
 				const auto newPattern = std::format("Screenshot_{}.dds", string::to_num<std::int32_t>(matches[1].str()));
 				if (fileName != newPattern) {
 					texture.renameTo = path.parent_path() / newPattern;

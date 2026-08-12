@@ -6,13 +6,13 @@ namespace Texture
 	{
 		a_path = clib_util::string::tolower(a_path);
 
-		static const srell::regex slashPattern("/+|\\\\+");
-		static const srell::regex leadingSlashPattern("^\\\\+");
-		static const srell::regex texturesPattern(R"(.*?[^\s]textures\\|^textures\\)", srell::regex::icase);
+		static const boost::regex slashPattern("/+|\\\\+");
+		static const boost::regex leadingSlashPattern("^\\\\+");
+		static const boost::regex texturesPattern(R"(.*?[^\s]textures\\|^textures\\)", boost::regex::icase);
 
-		a_path = srell::regex_replace(a_path, slashPattern, "\\");
-		a_path = srell::regex_replace(a_path, leadingSlashPattern, "");
-		a_path = srell::regex_replace(a_path, texturesPattern, "");
+		a_path = boost::regex_replace(a_path, slashPattern, "\\");
+		a_path = boost::regex_replace(a_path, leadingSlashPattern, "");
+		a_path = boost::regex_replace(a_path, texturesPattern, "");
 
 		return a_path;
 	}
@@ -203,13 +203,13 @@ std::string Mesh::Sanitize(std::string& a_path)
 {
 	a_path = clib_util::string::tolower(a_path);
 
-	static const srell::regex slashPattern("/+|\\\\+");
-	static const srell::regex leadingSlashPattern("^\\\\+");
-	static const srell::regex meshesPattern(R"(.*?[^\s]meshes\\|^meshes\\)", srell::regex::icase);
+	static const boost::regex slashPattern("/+|\\\\+");
+	static const boost::regex leadingSlashPattern("^\\\\+");
+	static const boost::regex meshesPattern(R"(.*?[^\s]meshes\\|^meshes\\)", boost::regex::icase);
 
-	a_path = srell::regex_replace(a_path, slashPattern, "\\");
-	a_path = srell::regex_replace(a_path, leadingSlashPattern, "");
-	a_path = srell::regex_replace(a_path, meshesPattern, "");
+	a_path = boost::regex_replace(a_path, slashPattern, "\\");
+	a_path = boost::regex_replace(a_path, leadingSlashPattern, "");
+	a_path = boost::regex_replace(a_path, meshesPattern, "");
 
 	return a_path;
 }

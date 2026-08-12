@@ -18,6 +18,7 @@
 #include <DirectXMath.h>
 #include <DirectXTex.h>
 
+#include <boost/regex.hpp>
 #include <boost/unordered/unordered_flat_map.hpp>
 #include <boost/unordered/unordered_flat_set.hpp>
 #include <boost/unordered/unordered_node_map.hpp>
@@ -25,7 +26,6 @@
 #include <glaze/glaze.hpp>
 #include <rapidfuzz/rapidfuzz_all.hpp>
 #include <spdlog/sinks/basic_file_sink.h>
-#include <srell.hpp>
 #include <xbyak/xbyak.h>
 
 #include "ImGui/Backend/imgui_impl_win32.h"
