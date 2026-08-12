@@ -562,7 +562,7 @@ namespace Input
 					break;
 				}
 
-				io.AddKeyEvent(key, a_keyPressed);		
+				io.AddKeyEvent(key, a_keyPressed);
 			}
 		}
 	}

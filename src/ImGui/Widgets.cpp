@@ -200,11 +200,11 @@ namespace ImGui
 						RE::PlaySound("UIMenuFocus");
 					}
 					if (has_favorites) {
-						SameLine();				
-						PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));		
+						SameLine();
+						PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
 						PushStyleColor(ImGuiCol_Text, a_favorites->contains(items[idx]) ? IM_COL32(255, 255, 106, 255) : GetColorU32(ImGuiCol_TextDisabled));
 						PushStyleColor(ImGuiCol_HeaderHovered, ImVec4());
-						PushStyleColor(ImGuiCol_HeaderActive, ImVec4());		
+						PushStyleColor(ImGuiCol_HeaderActive, ImVec4());
 						if (Selectable(ICON_FA_STAR, false, ImGuiSelectableFlags_NoAutoClosePopups, ImVec2(star_width, 0.0f))) {
 							if (a_favToggled) {
 								*a_favToggled = items[idx];

@@ -15,7 +15,7 @@ namespace PhotoMode::Favorites
 		void                         SaveFavorites() const;
 		const std::filesystem::path& GetPath() const;
 
-		std::map<std::string, StringSet> favorites; // type, favorites
+		std::map<std::string, StringSet> favorites;  // type, favorites
 		mutable std::filesystem::path    favoritesPath{};
 	};
 }

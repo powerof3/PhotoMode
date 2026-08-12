@@ -16,11 +16,11 @@ namespace PhotoMode::Favorites
 	void Manager::ToggleFavorite(const std::string& a_key, const std::string& a_edid)
 	{
 		auto& edids = favorites[a_key];
-		
+
 		if (!edids.emplace(a_edid).second) {
 			edids.erase(a_edid);
 		}
-	
+
 		SaveFavorites();
 	}
 
