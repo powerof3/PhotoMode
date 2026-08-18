@@ -332,7 +332,7 @@ namespace ImGui
 			PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_TextDisabled));
 		}
 
-		PushFont(nullptr,MANAGER(IconFont)->GetLargeFontSize());
+		PushFont(nullptr, MANAGER(IconFont)->GetLargeFontSize());
 		RenderTextClipped(frame_bb.Min, frame_bb.Max, centerText.data(), nullptr, nullptr, ImVec2(0.5f, 0.5f));
 		PopFont();
 

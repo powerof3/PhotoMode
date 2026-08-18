@@ -1,11 +1,11 @@
 #include "Hooks.h"
 
+#include "Gallery/Manager.h"
 #include "IGCSBridge/Bridge.h"  // IGCSDOF: direct IgcsConnector bridge
 #include "Input.h"
 #include "PhotoMode/Manager.h"
 #include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
-#include "Gallery/Manager.h"
 
 namespace PhotoMode
 {

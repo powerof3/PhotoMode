@@ -22,7 +22,7 @@ namespace PhotoMode
 		if (auto result = Shared::GetOrCreateDirectory(a_folder); !result) {
 			return std::unexpected(std::format("Failed to create camera positions directory '{}': {}", a_folder.string(), result.error().message()));
 		}
-		
+
 		const std::filesystem::path filePath = a_folder / std::format("CameraPosition_{}.json", timestamp);
 
 		std::string buffer;
@@ -298,7 +298,7 @@ namespace PhotoMode
 				logger::warn("Failed to load camera position file {}: {}", filename, result.error());
 			}
 		});
-		
+
 		std::sort(positionList.begin(), positionList.end(), [](const CameraPosition& a, const CameraPosition& b) {
 			return a.timestamp > b.timestamp;
 		});

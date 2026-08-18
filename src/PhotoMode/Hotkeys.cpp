@@ -40,7 +40,7 @@ namespace PhotoMode::Hotkeys
 		if (toggleGallery.IsInvalid()) {
 			return;
 		}
-		
+
 		toggleGallery.ProcessKeyPress(a_event, []() {
 			MANAGER(Gallery)->ToggleActive();
 		});

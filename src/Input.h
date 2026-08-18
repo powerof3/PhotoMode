@@ -42,7 +42,6 @@ namespace Input
 		void ProcessGalleryEvents(RE::InputEvent* const* a_evn);
 
 	private:
-	
 		bool                             SetInputDevice(RE::INPUT_DEVICE a_device);
 		bool                             GetHotKey(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey) const;
 		bool                             TiltCamera(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const;

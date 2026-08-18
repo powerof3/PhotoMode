@@ -59,12 +59,12 @@ namespace Screenshot
 
 		std::for_each(std::execution::par, screenshots.begin(), screenshots.end(), [](Screenshot& a_screenshot) {
 			a_screenshot.bad = true;
-			
+
 			DirectX::TexMetadata info;
 			const auto           widePath = stl::utf8_to_utf16(a_screenshot.path.string());
 			const auto           hr = GetMetadataFromDDSFile(widePath->c_str(), DirectX::DDS_FLAGS_NONE, info);
-			
-			a_screenshot.bad = FAILED(hr) || info.width % 4 != 0 || info.height % 4 != 0;	
+
+			a_screenshot.bad = FAILED(hr) || info.width % 4 != 0 || info.height % 4 != 0;
 			if (a_screenshot.bad) {
 				return;
 			}

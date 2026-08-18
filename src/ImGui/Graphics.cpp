@@ -25,7 +25,7 @@ namespace ImGui
 
 		if (SUCCEEDED(hr)) {
 			if (auto renderer = RE::BSGraphics::Renderer::GetSingleton()) {
-				const auto  get_resize_dimensions = [&]() -> std::pair<std::size_t, std::size_t> {
+				const auto get_resize_dimensions = [&]() -> std::pair<std::size_t, std::size_t> {
 					const auto& meta = image->GetMetadata();
 					if (a_size.width > 0 && a_size.height > 0 && (a_size.width != meta.width || a_size.height != meta.height)) {
 						return { a_size.width, a_size.height };
@@ -35,7 +35,7 @@ namespace ImGui
 					}
 					return { 0, 0 };
 				};
-				
+
 				if (auto [newWidth, newHeight] = get_resize_dimensions(); newWidth > 0 && newHeight > 0) {
 					auto resized = std::make_shared<DirectX::ScratchImage>();
 					if (SUCCEEDED(DirectX::Resize(*image->GetImage(0, 0, 0), newWidth, newHeight, DirectX::TEX_FILTER_FANT, *resized))) {

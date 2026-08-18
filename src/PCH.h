@@ -13,8 +13,8 @@
 #include "SKSE/SKSE.h"
 
 #include <codecvt>
-#include <wrl/client.h>
 #include <shellapi.h>
+#include <wrl/client.h>
 
 #include <DirectXMath.h>
 #include <DirectXTex.h>
@@ -150,6 +150,6 @@ namespace stl
 #endif
 
 #include "Cache.h"
+#include "Shared.h"
 #include "Translation.h"
 #include "Version.h"
-#include "Shared.h"

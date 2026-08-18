@@ -79,9 +79,9 @@ namespace PhotoMode
 			ICON_FA_IMAGE
 		};
 		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifOverlays" };
-		
+
 		static void TogglePlayerControls(bool a_enable);
-		
+
 		void               DrawControls();
 		void               DrawBar() const;
 		[[nodiscard]] bool SetupJournalMenu() const;
