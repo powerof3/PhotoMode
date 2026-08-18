@@ -7,7 +7,7 @@ namespace ImGui
 
 	void AlignForWidth(float width, float alignment = 0.5f);
 
-	void ExtendWindowPastBorder();
+	void ExtendWindowPastBorder(const char* a_rootWindow = "##Main");
 
 	void        LeftAlignedTextImpl(const char* label, const std::string& newLabel = "");
 	std::string LeftAlignedText(const char* label);
@@ -22,6 +22,8 @@ namespace ImGui
 
 	bool ActivateOnHover();
 	void UnfocusOnEscape();
+
+	void ClearImGuiState();
 
 	ImVec2 GetNativeViewportSize();
 	ImVec2 GetNativeViewportPos();

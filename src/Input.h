@@ -39,7 +39,10 @@ namespace Input
 
 		static void ToggleCursor(bool a_enable);
 
+		void ProcessGalleryEvents(RE::InputEvent* const* a_evn);
+
 	private:
+	
 		bool                             SetInputDevice(RE::INPUT_DEVICE a_device);
 		bool                             GetHotKey(RE::INPUT_DEVICE a_device, std::uint32_t& a_hotkey) const;
 		bool                             TiltCamera(const RE::ButtonEvent* a_buttonEvent, std::uint32_t a_key) const;
@@ -50,7 +53,17 @@ namespace Input
 
 		EventResult ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*) override;
 
+		void NavigateGrid(std::int32_t a_dx, std::int32_t a_dy);
+		void NavigateGridController(float a_x, float a_y);
+
 		// members
+		struct
+		{
+			std::int32_t                          dx{ 0 };
+			std::int32_t                          dy{ 0 };
+			std::chrono::steady_clock::time_point nextStep{};
+		} galleryNav;
+
 		DEVICE        inputDevice{ DEVICE::kNone };
 		DEVICE        lastInputDevice{ DEVICE::kNone };
 		bool          screenshotQueued{ false };

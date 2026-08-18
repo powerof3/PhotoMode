@@ -13,26 +13,10 @@ namespace IconFont
 		ImGui::Texture(LR"(Data/Interface/ImGuiIcons/Icons/)", a_iconName)
 	{}
 
-	bool IconTexture::Load(bool a_resizeToScreenRes)
+	bool IconTexture::Load(float a_scale)
 	{
-		const bool result = ImGui::Texture::Load(a_resizeToScreenRes);
-
-		if (result) {
-			// store original size
-			imageSize = size;
-			// don't need this
-			if (image) {
-				image.reset();
-			}
-		}
-
-		return result;
-	}
-
-	void IconTexture::Resize(float a_scale)
-	{
-		auto scale = a_scale / 1080;  // standard window height
-		size = imageSize * (scale * RE::BSGraphics::Renderer::GetScreenSize().height);
+		auto scale = (a_scale / 1080) * RE::BSGraphics::Renderer::GetScreenSize().height;
+		return ImGui::Texture::LoadImpl(scale);
 	}
 
 	void Manager::LoadFontSettings(CSimpleIniA& a_ini)
@@ -60,107 +44,55 @@ namespace IconFont
 
 	void Manager::LoadIcons()
 	{
-		unknownKey.Load();
-
-		upKey.Load();
-		downKey.Load();
-		leftKey.Load();
-		rightKey.Load();
-
-		std::for_each(keyboard.begin(), keyboard.end(), [](auto& IconTexture) {
-			IconTexture.second.Load();
-		});
-		std::for_each(gamePad.begin(), gamePad.end(), [](auto& IconTexture) {
-			auto& [xbox, ps4] = IconTexture.second;
-			xbox.Load();
-			ps4.Load();
-		});
-		std::for_each(mouse.begin(), mouse.end(), [](auto& IconTexture) {
-			IconTexture.second.Load();
-		});
-
-		stepperLeft.Load();
-		stepperRight.Load();
-		checkbox.Load();
-		checkboxFilled.Load();
-	}
-
-	void Manager::ReloadFonts()
-	{
-		auto& io = ImGui::GetIO();
-		io.Fonts->Clear();
-
-		ImVector<ImWchar> ranges;
-
-		ImFontGlyphRangesBuilder builder;
-		builder.AddText(RE::BSScaleformManager::GetSingleton()->validNameChars.c_str());
-		builder.AddChar(0xf030);  // CAMERA
-		builder.AddChar(0xf017);  // CLOCK
-		builder.AddChar(0xf183);  // PERSON
-		builder.AddChar(0xf042);  // CONTRAST
-		builder.AddChar(0xf03e);  // IMAGE
-		builder.BuildRanges(&ranges);
-
-		io.FontDefault = LoadFontIconSet(fontSize, iconSize, ranges);
-		largeFont = LoadFontIconSet(largeFontSize, largeIconSize, ranges);
-
-		io.Fonts->Build();
-
-		ImGui_ImplDX11_InvalidateDeviceObjects();
-		ImGui_ImplDX11_CreateDeviceObjects();
-	}
-
-	void Manager::ResizeIcons()
-	{
 		float buttonScale = ImGui::GetUserStyleVar(ImGui::USER_STYLE::kButtons);
 		float checkboxScale = ImGui::GetUserStyleVar(ImGui::USER_STYLE::kCheckbox);
 		float stepperScale = ImGui::GetUserStyleVar(ImGui::USER_STYLE::kStepper);
 
-		unknownKey.Resize(buttonScale);
+		std::vector<std::pair<IconTexture*, float>> queue;
+		queue.reserve(keyboard.size() + (gamePad.size() * 2) + mouse.size() + 9);
 
-		upKey.Resize(buttonScale);
-		downKey.Resize(buttonScale);
-		leftKey.Resize(buttonScale);
-		rightKey.Resize(buttonScale);
+		const auto queue_into = [&](IconTexture& a_texture, float a_scale) {
+			queue.emplace_back(&a_texture, a_scale);
+		};
 
-		std::ranges::for_each(keyboard, [&](auto& IconTexture) {
-			IconTexture.second.Resize(buttonScale);
+		queue_into(unknownKey, buttonScale);
+		queue_into(upKey, buttonScale);
+		queue_into(downKey, buttonScale);
+		queue_into(leftKey, buttonScale);
+		queue_into(rightKey, buttonScale);
+		for (auto& [key, texture] : keyboard) {
+			queue_into(texture, buttonScale);
+		}
+		for (auto& [key, textures] : gamePad) {
+			auto& [xbox, ps4] = textures;
+			queue_into(xbox, buttonScale);
+			queue_into(ps4, buttonScale);
+		}
+		for (auto& [key, texture] : mouse) {
+			queue_into(texture, buttonScale);
+		}
+		queue_into(stepperLeft, stepperScale);
+		queue_into(stepperRight, stepperScale);
+		queue_into(checkbox, checkboxScale);
+		queue_into(checkboxFilled, checkboxScale);
+
+		std::for_each(std::execution::par, queue.begin(), queue.end(), [](auto& a_entry) {
+			a_entry.first->Load(a_entry.second);
 		});
-		std::ranges::for_each(gamePad, [&](auto& IconTexture) {
-			auto& [xbox, ps4] = IconTexture.second;
-			xbox.Resize(buttonScale);
-			ps4.Resize(buttonScale);
-		});
-		std::ranges::for_each(mouse, [&](auto& IconTexture) {
-			IconTexture.second.Resize(buttonScale);
-		});
-
-		stepperLeft.Resize(stepperScale);
-		stepperRight.Resize(stepperScale);
-
-		checkbox.Resize(checkboxScale);
-		checkboxFilled.Resize(checkboxScale);
 	}
 
-	ImFont* Manager::LoadFontIconSet(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const
+	void Manager::LoadFonts()
 	{
 		const auto& io = ImGui::GetIO();
 
-		const auto font = io.Fonts->AddFontFromFileTTF(fontName.c_str(), a_fontSize, nullptr, a_ranges.Data);
+		io.Fonts->AddFontFromFileTTF(fontName.c_str(), fontSize);
 
 		ImFontConfig icon_config;
 		icon_config.MergeMode = true;
 		icon_config.PixelSnapH = true;
 		icon_config.OversampleH = icon_config.OversampleV = 1;
 
-		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\ImGuiIcons\Fonts\)" FONT_ICON_FILE_NAME_FAS, a_iconSize, &icon_config, a_ranges.Data);
-
-		return font;
-	}
-
-	ImFont* Manager::GetLargeFont() const
-	{
-		return largeFont;
+		io.Fonts->AddFontFromFileTTF(R"(Data\Interface\ImGuiIcons\Fonts\)" FONT_ICON_FILE_NAME_FAS, iconSize, &icon_config);
 	}
 
 	const IconTexture* Manager::GetStepperLeft() const
@@ -284,4 +216,51 @@ void ImGui::ButtonIconWithLabel(const char* a_text, const std::set<const IconFon
 	ImGui::ButtonIcon(a_texture, a_centerIcon);
 	ImGui::SameLine();
 	ImGui::CenteredText(a_text, true);
+}
+
+void ImGui::CalcButtonWidth(float& a_width, const IconFont::IconTexture* a_texture, const char* a_textLabel, bool a_sameLine)
+{
+	const auto& spacing = ImGui::GetStyle().ItemSpacing.x;
+
+	a_width += a_texture->size.x;
+	a_width += spacing;
+	a_width += ImGui::CalcTextSize(a_textLabel).x;
+	if (a_sameLine) {
+		a_width += spacing;
+	}
+}
+
+float ImGui::PrecalcButtonBarWidth(std::span<const ButtonBarItem> a_items)
+{
+	float width = 0.0f;
+	for (const auto& item : a_items) {
+		if (item.conditional) {
+			CalcButtonWidth(width, item.icon, item.label);
+		}
+	}
+	return width;
+}
+
+void ImGui::ButtonBar(std::span<const ButtonBarItem> a_items, float a_itemsWidth, float a_alignment)
+{
+	AlignForWidth(a_itemsWidth, a_alignment);
+
+	for (auto i = 0; i < a_items.size(); ++i) {
+		const auto& item = a_items[i];
+		if (!item.conditional) {
+			continue;
+		}
+		BeginDisabled(item.disabled);
+		ButtonIconWithLabel(item.label, item.icon, true);
+		EndDisabled();
+		if (i + 1 < a_items.size()) {
+			SameLine();
+		}
+	}
+}
+
+void ImGui::ButtonBar(std::span<const ButtonBarItem> a_items, float a_alignment)
+{
+	auto itemsWidth = PrecalcButtonBarWidth(a_items);
+	ButtonBar(a_items, itemsWidth, a_alignment);
 }

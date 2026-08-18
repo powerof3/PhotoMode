@@ -3,6 +3,7 @@
 #include "Graphics.h"
 #include "PhotoMode/Manager.h"
 #include "Settings.h"
+#include "Shared.h"
 
 namespace Screenshot
 {
@@ -12,34 +13,21 @@ namespace Screenshot
 	{}
 
 	Image::Image(std::string& a_path) :
-		path(Texture::Sanitize(a_path))
-	{
-		boost::smatch       matches;
-		static boost::regex screenshotPattern{ R"(Screenshot_?(\d+))", boost::regex::icase };
-		if (boost::regex_search(path, matches, screenshotPattern)) {
-			if (matches.size() > 1) {
-				index = string::to_num<std::int32_t>(matches[1].str());
-			}
-		}
-	}
+		path(Texture::Sanitize(a_path)),
+		index(Shared::GetScreenshotIndex(a_path))
+	{}
 
-	void Collection::AddImage(Image& a_image)
+	void Collection::AddImage(Image a_image)
 	{
-		images.emplace_back(a_image);
+		images.emplace_back(std::move(a_image));
+
+		RebuildValidImages();
 	}
 
 	void Collection::LoadImages(std::string_view a_folder)
 	{
-		const std::filesystem::directory_entry folder{ a_folder };
-
-		std::error_code ec;
-		if (!folder.exists(ec)) {
-			logger::info("{} folder not found, creating it ({})", a_folder, ec.message());
-			ec.clear();
-			std::filesystem::create_directories(a_folder, ec);  // create parents too; don't throw if it fails
-			if (ec) {
-				logger::error("Failed to create {} folder ({})", a_folder, ec.message());
-			}
+		if (auto result = Shared::GetOrCreateDirectory(a_folder); !result) {
+			logger::error("Failed to create {} folder: {}", a_folder, result.error().message());
 			return;
 		}
 
@@ -51,89 +39,90 @@ namespace Screenshot
 	// screenshot69.dds -> Screenshot_69.dds
 	void Collection::ProcessImages(std::string_view a_folder)
 	{
-		static const boost::regex oldPattern{ R"(^screenshot_?(\d+)\.dds$)", boost::regex::icase };
-
-		std::error_code ec;
-		const auto      iterator = std::filesystem::directory_iterator(a_folder, ec);
-		if (ec) {
-			return;
-		}
-
-		struct GoodTexture
+		struct Screenshot
 		{
 			std::filesystem::path path;
 			std::filesystem::path renameTo;
+			bool                  bad{ false };
 		};
 
-		std::vector<GoodTexture>           goodTextures{};
-		std::vector<std::filesystem::path> badTextures{};
+		std::vector<Screenshot> screenshots;
+		Shared::ForEachFile(a_folder, ".dds"sv, [&](const std::filesystem::path& a_path) {
+			screenshots.emplace_back(Screenshot{ .path = a_path });
+		});
 
-		for (const auto& entry : iterator) {
-			if (!entry.is_regular_file() || entry.path().extension() != ".dds") {
-				continue;
-			}
+		if (screenshots.empty()) {
+			return;
+		}
 
-			auto path = entry.path();
+		static const boost::regex oldPattern{ R"(^screenshot_?(\d+)\.dds$)", boost::regex::icase };
 
-			bool                 badTexture = false;
+		std::for_each(std::execution::par, screenshots.begin(), screenshots.end(), [](Screenshot& a_screenshot) {
+			a_screenshot.bad = true;
+			
 			DirectX::TexMetadata info;
-			if (const auto widePath = stl::utf8_to_utf16(path.string())) {
-				const auto hr = GetMetadataFromDDSFile(widePath->c_str(), DirectX::DDS_FLAGS_NONE, info);
-				badTexture = FAILED(hr) || info.width % 4 != 0 || info.height % 4 != 0;
-			}
-			if (badTexture) {
-				badTextures.push_back(path);
-				continue;
+			const auto           widePath = stl::utf8_to_utf16(a_screenshot.path.string());
+			const auto           hr = GetMetadataFromDDSFile(widePath->c_str(), DirectX::DDS_FLAGS_NONE, info);
+			
+			a_screenshot.bad = FAILED(hr) || info.width % 4 != 0 || info.height % 4 != 0;	
+			if (a_screenshot.bad) {
+				return;
 			}
 
-			GoodTexture texture;
-			texture.path = path;
-
-			const auto    fileName = path.filename().string();
+			const auto    fileName = a_screenshot.path.filename().string();
 			boost::smatch matches;
 			if (boost::regex_match(fileName, matches, oldPattern)) {
-				const auto newPattern = std::format("Screenshot_{}.dds", string::to_num<std::int32_t>(matches[1].str()));
-				if (fileName != newPattern) {
-					texture.renameTo = path.parent_path() / newPattern;
+				const auto newName = std::format("Screenshot_{}.dds", string::to_num<std::int32_t>(matches[1].str()));
+				if (fileName != newName) {
+					a_screenshot.renameTo = a_screenshot.path.parent_path() / newName;
 				}
 			}
+		});
 
-			goodTextures.push_back(std::move(texture));
-		}
+		for (auto& [path, renameTo, bad] : screenshots) {
+			std::error_code ec;
 
-		for (const auto& badTexture : badTextures) {
-			std::error_code ec2;
-			logger::info("\tDeleting invalid texture ({})", badTexture.string());
-			std::filesystem::remove(badTexture, ec2);
-			if (ec2) {
-				logger::warn("\t\tFailed to delete {} ({})", badTexture.string(), ec2.message());
+			if (bad) {
+				logger::info("\tDeleting invalid texture ({})", path.string());
+				std::filesystem::remove(path, ec);
+				if (ec) {
+					logger::warn("\t\tFailed to delete {} ({})", path.string(), ec.message());
+				}
+				continue;
 			}
-		}
 
-		for (auto& [from, to] : goodTextures) {
-			if (!to.empty()) {
-				std::error_code ec2;
-				if (std::filesystem::exists(to, ec2) && !std::filesystem::equivalent(from, to, ec2)) {
-					logger::warn("\tSkipped renaming {} -> {} (already exists)", from.filename().string(), to.filename().string());
+			if (!renameTo.empty()) {
+				if (std::filesystem::exists(renameTo, ec) && !std::filesystem::equivalent(path, renameTo, ec)) {
+					logger::warn("\tSkipped renaming {} -> {} (already exists)", path.filename().string(), renameTo.filename().string());
 				} else {
-					std::filesystem::rename(from, to, ec2);
-					if (ec2) {
-						logger::warn("\tFailed to rename {} -> {} ({})", from.filename().string(), to.filename().string(), ec2.message());
+					std::filesystem::rename(path, renameTo, ec);
+					if (ec) {
+						logger::warn("\tFailed to rename {} -> {} ({})", path.filename().string(), renameTo.filename().string(), ec.message());
 					} else {
-						logger::info("\tRenamed texture {} -> {}", from.filename().string(), to.filename().string());
-						from = to;
+						logger::info("\tRenamed texture {} -> {}", path.filename().string(), renameTo.filename().string());
+						path = renameTo;
 					}
 				}
 			}
 
-			auto finalPath = from.string();
+			auto finalPath = path.string();
 			images.push_back(finalPath);
 		}
 	}
 
+	void Collection::RebuildValidImages()
+	{
+		validImages.clear();
+		std::ranges::copy_if(images, std::back_inserter(validImages), [](const Image& a_image) {
+			return !a_image.excludeFromLoadscreen;
+		});
+
+		previousIndex = { std::numeric_limits<std::size_t>::max(), std::numeric_limits<std::size_t>::max() };
+	}
+
 	std::size_t Collection::GetRandomIndex()
 	{
-		auto maxIndex = images.size();
+		auto maxIndex = validImages.size();
 
 		if (maxIndex <= 1) {
 			previousIndex[0] = 0;
@@ -154,8 +143,7 @@ namespace Screenshot
 
 	const std::string& Collection::GetRandomPath()
 	{
-		auto idx = GetRandomIndex();
-		return images[idx].path;
+		return validImages[GetRandomIndex()].path;
 	}
 
 	std::int32_t Collection::GetHighestIndex() const
@@ -164,6 +152,57 @@ namespace Screenshot
 			return -1;
 		}
 		return images.back().index + 1;
+	}
+
+	void Collection::DeleteImagesWithIndex(std::int32_t a_index)
+	{
+		std::erase_if(images, [&](const Image& a_image) {
+			if (a_image.index != a_index) {
+				return false;
+			}
+			std::error_code ec;
+			if (!std::filesystem::remove(a_image.path, ec) || ec) {
+				logger::warn("\t\tFailed to delete {} ({})", a_image.path, ec.message());
+			} else {
+				logger::info("\tDeleting texture ({})", a_image.path);
+			}
+			return true;
+		});
+
+		RebuildValidImages();
+	}
+
+	bool Collection::ContainsIndex(std::int32_t a_index) const
+	{
+		return GetImageWithIndex(a_index) != nullptr;
+	}
+
+	Image* Collection::GetImageWithIndex(std::int32_t a_index)
+	{
+		auto it = std::ranges::find(images, a_index, &Image::index);
+		return it != images.end() ? &*it : nullptr;
+	}
+
+	const Image* Collection::GetImageWithIndex(std::int32_t a_index) const
+	{
+		auto it = std::ranges::find(images, a_index, &Image::index);
+		return it != images.end() ? &*it : nullptr;
+	}
+
+	void Collection::ApplyExclusions(const FlatSet<std::int32_t>& a_excluded)
+	{
+		for (auto& image : images) {
+			image.excludeFromLoadscreen = a_excluded.contains(image.index);
+		}
+		RebuildValidImages();
+	}
+
+	void Collection::ToggleLoadScreenForIndex(std::int32_t a_index)
+	{
+		if (auto image = GetImageWithIndex(a_index)) {
+			image->excludeFromLoadscreen = !image->excludeFromLoadscreen;
+			RebuildValidImages();
+		}
 	}
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
@@ -179,26 +218,38 @@ namespace Screenshot
 
 		compressTextures = a_ini.GetBoolValue("Screenshots", "bCompressTextures", compressTextures);
 		forceSRGB = a_ini.GetBoolValue("Screenshots", "bForceSRGB", forceSRGB);
+
+		excludedImages.clear();
+		std::string exclusions = a_ini.GetValue("Gallery", "sExcludedLoadScreens", "");
+		if (!exclusions.empty()) {
+			for (const auto& entry : string::split(exclusions, ",")) {
+				if (!entry.empty()) {
+					excludedImages.insert(string::to_num<std::int32_t>(entry));
+				}
+			}
+		}
+
+		ApplyExclusions();
+	}
+
+	void Manager::ApplyExclusions()
+	{
+		screenshots.ApplyExclusions(excludedImages);
+		paintings.ApplyExclusions(excludedImages);
 	}
 
 	void Manager::LoadScreenshots()
 	{
 		logger::info("Loading screenshots...");
 
-		if (auto directory = logger::log_directory()) {
-			directory->remove_filename();
-			*directory /= "Photos";
-			photoDirectory = *directory;
+		photoDirectory = Shared::GetDocumentsFolder("Photos"sv);
+		if (auto result = Shared::GetOrCreateDirectory(photoDirectory); !result) {
+			logger::error("Failed to create photo directory: {}", result.error().message());
 		}
 
-		std::error_code ec;
-		if (!std::filesystem::exists(photoDirectory, ec)) {
-			logger::info("\tPhoto directory does not exist, creating it... ({})", ec.message());
-			ec.clear();
-			std::filesystem::create_directories(photoDirectory, ec);  // create parents too; don't throw if it fails
-			if (ec) {
-				logger::error("\tFailed to create photo directory ({})", ec.message());
-			}
+		thumbnailDirectory = Shared::GetDocumentsFolder("Photos/Thumbnails"sv);
+		if (auto result = Shared::GetOrCreateDirectory(thumbnailDirectory); !result) {
+			logger::error("Failed to create thumbnail folder: {}", result.error().message());
 		}
 
 		logger::info("\tScreenshot directory : {}", photoDirectory.string());
@@ -207,6 +258,8 @@ namespace Screenshot
 
 		screenshots.LoadImages(screenshotFolder);
 		paintings.LoadImages(paintingFolder);
+
+		ApplyExclusions();
 
 		Settings::GetSingleton()->Save(FileType::kMCM, [this](auto& ini) {
 			index = ini.GetLongValue("Screenshots", "iScreenshotIndex", index);
@@ -219,6 +272,44 @@ namespace Screenshot
 		logger::info("\tscreenshot index : {}", index);
 	}
 
+	const std::filesystem::path& Manager::GetPhotoDirectory() const
+	{
+		return photoDirectory;
+	}
+
+	const std::filesystem::path& Manager::GetThumbnailDirectory() const
+	{
+		return thumbnailDirectory;
+	}
+
+	void Manager::ToggleLoadScreenForIndex(std::int32_t a_index)
+	{
+		if (a_index < 0) {
+			return;
+		}
+
+		if (!excludedImages.erase(a_index)) {
+			excludedImages.insert(a_index);
+		}
+
+		screenshots.ToggleLoadScreenForIndex(a_index);
+		paintings.ToggleLoadScreenForIndex(a_index);
+
+		// serialize
+		std::string joined;
+		for (const auto& idx : excludedImages) {
+			joined += joined.empty() ? std::format("{}", idx) : std::format(",{}", idx);
+		}
+		Settings::GetSingleton()->Save(FileType::kMCM, [&](auto& ini) {
+			ini.SetValue("Gallery", "sExcludedLoadScreens", joined.c_str());
+		});
+	}
+
+	bool Manager::IsImageExcludedFromLoadScreen(std::int32_t a_index) const
+	{
+		return excludedImages.contains(a_index);
+	}
+
 	std::uint32_t Manager::GetIndex() const
 	{
 		return index;
@@ -227,25 +318,11 @@ namespace Screenshot
 	void Manager::AssignHighestPossibleIndex()
 	{
 		const auto get_photos_index = [this]() {
-			std::vector<Image> photos{};
-			std::error_code    ec;
-			const auto         iterator = std::filesystem::directory_iterator(photoDirectory, ec);
-			if (ec) {
-				logger::info("\tPhoto directory unavailable, skipping index scan ({})", ec.message());
-			}
-			for (const auto& entry : iterator) {
-				if (entry.is_regular_file()) {
-					if (const auto& path = entry.path(); path.extension() == ".png") {
-						auto pathStr = entry.path().string();
-						photos.push_back(pathStr);
-					}
-				}
-			}
-			if (photos.empty()) {
-				return -1;
-			}
-			std::sort(photos.begin(), photos.end());
-			return photos.back().index + 1;
+			std::int32_t photosIndex = -1;
+			Shared::ForEachFile(photoDirectory, ".png"sv, [&](const auto& a_path) {
+				photosIndex = std::max(photosIndex, Shared::GetScreenshotIndex(a_path.string()) + 1);
+			});
+			return photosIndex;
 		};
 
 		auto mcmIndex = index;
@@ -261,10 +338,7 @@ namespace Screenshot
 		logger::info("\t\tscreenshot textures index: {}", screenshotsIndex);
 		logger::info("\t\tpainting textures index: {}", paintingsIndex);
 
-		std::set<std::int32_t> indices;
-		indices.insert({ mcmIndex, photosIndex, vanillaScreenshotIndex, screenshotsIndex, paintingsIndex });
-
-		index = *indices.rbegin();
+		index = std::max({ mcmIndex, photosIndex, vanillaScreenshotIndex, screenshotsIndex, paintingsIndex });
 	}
 
 	void Manager::IncrementIndex()
@@ -290,9 +364,24 @@ namespace Screenshot
 		return applyPaintFilter;
 	}
 
+	bool Manager::GetForceSRGB() const
+	{
+		return forceSRGB;
+	}
+
+	const Image* Manager::GetScreenshotWithIndex(std::int32_t a_index) const
+	{
+		return screenshots.GetImageWithIndex(a_index);
+	}
+
+	const Image* Manager::GetPaintingWithIndex(std::int32_t a_index) const
+	{
+		return paintings.GetImageWithIndex(a_index);
+	}
+
 	bool Manager::CanDisplayScreenshotInLoadScreen() const
 	{
-		return takeScreenshotAsDDS && (!screenshots.empty() || !paintings.empty());
+		return takeScreenshotAsDDS && (screenshots.has_valid_images() || paintings.has_valid_images());
 	}
 
 	bool Manager::TakeScreenshot()
@@ -323,21 +412,29 @@ namespace Screenshot
 				DirectX::ScratchImage blendedImage;
 
 				// Convert PNG B8G8R8 format to R8G8B8
-				DirectX::Convert(overlay->image->GetImages(), 1,
+				auto hr = DirectX::Convert(overlay->image->GetImages(), 1,
 					overlay->image->GetMetadata(),
 					inputImage.GetMetadata().format, DirectX::TEX_FILTER_DEFAULT, DirectX::TEX_THRESHOLD_DEFAULT,
 					overlayImage);
 
-				Texture::AlphaBlendImage(inputImage.GetImages(), overlayImage.GetImages(), blendedImage, alpha);
+				if (SUCCEEDED(hr)) {
+					Texture::AlphaBlendImage(inputImage.GetImages(), overlayImage.GetImages(), blendedImage, alpha);
 
-				TakeScreenshotAsTexture(blendedImage, inputImage);
-				Texture::SaveToPNG(blendedImage, pngPath, forceSRGB);
+					TakeScreenshotAsTexture(blendedImage, inputImage);
+					Texture::SaveToPNG(blendedImage, pngPath, forceSRGB);
+					SaveThumbnail(blendedImage, pngPath);
 
-				overlayImage.Release();
-				blendedImage.Release();
+					overlayImage.Release();
+					blendedImage.Release();
+				} else {
+					TakeScreenshotAsTexture(inputImage, inputImage);
+					Texture::SaveToPNG(inputImage, pngPath, forceSRGB);
+					SaveThumbnail(inputImage, pngPath);
+				}
 			} else {
 				TakeScreenshotAsTexture(inputImage, inputImage);
 				Texture::SaveToPNG(inputImage, pngPath, forceSRGB);
+				SaveThumbnail(inputImage, pngPath);
 			}
 
 			IncrementIndex();
@@ -392,9 +489,19 @@ namespace Screenshot
 		}
 	}
 
+	void Manager::SaveThumbnail(const DirectX::ScratchImage& a_ssImage, const std::string& a_pngPath)
+	{
+		const auto&           meta = a_ssImage.GetMetadata();
+		DirectX::ScratchImage thumbnail;
+		if (SUCCEEDED(DirectX::Resize(*a_ssImage.GetImage(0, 0, 0), static_cast<std::size_t>(meta.width * 0.25f), static_cast<std::size_t>(meta.height * 0.25f), DirectX::TEX_FILTER_FANT, thumbnail))) {
+			const auto thumbPath = Shared::GetThumbnailPath(thumbnailDirectory, a_pngPath);
+			Texture::SaveToPNG(thumbnail, thumbPath.string(), forceSRGB);
+		}
+	}
+
 	std::string Manager::GetRandomScreenshot()
 	{
-		if (screenshots.empty()) {
+		if (!screenshots.has_valid_images()) {
 			return {};
 		}
 
@@ -404,10 +511,18 @@ namespace Screenshot
 	std::string Manager::GetRandomPainting()
 	{
 		// fallback to screenshots
-		if (paintings.empty() || !MANAGER(Screenshot)->CanApplyPaintFilter()) {
+		if (!paintings.has_valid_images() || !MANAGER(Screenshot)->CanApplyPaintFilter()) {
 			return GetRandomScreenshot();
 		}
 
 		return paintings.GetRandomPath();
+	}
+
+	void Manager::DeleteImagesWithIndex(std::int32_t a_index)
+	{
+		excludedImages.erase(a_index);
+
+		screenshots.DeleteImagesWithIndex(a_index);
+		paintings.DeleteImagesWithIndex(a_index);
 	}
 }

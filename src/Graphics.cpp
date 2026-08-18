@@ -4,8 +4,6 @@ namespace Texture
 {
 	std::string Sanitize(std::string& a_path)
 	{
-		a_path = clib_util::string::tolower(a_path);
-
 		static const boost::regex slashPattern("/+|\\\\+");
 		static const boost::regex leadingSlashPattern("^\\\\+");
 		static const boost::regex texturesPattern(R"(.*?[^\s]textures\\|^textures\\)", boost::regex::icase);
@@ -169,7 +167,7 @@ namespace Texture
 
 		auto hr = DirectX::Compress(device.Get(), a_inputImage.GetImages(), 1, a_inputImage.GetMetadata(),
 			DXGI_FORMAT_BC7_UNORM,
-			DirectX::TEX_COMPRESS_BC7_QUICK,
+			DirectX::TEX_COMPRESS_BC7_QUICK | DirectX::TEX_COMPRESS_PARALLEL,
 			0.0f,
 			a_outputImage);
 		if (FAILED(hr)) {

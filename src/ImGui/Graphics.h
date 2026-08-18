@@ -10,9 +10,11 @@ namespace ImGui
 
 		virtual ~Texture();
 
-		virtual bool Load(bool a_resizeToScreenRes);
-		void         Unload();
-		bool         IsLoaded() const { return srView != nullptr; }
+		bool LoadImpl(float a_scale, const RE::BSGraphics::ScreenSize& a_size = {}, bool a_resetImage = true);
+		void Unload();
+		bool IsLoaded() const { return srView != nullptr; }
+
+		static RE::BSGraphics::ScreenSize GetPNGDimensions(const std::filesystem::path& a_path);
 
 		// members
 		std::wstring                           path{};

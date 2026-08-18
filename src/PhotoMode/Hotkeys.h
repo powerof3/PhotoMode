@@ -13,6 +13,7 @@ namespace PhotoMode::Hotkeys
 		void LoadHotKeys(const CSimpleIniA& a_ini);
 
 		void TogglePhotoMode(RE::InputEvent* const* a_event);
+		void ToggleGallery(RE::InputEvent* const* a_event);
 
 		std::uint32_t        ResetKey() const;
 		std::uint32_t        TakePhotoKey() const;
@@ -22,15 +23,23 @@ namespace PhotoMode::Hotkeys
 		std::uint32_t        FreezeTimeKey() const;
 		std::uint32_t        PanCameraKey() const;
 		static std::uint32_t EscapeKey();
+		std::uint32_t        GalleryEnlargeKey() const;
+		std::uint32_t        GalleryDeleteKey() const;
+		std::uint32_t        GalleryLoadScreenKey() const;
 
-		const IconFont::IconTexture* ResetIcon() const;
-		const IconFont::IconTexture* TakePhotoIcon() const;
-		const IconFont::IconTexture* ToggleMenusIcon() const;
-		const IconFont::IconTexture* NextTabIcon() const;
-		const IconFont::IconTexture* PreviousTabIcon() const;
-		const IconFont::IconTexture* FreezeTimeIcon() const;
-		const IconFont::IconTexture* PanCameraIcon() const;
+		const IconFont::IconTexture*        ResetIcon() const;
+		const IconFont::IconTexture*        TakePhotoIcon() const;
+		const IconFont::IconTexture*        ToggleMenusIcon() const;
+		const IconFont::IconTexture*        NextTabIcon() const;
+		const IconFont::IconTexture*        PreviousTabIcon() const;
+		const IconFont::IconTexture*        FreezeTimeIcon() const;
+		const IconFont::IconTexture*        PanCameraIcon() const;
+		static const IconFont::IconTexture* EscapeIcon();
+		const IconFont::IconTexture*        GalleryEnlargeIcon() const;
+		const IconFont::IconTexture*        GalleryDeleteIcon() const;
+		const IconFont::IconTexture*        GalleryLoadScreenIcon() const;
 
+		std::set<const IconFont::IconTexture*> ToggleGalleryIcons() const;
 		std::set<const IconFont::IconTexture*> TogglePhotoModeIcons() const;
 
 	private:
@@ -49,7 +58,7 @@ namespace PhotoMode::Hotkeys
 
 		struct KeyCombo
 		{
-			void LoadKeys(const CSimpleIniA& a_ini);
+			void LoadKeys(const CSimpleIniA& a_ini, std::string_view a_settingPrefix);
 
 			bool                    IsInvalid() const;
 			std::set<std::uint32_t> GetKeys() const;
@@ -73,6 +82,8 @@ namespace PhotoMode::Hotkeys
 			bool triggered{ false };
 		} togglePhotoMode;
 
+		KeyCombo toggleGallery;
+
 		Key nextTab;
 		Key previousTab;
 		Key takePhoto;
@@ -80,6 +91,9 @@ namespace PhotoMode::Hotkeys
 		Key reset;
 		Key freezeTime;
 		Key panCamera;
+		Key galleryEnlarge;
+		Key galleryDelete;
+		Key galleryLoadScreen;
 	};
 }
 namespace Hotkeys = PhotoMode::Hotkeys;

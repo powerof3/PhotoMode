@@ -29,7 +29,6 @@ namespace ImGui
 		void LoadStyles(CSimpleIniA& a_ini);
 
 		void OnStyleRefresh();
-		void RefreshStyle();
 
 	private:
 		void ConvertVec4StylesToU32();

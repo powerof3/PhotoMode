@@ -53,17 +53,14 @@ namespace PhotoMode::Favorites
 	const std::filesystem::path& Manager::GetPath() const
 	{
 		if (favoritesPath.empty()) {
-			if (auto directory = logger::log_directory()) {
-				directory->remove_filename();
-				*directory /= "Saves\\PhotoMode"sv;
+			auto directory = Shared::GetDocumentsFolder("Saves\\PhotoMode"sv);
 
-				std::error_code ec;
-				if (!std::filesystem::exists(*directory, ec)) {
-					std::filesystem::create_directories(*directory, ec);
-				}
-
-				favoritesPath = *directory / "Favorites.json";
+			std::error_code ec;
+			if (!std::filesystem::exists(directory, ec)) {
+				std::filesystem::create_directories(directory, ec);
 			}
+
+			favoritesPath = directory / "Favorites.json";
 		}
 		return favoritesPath;
 	}

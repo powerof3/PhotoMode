@@ -2,6 +2,7 @@
 #include "Hooks.h"
 #include "ImGui/Renderer.h"
 #include "Input.h"
+#include "MenuIntegration.h"
 #include "Papyrus.h"
 #include "PhotoMode/Favorites.h"
 #include "PhotoMode/Manager.h"
@@ -26,6 +27,7 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 
 			MANAGER(Input)->Register();
 			MANAGER(PhotoMode)->Register();
+			MANAGER(MenuIntegration)->Register();
 		}
 		break;
 	case SKSE::MessagingInterface::kDataLoaded:
@@ -111,7 +113,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 	logger::info("Game version : {}", a_skse->RuntimeVersion().string());
 
-	SKSE::AllocTrampoline(128);
+	SKSE::AllocTrampoline(150);
 
 	Settings::GetSingleton()->Load(FileType::kDisplayTweaks, [](auto& ini) {
 		ImGui::Renderer::LoadSettings(ini);  // display tweaks scaling

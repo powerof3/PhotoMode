@@ -19,23 +19,19 @@ namespace PhotoMode
 
 	Result<void> CameraPosition::SaveToFile(const std::filesystem::path& a_folder) const
 	{
-		std::error_code ec;
-		if (!std::filesystem::exists(a_folder, ec)) {
-			std::filesystem::create_directories(a_folder, ec);
-			if (ec) {
-				return Result<void>::Error(std::format("Failed to create camera positions directory '{}': {}", a_folder.string(), ec.message()));
-			}
+		if (auto result = Shared::GetOrCreateDirectory(a_folder); !result) {
+			return std::unexpected(std::format("Failed to create camera positions directory '{}': {}", a_folder.string(), result.error().message()));
 		}
-
+		
 		const std::filesystem::path filePath = a_folder / std::format("CameraPosition_{}.json", timestamp);
 
 		std::string buffer;
 		auto        glz_ec = glz::write_file_json(this, filePath.string(), buffer);
 		if (glz_ec) {
-			return Result<void>::Error(std::format("Failed to write camera position to file '{}': {}", filePath.string(), glz::format_error(glz_ec, buffer)));
+			return std::unexpected(std::format("Failed to write camera position to file '{}': {}", filePath.string(), glz::format_error(glz_ec, buffer)));
 		} else {
 			logger::debug("Saved camera position to: {}", filePath.string());
-			return Result<void>::Ok();
+			return {};
 		}
 	}
 
@@ -46,10 +42,10 @@ namespace PhotoMode
 		std::string buffer;
 		auto        glz_ec = glz::read_file_json(*this, filePath.string(), buffer);
 		if (glz_ec) {
-			return Result<void>::Error(std::format("Failed to load camera position file '{}': {}", filePath.string(), glz::format_error(glz_ec, buffer)));
+			return std::unexpected(std::format("Failed to load camera position file '{}': {}", filePath.string(), glz::format_error(glz_ec, buffer)));
 		} else {
 			logger::debug("Successfully loaded camera position from: {}", filePath.string());
-			return Result<void>::Ok();
+			return {};
 		}
 	}
 
@@ -59,9 +55,9 @@ namespace PhotoMode
 		std::error_code             ec;
 		if (std::filesystem::remove(filePath, ec)) {
 			logger::debug("Deleted camera position file: {}", filePath.string());
-			return Result<void>::Ok();
+			return {};
 		} else {
-			return Result<void>::Error(std::format("Failed to delete camera position file '{}': {}", filePath.string(), ec.message()));
+			return std::unexpected(std::format("Failed to delete camera position file '{}': {}", filePath.string(), ec.message()));
 		}
 	}
 
@@ -71,7 +67,7 @@ namespace PhotoMode
 
 		const auto pcCamera = RE::PlayerCamera::GetSingleton();
 		if (!pcCamera) {
-			return Result<void>::Error("Failed to apply camera position: PlayerCamera singleton is null");
+			return std::unexpected("Failed to apply camera position: PlayerCamera singleton is null");
 		}
 
 		if (!pcCamera->IsInFreeCameraMode()) {
@@ -102,11 +98,11 @@ namespace PhotoMode
 					}
 				}
 
-				return Result<void>::Ok();
+				return {};
 			}
 		}
 
-		return Result<void>::Error("Failed to apply camera position");
+		return std::unexpected("Failed to apply camera position");
 	}
 
 	void CameraPositions::Draw()
@@ -163,10 +159,10 @@ namespace PhotoMode
 				auto result = SaveCameraPositionEntry();
 				if (result) {
 					RefreshCameraPositions();
-					selectedPositionIndex = FindPositionIndexByTimestamp(result.value);
+					selectedPositionIndex = FindPositionIndexByTimestamp(result.value());
 					RE::PlaySound("UIMenuOK");
 				} else {
-					logger::error("Failed to save camera position: {}", result.error_message);
+					logger::error("Failed to save camera position: {}", result.error());
 				}
 			}
 
@@ -185,10 +181,10 @@ namespace PhotoMode
 	{
 		auto result = GetAvailableCameraPositionsList();
 		if (result) {
-			positions = result.value;
+			positions = result.value();
 			positionNames.clear();
 		} else {
-			logger::error("Failed to refresh camera positions: {}", result.error_message);
+			logger::error("Failed to refresh camera positions: {}", result.error());
 			positions.clear();
 			positionNames.clear();
 		}
@@ -222,7 +218,7 @@ namespace PhotoMode
 			if (result) {
 				RE::PlaySound("UIMenuOK");
 			} else {
-				logger::error("Failed to load camera position: {}", result.error_message);
+				logger::error("Failed to load camera position: {}", result.error());
 			}
 		}
 	}
@@ -236,7 +232,7 @@ namespace PhotoMode
 				selectedPositionIndex = -1;
 				RE::PlaySound("UIMenuCancel");
 			} else {
-				logger::error("Failed to delete camera position: {}", result.error_message);
+				logger::error("Failed to delete camera position: {}", result.error());
 			}
 		}
 	}
@@ -252,31 +248,31 @@ namespace PhotoMode
 
 		auto result = position.SaveToFile(GetCameraPositionsDirectory());
 		if (!result) {
-			return Result<std::string>::Error(result.error_message);
+			return std::unexpected(result.error());
 		}
 
 		logger::debug("Saved camera position {} to {}", position.timestamp, GetCameraPositionsDirectory().string());
-		return Result<std::string>::Ok(position.timestamp);
+		return position.timestamp;
 	}
 
 	Result<void> CameraPositions::LoadCameraPositionEntry(const CameraPosition& a_position)
 	{
 		auto result = a_position.ApplyToCamera();
 		if (!result) {
-			return Result<void>::Error(result.error_message);
+			return std::unexpected(result.error());
 		}
 		logger::debug("Loaded camera position {} from {}", a_position.name, GetCameraPositionsDirectory().string());
-		return Result<void>::Ok();
+		return {};
 	}
 
 	Result<void> CameraPositions::DeleteCameraPositionEntry(const CameraPosition& a_position)
 	{
 		auto result = a_position.DeleteFile(GetCameraPositionsDirectory());
 		if (!result) {
-			return Result<void>::Error(result.error_message);
+			return std::unexpected(result.error());
 		}
 		logger::debug("Deleted camera position {} from {}", a_position.name, GetCameraPositionsDirectory().string());
-		return Result<void>::Ok();
+		return {};
 	}
 
 	Result<std::vector<CameraPosition>> CameraPositions::GetAvailableCameraPositionsList() const
@@ -285,32 +281,29 @@ namespace PhotoMode
 
 		EnsureDirectoryInitialized();
 
+		auto cameraDir = GetCameraPositionsDirectory();
+
 		std::error_code ec;
-		if (!std::filesystem::exists(GetCameraPositionsDirectory(), ec)) {
-			return Result<std::vector<CameraPosition>>::Ok(positionList);
+		if (!std::filesystem::exists(cameraDir, ec)) {
+			return positionList;
 		}
 
-		for (const auto& entry : std::filesystem::directory_iterator(GetCameraPositionsDirectory())) {
-			if (entry.is_regular_file()) {
-				const auto& path = entry.path();
-				if (path.extension() == ".json") {
-					std::string    filename = path.filename().string();
-					CameraPosition position;
-					auto           result = position.LoadFromFile(filename, GetCameraPositionsDirectory());
-					if (result) {
-						positionList.push_back(position);
-					} else {
-						logger::warn("Failed to load camera position file {}: {}", filename, result.error_message);
-					}
-				}
+		Shared::ForEachFile(cameraDir, ".json"sv, [&](const auto& a_path) {
+			std::string    filename = a_path.filename().string();
+			CameraPosition position;
+			auto           result = position.LoadFromFile(filename, cameraDir);
+			if (result) {
+				positionList.push_back(std::move(position));
+			} else {
+				logger::warn("Failed to load camera position file {}: {}", filename, result.error());
 			}
-		}
-
+		});
+		
 		std::sort(positionList.begin(), positionList.end(), [](const CameraPosition& a, const CameraPosition& b) {
 			return a.timestamp > b.timestamp;
 		});
 
-		return Result<std::vector<CameraPosition>>::Ok(positionList);
+		return positionList;
 	}
 
 	CameraPosition CameraPositions::GetCurrentCameraPosition() const
@@ -354,23 +347,17 @@ namespace PhotoMode
 	{
 		EnsureDirectoryInitialized();
 
-		std::error_code ec;
-		if (!std::filesystem::exists(cameraPositionsDirectory, ec)) {
-			logger::debug("Camera positions directory does not exist, creating it... ({})", ec.message());
-			if (!std::filesystem::create_directories(cameraPositionsDirectory, ec)) {
-				logger::error("Failed to create camera positions directory: {}", ec.message());
-			}
+		if (auto result = Shared::GetOrCreateDirectory(cameraPositionsDirectory); !result) {
+			logger::error("Failed to create camera positions directory: {}", result.error().message());
 		}
 	}
 
 	void CameraPositions::EnsureDirectoryInitialized() const
 	{
 		if (cameraPositionsDirectory.empty()) {
-			if (auto directory = logger::log_directory()) {
-				directory->remove_filename();
-				*directory /= "Saves\\PhotoMode\\CameraPositions"sv;
-				logger::info("Camera positions directory: {}", directory->string());
-				cameraPositionsDirectory = *directory;
+			if (auto directory = Shared::GetDocumentsFolder("Saves\\PhotoMode\\CameraPositions"sv); !directory.empty()) {
+				logger::info("Camera positions directory: {}", directory.string());
+				cameraPositionsDirectory = directory;
 			}
 		}
 	}

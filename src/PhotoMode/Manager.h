@@ -12,15 +12,13 @@ namespace PhotoMode
 {
 	class Manager :
 		public REX::Singleton<Manager>,
-		public RE::BSTEventSink<RE::MenuOpenCloseEvent>,
-		public RE::BSTEventSink<SKSE::ModCallbackEvent>
+		public RE::BSTEventSink<RE::MenuOpenCloseEvent>
 	{
 	public:
 		void Register();
 		void LoadMCMSettings(const CSimpleIniA& a_ini);
 
-		bool IsValid();
-		bool GetValidControlMapContext();
+		bool CanShowMenu();
 
 		bool               ShouldBlockInput() const;
 		[[nodiscard]] bool IsActive() const;
@@ -42,8 +40,6 @@ namespace PhotoMode
 		[[nodiscard]] float GetViewRoll(float a_fallback) const;
 		[[nodiscard]] float GetViewRoll() const;
 		void                SetViewRoll(float a_value);
-
-		void TryOpenFromTweenMenu();
 
 		void Draw();
 		void DrawOverlays();
@@ -83,15 +79,15 @@ namespace PhotoMode
 			ICON_FA_IMAGE
 		};
 		static constexpr std::array tabResetNotifs = { "$PM_ResetNotifCamera", "$PM_ResetNotifTime", "$PM_ResetNotifPlayer", "$PM_ResetNotifFilters", "$PM_ResetNotifOverlays" };
-
-		static void        TogglePlayerControls(bool a_enable);
+		
+		static void TogglePlayerControls(bool a_enable);
+		
 		void               DrawControls();
 		void               DrawBar() const;
 		[[nodiscard]] bool SetupJournalMenu() const;
 		void               UpdateMouseHoveringOverWindow();
 
 		EventResult ProcessEvent(const RE::MenuOpenCloseEvent* a_evn, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
-		EventResult ProcessEvent(const SKSE::ModCallbackEvent* a_evn, RE::BSTEventSource<SKSE::ModCallbackEvent>*) override;
 
 		// members
 		bool activated{ false };
@@ -121,11 +117,6 @@ namespace PhotoMode
 		bool resetPlayerTabs{ true };
 		bool resetAll{ false };
 
-		bool improvedCameraInstalled{ false };
-		bool tweenMenuInstalled{ false };
-		bool skyrimSoulsInstalled{ false };
-		bool openFromTweenMenu{};
-
 		bool menusAlreadyHidden{ false };
 		bool allowTextInput{ false };
 
@@ -136,7 +127,6 @@ namespace PhotoMode
 
 		float freeCameraSpeed{ 4.0f };
 		bool  freezeTimeOnStart{ true };
-		bool  openFromPauseMenu{ true };
 
 		bool isCursorHoveringOverWindow{ false };
 

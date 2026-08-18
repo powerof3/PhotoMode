@@ -11,11 +11,7 @@ namespace IconFont
 
 		~IconTexture() override = default;
 
-		bool Load(bool a_resizeToScreenRes = false) override;
-		void Resize(float a_scale);
-
-		// members
-		ImVec2 imageSize{};
+		bool Load(float a_scale);
 	};
 
 	class Manager final : public REX::Singleton<Manager>
@@ -31,10 +27,12 @@ namespace IconFont
 		void LoadMCMSettings(const CSimpleIniA& a_ini);
 
 		void LoadIcons();
-		void ReloadFonts();
-		void ResizeIcons();
+		void LoadFonts();
 
-		ImFont* GetLargeFont() const;
+		float GetFontSize() const { return fontSize; }
+		float GetIconSize() const { return iconSize; }
+		float GetLargeFontSize() const { return largeFontSize; }
+		float GetLargeIconSize() const { return largeIconSize; }
 
 		const IconTexture* GetStepperLeft() const;
 		const IconTexture* GetStepperRight() const;
@@ -54,8 +52,7 @@ namespace IconFont
 			kPS4
 		};
 
-		void    LoadFontSettings(CSimpleIniA& a_ini);
-		ImFont* LoadFontIconSet(float a_fontSize, float a_iconSize, const ImVector<ImWchar>& a_ranges) const;
+		void LoadFontSettings(CSimpleIniA& a_ini);
 
 		// members
 		bool loadedFonts{ false };
@@ -65,8 +62,6 @@ namespace IconFont
 		float       iconSize{ 20 };
 		float       largeFontSize{ 30 };
 		float       largeIconSize{ 24 };
-
-		ImFont* largeFont{ nullptr };
 
 		IconTexture stepperLeft{ L"StepperLeft"sv };
 		IconTexture stepperRight{ L"StepperRight"sv };
@@ -221,4 +216,18 @@ namespace ImGui
 
 	void ButtonIconWithLabel(const char* a_text, const IconFont::IconTexture* a_texture, bool a_centerIcon);
 	void ButtonIconWithLabel(const char* a_text, const std::set<const IconFont::IconTexture*>& a_texture, bool a_centerIcon);
+
+	void CalcButtonWidth(float& a_width, const IconFont::IconTexture* a_texture, const char* a_textLabel, bool a_sameLine = true);
+
+	struct ButtonBarItem
+	{
+		const IconFont::IconTexture* icon;
+		const char*                  label;
+		bool                         conditional{ true };
+		bool                         disabled{ false };
+	};
+
+	float PrecalcButtonBarWidth(std::span<const ButtonBarItem> a_items);
+	void  ButtonBar(std::span<const ButtonBarItem> a_items, float a_itemsWidth, float a_alignment);
+	void  ButtonBar(std::span<const ButtonBarItem> a_items, float a_alignment = 0.5f);
 }

@@ -35,10 +35,10 @@ namespace ImGui
 		}
 	}
 
-	void ExtendWindowPastBorder()
+	void ExtendWindowPastBorder(const char* a_rootWindow)
 	{
 		const ImGuiWindow* window = GetCurrentWindowRead();
-		const ImGuiWindow* rootWindow = FindWindowByName("##Main");
+		const ImGuiWindow* rootWindow = FindWindowByName(a_rootWindow);
 
 		const auto borderSize = window->WindowBorderSize;
 		const auto newWindowPos = ImVec2{ window->Pos.x - borderSize, window->Pos.y - borderSize };
@@ -160,6 +160,22 @@ namespace ImGui
 			g.NavId = 0;
 			g.NavCursorVisible = false;
 			SetWindowFocus(nullptr);
+		}
+	}
+
+	void ClearImGuiState()
+	{
+		if (GetCurrentContext()) {
+			auto& io = GetIO();
+			io.ClearEventsQueue();
+			io.ClearInputKeys();
+			io.ClearInputMouse();
+
+			ImGuiContext& g = *GImGui;
+			ClearActiveID();
+			g.OpenPopupStack.clear();
+			g.NavId = 0;
+			FocusWindow(nullptr);
 		}
 	}
 

@@ -1,37 +1,7 @@
 #pragma once
 
-// Simple Result type for consistent error handling
 template <typename T>
-struct Result
-{
-	bool        success;
-	T           value;
-	std::string error_message;
-
-	Result(bool s, T v, std::string msg = "") :
-		success(s), value(v), error_message(msg) {}
-
-	static Result<T> Ok(T v) { return Result(true, v); }
-	static Result<T> Error(std::string msg) { return Result(false, T{}, msg); }
-
-	explicit operator bool() const { return success; }
-};
-
-// Specialization for void
-template <>
-struct Result<void>
-{
-	bool        success;
-	std::string error_message;
-
-	Result(bool s, std::string msg = "") :
-		success(s), error_message(msg) {}
-
-	static Result<void> Ok() { return Result(true); }
-	static Result<void> Error(std::string msg) { return Result(false, msg); }
-
-	explicit operator bool() const { return success; }
-};
+using Result = std::expected<T, std::string>;
 
 namespace PhotoMode
 {

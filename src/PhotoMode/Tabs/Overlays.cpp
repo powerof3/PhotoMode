@@ -93,7 +93,8 @@ namespace PhotoMode
 		}
 
 		if (newOverlay && !newOverlay->IsLoaded()) {
-			newOverlay->Load(true);
+			static const auto screenSize = RE::BSGraphics::Renderer::GetScreenSize();
+			newOverlay->LoadImpl(1.0f, screenSize, false);
 		}
 
 		return newOverlay;

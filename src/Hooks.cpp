@@ -5,6 +5,7 @@
 #include "PhotoMode/Manager.h"
 #include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
+#include "Gallery/Manager.h"
 
 namespace PhotoMode
 {
@@ -148,9 +149,34 @@ namespace LoadScreen
 	}
 }
 
+namespace Gallery
+{
+	struct ProcessInputQueue
+	{
+		static void thunk(RE::BSTEventSource<RE::InputEvent*>* a_dispatcher, RE::InputEvent* const* a_events)
+		{
+			if (a_events && MANAGER(Gallery)->IsActive()) {
+				MANAGER(Input)->ProcessGalleryEvents(a_events);
+				constexpr RE::InputEvent* const dummy[] = { nullptr };
+				func(a_dispatcher, dummy);
+			} else {
+				func(a_dispatcher, a_events);
+			}
+		}
+		static inline REL::Relocation<decltype(thunk)> func;
+	};
+
+	void InstallHooks()
+	{
+		REL::Relocation<std::uintptr_t> inputUnk(RELOCATION_ID(67315, 68617), OFFSET(0x7B, 0x7B));
+		stl::write_thunk_call<ProcessInputQueue>(inputUnk.address());
+	}
+}
+
 void Hooks::Install()
 {
 	PhotoMode::InstallHooks();
 	Screenshot::InstallHooks();
 	LoadScreen::InstallHooks();
+	Gallery::InstallHooks();
 }

@@ -2,6 +2,7 @@
 #include "IconsFonts.h"
 #include "Styles.h"
 
+#include "Gallery/Manager.h"
 #include "PhotoMode/Manager.h"
 
 namespace ImGui::Renderer
@@ -71,7 +72,7 @@ namespace ImGui::Renderer
 					return;
 				}
 
-				MANAGER(IconFont)->LoadIcons();
+				ImGui::Styles::GetSingleton()->OnStyleRefresh();
 
 				logger::info("ImGui initialized.");
 
@@ -101,18 +102,18 @@ namespace ImGui::Renderer
 			}
 
 			const auto photoMode = MANAGER(PhotoMode);
+			const auto gallery = MANAGER(Gallery);
 
-			if (!photoMode->IsActive() || !photoMode->OnFrameUpdate()) {
+			const bool photoModeActive = photoMode->IsActive() && photoMode->OnFrameUpdate();
+			const bool galleryActive = gallery->IsActive() && gallery->OnFrameUpdate();
+
+			if (!photoModeActive && !galleryActive) {
 				return func(a_menu);
 			}
-
-			// refresh style
-			ImGui::Styles::GetSingleton()->OnStyleRefresh();
 
 			ImGui_ImplDX11_NewFrame();
 			SKSE::ImGui_ImplWin32_NewFrame();
 			{
-				// trick imgui into rendering at game's real resolution (ie. if upscaled with Display Tweaks)
 				static const auto screenSize = RE::BSGraphics::Renderer::GetScreenSize();
 
 				auto& io = ImGui::GetIO();
@@ -121,10 +122,13 @@ namespace ImGui::Renderer
 			}
 			ImGui::NewFrame();
 			{
-				// disable windowing
 				GImGui->NavWindowingTarget = nullptr;
 
-				photoMode->Draw();
+				if (photoModeActive) {
+					photoMode->Draw();
+				} else {
+					gallery->Draw();
+				}
 			}
 			ImGui::EndFrame();
 			ImGui::Render();
@@ -148,7 +152,7 @@ namespace ImGui::Renderer
 			}
 
 			const auto photoMode = MANAGER(PhotoMode);
-			if (!photoMode->IsActive() || !photoMode->IsHidden() || !photoMode->HasOverlay()) {
+			if (!(photoMode->IsActive() && photoMode->IsHidden() && photoMode->HasOverlay())) {
 				return;
 			}
 
@@ -166,7 +170,6 @@ namespace ImGui::Renderer
 			{
 				// disable windowing
 				GImGui->NavWindowingTarget = nullptr;
-
 				photoMode->DrawOverlays();
 			}
 			ImGui::EndFrame();

@@ -1,11 +1,13 @@
 #include "Manager.h"
 
+#include "Gallery/Manager.h"
 #include "Hotkeys.h"
 #include "IGCSBridge/Bridge.h"  // IGCSDOF lifecycle + per-frame camera feed
 #include "ImGui/IconsFonts.h"
 #include "ImGui/Styles.h"
 #include "ImGui/Widgets.h"
 #include "Screenshots/Manager.h"
+#include "Shared.h"
 
 #include "Input.h"
 
@@ -13,70 +15,36 @@ namespace PhotoMode
 {
 	void Manager::Register()
 	{
-		tweenMenuInstalled = GetModuleHandle(L"TweenMenuOverhaul") != nullptr;
-		improvedCameraInstalled = GetModuleHandle(L"ImprovedCameraSE.dll") != nullptr;
-		skyrimSoulsInstalled = GetModuleHandle(L"SkyrimSoulsRE.dll") != nullptr;
-
 		RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(this);
 		logger::info("Registered for menu open/close event");
-
-		if (tweenMenuInstalled) {
-			SKSE::GetModCallbackEventSource()->AddEventSink(this);
-			logger::info("Registered for mod callback event");
-		}
 	}
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
 		freeCameraSpeed = static_cast<float>(a_ini.GetDoubleValue("Settings", "fFreeCameraTranslationSpeed", freeCameraSpeed));
 		freezeTimeOnStart = a_ini.GetBoolValue("Settings", "bFreezeTimeOnStart", freezeTimeOnStart);
-		openFromPauseMenu = a_ini.GetBoolValue("Settings", "bOpenFromPauseMenu", openFromPauseMenu);
 	}
 
-	bool Manager::IsValid()
+	bool Manager::CanShowMenu()
 	{
-		static constexpr std::array badMenus{
-			RE::MainMenu::MENU_NAME,
-			RE::MistMenu::MENU_NAME,
-			RE::LoadingMenu::MENU_NAME,
-			RE::FaderMenu::MENU_NAME,
-			"LootMenu"sv,
-			"CustomMenu"sv
-		};
-
-		const auto UI = RE::UI::GetSingleton();
-		if (!UI || std::ranges::any_of(badMenus, [&](const auto& menuName) { return UI->IsMenuOpen(menuName); })) {
+		if (!Shared::CanShowMenu()) {
 			return false;
 		}
 
-		if (!GetValidControlMapContext() || RE::MenuControls::GetSingleton()->InBeastForm() || RE::VATS::GetSingleton()->mode == RE::VATS::VATS_MODE::kKillCam) {
+		if (RE::MenuControls::GetSingleton()->InBeastForm() || RE::VATS::GetSingleton()->mode == RE::VATS::VATS_MODE::kKillCam) {
+			return false;
+		}
+
+		if (MANAGER(Gallery)->IsActive()) {
 			return false;
 		}
 
 		return true;
 	}
 
-	bool Manager::GetValidControlMapContext()
-	{
-		const auto* controlMap = RE::ControlMap::GetSingleton();
-		if (!controlMap) {
-			return false;
-		}
-
-		switch (controlMap->contextPriorityStack.back()) {
-		case RE::UserEvents::INPUT_CONTEXT_ID::kGameplay:
-		case RE::UserEvents::INPUT_CONTEXT_ID::kTFCMode:
-		case RE::UserEvents::INPUT_CONTEXT_ID::kConsole:
-		case RE::UserEvents::INPUT_CONTEXT_ID::kCursor:
-			return true;
-		default:
-			return false;
-		}
-	}
-
 	bool Manager::ShouldBlockInput() const
 	{
-		return blockInputToPhotoMode;
+		return blockInputToPhotoMode || MANAGER(Gallery)->IsActive();
 	}
 
 	bool Manager::IsActive() const
@@ -145,9 +113,6 @@ namespace PhotoMode
 		// keybindings can change?
 		MANAGER(Input)->LoadDefaultKeys();
 
-		// refresh style
-		ImGui::Styles::GetSingleton()->RefreshStyle();
-
 		activated = true;
 		// IGCSDOF: expose the native Photo Mode camera only while Photo Mode is active.
 		IGCSBridge::Bridge::GetSingleton()->OnPhotoModeActivated();
@@ -171,7 +136,7 @@ namespace PhotoMode
 
 	bool Manager::OnFrameUpdate()
 	{
-		if (!IsValid()) {
+		if (!CanShowMenu()) {
 			Deactivate();
 			return false;
 		}
@@ -225,18 +190,7 @@ namespace PhotoMode
 		RE::PlayerCharacter::GetSingleton()->byCharGenFlag.reset(RE::PlayerCharacter::ByCharGenFlag::kDisableSaving);
 
 		// reset variables
-		if (ImGui::GetCurrentContext()) {
-			auto& io = ImGui::GetIO();
-			io.ClearEventsQueue();
-			io.ClearInputKeys();
-			io.ClearInputMouse();
-
-			ImGuiContext& g = *GImGui;
-			ImGui::ClearActiveID();
-			g.OpenPopupStack.clear();
-			g.NavId = 0;
-			ImGui::FocusWindow(nullptr);
-		}
+		ImGui::ClearImGuiState();
 
 		hiddenUI = false;
 
@@ -260,7 +214,7 @@ namespace PhotoMode
 	void Manager::ToggleActive()
 	{
 		if (!IsActive()) {
-			if (IsValid() && !ShouldBlockInput()) {
+			if (CanShowMenu() && !ShouldBlockInput()) {
 				Activate();
 			}
 		} else {
@@ -375,16 +329,6 @@ namespace PhotoMode
 		cameraTab.SetViewRoll(a_value);
 	}
 
-	void Manager::TryOpenFromTweenMenu()
-	{
-		if (openFromTweenMenu) {
-			SKSE::GetTaskInterface()->AddTask([this]() {
-				this->Activate();
-				this->openFromTweenMenu = false;
-			});
-		}
-	}
-
 	void Manager::OnDataLoad()
 	{
 		overlaysTab.LoadOverlays();
@@ -413,6 +357,7 @@ namespace PhotoMode
 			if (!IsHidden()) {
 				overlaysTab.DrawOverlays();
 				CameraGrid::Draw();
+
 				DrawBar();
 				DrawControls();
 			}
@@ -482,7 +427,7 @@ namespace PhotoMode
 						if (!activeTab) {
 							ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 						} else {
-							ImGui::PushFont(MANAGER(IconFont)->GetLargeFont());
+							ImGui::PushFont(nullptr, MANAGER(IconFont)->GetLargeIconSize());
 						}
 						ImGui::Button(tabIcons[i], ImVec2(tabWidth, ImGui::GetFrameHeightWithSpacing()));
 						if (ImGui::IsItemClicked() && currentTab != i) {
@@ -613,8 +558,6 @@ namespace PhotoMode
 
 		ImGui::SetNextWindowPos(ImVec2(center.x, size.y - offsetY), ImGuiCond_Always, ImVec2(0.5, 0.5));
 
-		bool canNavigateWithMouse = MANAGER(Input)->CanNavigateWithMouse();
-
 		ImGui::Begin("##Bar", nullptr, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize);  // same offset as control window
 		{
 			ImGui::ExtendWindowPastBorder();
@@ -625,160 +568,17 @@ namespace PhotoMode
 			const static auto freezeTimeLabel = "$PM_FREEZETIME"_T;
 			const static auto panCameraLabel = "$PM_PAN_CAMERA"_T;
 
-			const auto& takePhotoIcon = MANAGER(Hotkeys)->TakePhotoIcon();
-			const auto& toggleMenusIcon = MANAGER(Hotkeys)->ToggleMenusIcon();
-			const auto& resetIcon = MANAGER(Hotkeys)->ResetIcon();
-			const auto& freezeTimeIcon = MANAGER(Hotkeys)->FreezeTimeIcon();
-			const auto& panCameraIcon = MANAGER(Hotkeys)->PanCameraIcon();
-
-			// const static auto togglePMLabel = "$PM_EXIT"_T;
-			// const auto& togglePMIcons = MANAGER(Hotkeys)->TogglePhotoModeIcons();
-
-			// calc total elements width
-			const ImGuiStyle& style = ImGui::GetStyle();
-
-			float width = 0.0f;
-
-			const auto calc_width = [&](const IconFont::IconTexture* a_icon, const char* a_textLabel, bool a_sameLine = true) {
-				width += a_icon->size.x;
-				width += style.ItemSpacing.x;
-				width += ImGui::CalcTextSize(a_textLabel).x;
-				if (a_sameLine) {
-					width += style.ItemSpacing.x;
-				}
+			const ImGui::ButtonBarItem items[] = {
+				{ MANAGER(Hotkeys)->PanCameraIcon(), panCameraLabel, MANAGER(Input)->CanNavigateWithMouse() },
+				{ MANAGER(Hotkeys)->TakePhotoIcon(), takePhotoLabel },
+				{ MANAGER(Hotkeys)->ToggleMenusIcon(), toggleMenusLabel },
+				{ MANAGER(Hotkeys)->FreezeTimeIcon(), freezeTimeLabel },
+				{ MANAGER(Hotkeys)->ResetIcon(), resetLabel },
 			};
 
-			if (canNavigateWithMouse) {
-				calc_width(panCameraIcon, panCameraLabel);
-			}
-			calc_width(takePhotoIcon, takePhotoLabel);
-			calc_width(toggleMenusIcon, toggleMenusLabel);
-			calc_width(freezeTimeIcon, freezeTimeLabel);
-			calc_width(resetIcon, resetLabel, false);
-
-			/*for (const auto& icon : togglePMIcons) {
-				width += icon->size.x;
-			}
-			width += style.ItemSpacing.x;
-			width += ImGui::CalcTextSize(togglePMLabel).x;*/
-
-			// align at center
-			ImGui::AlignForWidth(width);
-
-			// draw
-			constexpr auto draw_button = [](const IconFont::IconTexture* a_icon, const char* a_textLabel, bool a_sameLine = true) {
-				ImGui::ButtonIconWithLabel(a_textLabel, a_icon, true);
-				if (a_sameLine) {
-					ImGui::SameLine();
-				}
-			};
-
-			if (canNavigateWithMouse) {
-				draw_button(panCameraIcon, panCameraLabel);
-			}
-			draw_button(takePhotoIcon, takePhotoLabel);
-			draw_button(toggleMenusIcon, toggleMenusLabel);
-			draw_button(freezeTimeIcon, freezeTimeLabel);
-			draw_button(resetIcon, resetLabel, false);
-
-			// ImGui::ButtonIconWithLabel(togglePMLabel, togglePMIcons, true);
+			ImGui::ButtonBar(items);
 		}
 		ImGui::End();
-	}
-
-	bool Manager::SetupJournalMenu() const
-	{
-		const auto menu = RE::UI::GetSingleton()->GetMenu<RE::JournalMenu>(RE::JournalMenu::MENU_NAME);
-		const auto view = menu ? menu->systemTab.view : nullptr;
-
-		RE::GFxValue page;
-		if (!view || !view->GetVariable(&page, "_root.QuestJournalFader.Menu_mc.SystemFader.Page_mc")) {
-			return false;
-		}
-
-		// in case someone packed the files into a BSA
-		static bool dearDiaryExists = RE::BSResourceNiBinaryStream(R"(interface\deardiary_dm\config.txt)").good() || RE::BSResourceNiBinaryStream(R"(interface\deardiary\config.txt)").good();
-
-		// Dear Diary SetShowMod function is broken af, need to do it manually
-		if (dearDiaryExists) {
-			RE::GFxValue categoryList;
-			if (page.GetMember("CategoryList", &categoryList)) {
-				RE::GFxValue entryList;
-				if (categoryList.GetMember("entryList", &entryList)) {
-					std::vector<std::string> elements;
-
-					entryList.VisitMembers([&](const char*, const RE::GFxValue& a_value) {
-						RE::GFxValue textVal;
-						a_value.GetMember("text", &textVal);
-						elements.push_back(textVal.GetString());
-					});
-
-					RE::GFxValue showModMenu;
-					if (page.GetMember("_showModMenu", &showModMenu) && !showModMenu.GetBool()) {
-						page.SetMember("_showModMenu", true);
-					} else {
-						std::erase(elements, "$MOD MANAGER");
-					}
-
-					auto index = std::ranges::contains(elements, "$QUICKSAVE") ? 3 : 2;
-					elements.insert(elements.begin() + index, "$PM_Title_Menu");
-
-					entryList.ClearElements();
-					for (auto& element : elements) {
-						RE::GFxValue entry;
-						view->CreateObject(&entry);
-						entry.SetMember("text", element.c_str());
-						entryList.PushBack(entry);
-					}
-
-					categoryList.Invoke("InvalidateData");
-
-					return true;
-				}
-			}
-
-		} else {
-			RE::GFxValue showModMenu;
-			if (page.GetMember("_showModMenu", &showModMenu) && !showModMenu.GetBool()) {
-				std::array<RE::GFxValue, 1> args;
-				args[0] = true;
-				if (!page.Invoke("SetShowMod", nullptr, args.data(), args.size())) {
-					return false;
-				}
-			}
-
-			RE::GFxValue categoryList;
-			if (page.GetMember("CategoryList", &categoryList)) {
-				RE::GFxValue entryList;
-				if (categoryList.GetMember("entryList", &entryList)) {
-					std::optional<std::uint32_t> modMenuIndex = std::nullopt;
-
-					std::uint32_t index = 0;
-					std::string   text;
-					entryList.VisitMembers([&](const char*, const RE::GFxValue& a_value) {
-						RE::GFxValue textVal;
-						a_value.GetMember("text", &textVal);
-						if (text = textVal.GetString(); text == "$MOD MANAGER") {
-							modMenuIndex = index;
-						}
-						index++;
-					});
-
-					if (modMenuIndex) {
-						RE::GFxValue entry;
-						view->CreateObject(&entry);
-						entry.SetMember("text", "$PM_Title_Menu");
-
-						entryList.SetElement(*modMenuIndex, entry);
-						categoryList.Invoke("InvalidateData");
-
-						return true;
-					}
-				}
-			}
-		}
-
-		return false;
 	}
 
 	void Manager::UpdateMouseHoveringOverWindow()
@@ -810,40 +610,9 @@ namespace PhotoMode
 			} else if (IsActive() && MANAGER(Input)->DoNavigateWithMouse()) {
 				Input::Manager::ToggleCursor(true);
 			}
-		} else if (a_evn->menuName == RE::TweenMenu::MENU_NAME) {
-			if (!a_evn->opening) {
-				TryOpenFromTweenMenu();
-			}
-		} else if (a_evn->opening) {
-			if (a_evn->menuName == RE::JournalMenu::MENU_NAME) {
-				if (openFromPauseMenu) {
-					openFromPauseMenu = SetupJournalMenu();
-				}
-			} else if (a_evn->menuName == RE::ModManagerMenu::MENU_NAME) {
-				if (RE::UI::GetSingleton()->IsMenuOpen(RE::JournalMenu::MENU_NAME) && openFromPauseMenu) {
-					const auto msgQueue = RE::UIMessageQueue::GetSingleton();
-
-					msgQueue->AddMessage(RE::ModManagerMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
-					msgQueue->AddMessage(RE::JournalMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
-
-					Activate();
-				}
-			}
-		}
-
-		return EventResult::kContinue;
-	}
-
-	EventResult Manager::ProcessEvent(const SKSE::ModCallbackEvent* a_evn, RE::BSTEventSource<SKSE::ModCallbackEvent>*)
-	{
-		if (a_evn && a_evn->eventName == "OpenTween_PhotoMode") {
-			openFromTweenMenu = true;
-			if (skyrimSoulsInstalled) {
-				Activate();
-				openFromTweenMenu = false;
-			}
 		}
 
 		return EventResult::kContinue;
 	}
 }
+

@@ -1,5 +1,6 @@
 set(sources ${sources}
 	src/Console.cpp
+	src/Gallery/Manager.cpp
 	src/Graphics.cpp
 	src/Hooks.cpp
 	src/IGCSBridge/Bridge.cpp
@@ -11,6 +12,7 @@ set(sources ${sources}
 	src/ImGui/Util.cpp
 	src/ImGui/Widgets.cpp
 	src/Input.cpp
+	src/MenuIntegration.cpp
 	src/PCH.cpp
 	src/Papyrus.cpp
 	src/PhotoMode/Favorites.cpp

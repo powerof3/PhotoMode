@@ -1,5 +1,6 @@
 #include "Input.h"
 
+#include "Gallery/Manager.h"
 #include "PhotoMode/Hotkeys.h"
 #include "PhotoMode/Manager.h"
 #include "Screenshots/Manager.h"
@@ -23,7 +24,7 @@ namespace Input
 
 	bool Manager::CanNavigateWithMouse() const
 	{
-		return IsInputKBM() && DoNavigateWithMouse();
+		return IsInputKBM() && (DoNavigateWithMouse() || MANAGER(Gallery)->IsActive());
 	}
 
 	void Manager::ResetInputDevices()
@@ -588,133 +589,288 @@ namespace Input
 															   nullptr); });
 	}
 
+	void Manager::ProcessGalleryEvents(RE::InputEvent* const* a_evn)
+	{
+		if (!a_evn || !*a_evn || !RE::Main::GetSingleton()->gameActive) {
+			return;
+		}
+
+		const auto gallery = MANAGER(Gallery);
+
+		if (!gallery->IsActive()) {
+			return;
+		}
+
+		const auto hotKeys = MANAGER(PhotoMode::Hotkeys);
+
+		auto cursorMenu = RE::UI::GetSingleton()->GetMenu<RE::CursorMenu>();
+
+		using namespace SKSE::InputMap;
+
+		for (auto event = *a_evn; event; event = event->next) {
+			if (!SetInputDevice(event->GetDevice())) {
+				continue;
+			}
+
+			auto& io = ImGui::GetIO();
+
+			if (lastInputDevice == DEVICE::kNone || inputDevice == DEVICE::kNone || lastInputDevice != inputDevice) {
+				io.ConfigFlags &= ~(ImGuiConfigFlags_NavEnableGamepad | ImGuiConfigFlags_NavEnableKeyboard);
+
+				if (IsInputGamepad()) {
+					ToggleCursor(false);
+					cursorInit = false;
+				} else if (IsInputKBM()) {
+					ToggleCursor(true);
+					cursorInit = true;
+				}
+			}
+
+			// process inputs
+			if (auto mouseEvent = event->AsMouseMoveEvent()) {
+				// pass in mouse pos to cursor menu, since we're blocking the main input queue
+				if (cursorMenu) {
+					cursorMenu->ProcessMouseMove(mouseEvent);
+				}
+			} else if (const auto thumbstickEvent = event->AsThumbstickEvent()) {
+				if (thumbstickEvent->IsLeft()) {
+					NavigateGridController(thumbstickEvent->xValue, thumbstickEvent->yValue);
+				}
+			} /*else if (const auto charEvent = event->AsCharEvent()) {
+				 if (!io.KeyCtrl) {
+					io.AddInputCharacter(charEvent->keyCode);
+				}
+			}*/
+			else if (const auto buttonEvent = event->AsButtonEvent()) {
+				const auto key = buttonEvent->GetIDCode();
+				auto       hotKey = key;
+
+				if (!GetHotKey(event->GetDevice(), hotKey)) {
+					continue;
+				}
+
+				if (!io.WantTextInput) {
+					if (hotKey == hotKeys->EscapeKey() || hotKey == KEY::kTab) {
+						if (buttonEvent->IsDown()) {
+							gallery->GoBack();
+						}
+					} else if (hotKey == hotKeys->GalleryEnlargeKey() || hotKey == KEY::kEnter || hotKey == kGamepadButtonOffset_A) {
+						if (buttonEvent->IsDown()) {
+							gallery->ToggleEnlarge();
+						}
+					} else if (hotKey == hotKeys->GalleryDeleteKey() || hotKey == KEY::kDelete) {
+						if (buttonEvent->IsDown()) {
+							gallery->RequestDelete();
+						}
+					} else if (hotKey == hotKeys->GalleryLoadScreenKey() && buttonEvent->IsDown()) {
+						gallery->ToggleLoadScreenForSelected();
+					} else if (hotKey == hotKeys->ToggleMenusKey() && buttonEvent->IsDown()) {
+						gallery->ToggleUI();
+					} else {
+						const auto nav = [&](std::int32_t a_dx, std::int32_t a_dy) {
+							if (buttonEvent->IsPressed()) {
+								NavigateGrid(a_dx, a_dy);
+							} else if (buttonEvent->IsUp()) {
+								NavigateGrid(0, 0);
+							}
+						};
+
+						if (hotKey == KEY::kUp || hotKey == SKSE::InputMap::kGamepadButtonOffset_DPAD_UP) {
+							nav(0, -1);
+						} else if (hotKey == KEY::kDown || hotKey == SKSE::InputMap::kGamepadButtonOffset_DPAD_DOWN) {
+							nav(0, +1);
+						} else if (hotKey == KEY::kLeft || hotKey == SKSE::InputMap::kGamepadButtonOffset_DPAD_LEFT) {
+							nav(-1, 0);
+						} else if (hotKey == KEY::kRight || hotKey == SKSE::InputMap::kGamepadButtonOffset_DPAD_RIGHT) {
+							nav(+1, 0);
+						}
+					}
+				}
+
+				if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {
+					io.AddKeyEvent(ImGuiKey_Tab, buttonEvent->IsDown());
+				} else {
+					SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
+				}
+
+				if (buttonEvent->QUserEvent() == RE::UserEvents::GetSingleton()->screenshot) {
+					if (buttonEvent->IsDown()) {
+						RE::MenuControls::GetSingleton()->QueueScreenshot();
+					}
+				}
+			}
+		}
+
+		hotKeys->ToggleGallery(a_evn);
+	}
+
 	EventResult Manager::ProcessEvent(RE::InputEvent* const* a_evn, RE::BSTEventSource<RE::InputEvent*>*)
 	{
-		if (!a_evn || !RE::Main::GetSingleton()->gameActive) {
+		if (!a_evn || !*a_evn || !RE::Main::GetSingleton()->gameActive) {
 			return EventResult::kContinue;
 		}
 
 		const auto photoMode = MANAGER(PhotoMode);
+		const auto gallery = MANAGER(Gallery);
 		const auto hotKeys = MANAGER(PhotoMode::Hotkeys);
 
-		hotKeys->TogglePhotoMode(a_evn);
+		hotKeys->ToggleGallery(a_evn);
+		if (gallery->IsActive()) {
+			return EventResult::kContinue;
+		}
 
-		if (photoMode->IsActive()) {
-			if (photoMode->ShouldBlockInput()) {
-				return EventResult::kContinue;
+		hotKeys->TogglePhotoMode(a_evn);
+		if (!photoMode->IsActive() || photoMode->ShouldBlockInput()) {
+			return EventResult::kContinue;
+		}
+
+		bool cursorMenuOpen = RE::UI::GetSingleton()->IsMenuOpen(RE::CursorMenu::MENU_NAME);
+		bool cursorOverWindow = cursorInit && MANAGER(PhotoMode)->IsCursorHoveringOverWindow();
+
+		for (auto event = *a_evn; event; event = event->next) {
+			if (!SetInputDevice(event->GetDevice())) {
+				continue;
 			}
 
-			bool cursorMenuOpen = RE::UI::GetSingleton()->IsMenuOpen(RE::CursorMenu::MENU_NAME);
-			bool cursorOverWindow = cursorInit && MANAGER(PhotoMode)->IsCursorHoveringOverWindow();
+			auto& io = ImGui::GetIO();
 
-			for (auto event = *a_evn; event; event = event->next) {
-				if (!SetInputDevice(event->GetDevice())) {
+			if (lastInputDevice == DEVICE::kNone || inputDevice == DEVICE::kNone || lastInputDevice != inputDevice) {
+				io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
+				io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
+
+				if (IsInputGamepad()) {
+					io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+					io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;  // unused flag to force ImGui to update gamepad input from backend
+				} else {
+					if (IsInputKBM() && !DoNavigateWithMouse()) {
+						io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+					}
+				}
+			}
+
+			bool canNavigateWithMouse = CanNavigateWithMouse();
+
+			if (canNavigateWithMouse && (!cursorInit || (!cursorMenuOpen && !panCamera))) {
+				ToggleCursor(true);
+				cursorInit = true;
+				MANAGER(PhotoMode)->UpdateKeyboardFocus();
+			} else if (IsInputGamepad() && (cursorInit || cursorMenuOpen)) {
+				ToggleCursor(false);
+				cursorInit = false;
+				MANAGER(PhotoMode)->UpdateKeyboardFocus();
+			}
+
+			// process inputs
+			if (const auto charEvent = event->AsCharEvent()) {
+				if (!io.KeyCtrl) {
+					io.AddInputCharacter(charEvent->keyCode);
+				}
+			} else if (const auto buttonEvent = event->AsButtonEvent()) {
+				const auto key = buttonEvent->GetIDCode();
+				auto       hotKey = key;
+
+				if (!GetHotKey(event->GetDevice(), hotKey) || (IsInputGamepad() || !cursorOverWindow) && TiltCamera(buttonEvent, hotKey)) {
 					continue;
 				}
 
-				auto& io = ImGui::GetIO();
-
-				if (lastInputDevice == DEVICE::kNone || inputDevice == DEVICE::kNone || lastInputDevice != inputDevice) {
-					io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
-					io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
-
-					if (IsInputGamepad()) {
-						io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-						io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;  // unused flag to force ImGui to update gamepad input from backend
-					} else {
-						if (IsInputKBM() && !DoNavigateWithMouse()) {
-							io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-						}
-					}
-				}
-
-				bool canNavigateWithMouse = CanNavigateWithMouse();
-
-				if (canNavigateWithMouse && (!cursorInit || (!cursorMenuOpen && !panCamera))) {
-					ToggleCursor(true);
-					cursorInit = true;
-					MANAGER(PhotoMode)->UpdateKeyboardFocus();
-				} else if (IsInputGamepad() && (cursorInit || cursorMenuOpen)) {
-					ToggleCursor(false);
-					cursorInit = false;
-					MANAGER(PhotoMode)->UpdateKeyboardFocus();
-				}
-
-				// process inputs
-				if (const auto charEvent = event->AsCharEvent()) {
-					if (!io.KeyCtrl) {
-						io.AddInputCharacter(charEvent->keyCode);
-					}
-				} else if (const auto buttonEvent = event->AsButtonEvent()) {
-					const auto key = buttonEvent->GetIDCode();
-					auto       hotKey = key;
-
-					if (!GetHotKey(event->GetDevice(), hotKey) || (IsInputGamepad() || !cursorOverWindow) && TiltCamera(buttonEvent, hotKey)) {
-						continue;
-					}
-
-					if (canNavigateWithMouse && hotKey == hotKeys->PanCameraKey()) {
-						if (buttonEvent->IsHeld()) {
-							if (!cursorOverWindow) {
-								if (!panCamera) {
-									ToggleCursor(false);
-									panCamera = true;
-								}
+				if (canNavigateWithMouse && hotKey == hotKeys->PanCameraKey()) {
+					if (buttonEvent->IsHeld()) {
+						if (!cursorOverWindow) {
+							if (!panCamera) {
+								ToggleCursor(false);
+								panCamera = true;
 							}
-						} else if (panCamera) {
-							ToggleCursor(true);
-							panCamera = false;
 						}
+					} else if (panCamera) {
+						ToggleCursor(true);
+						panCamera = false;
 					}
+				}
 
-					if (hotKey == hotKeys->EscapeKey()) {
+				if (hotKey == hotKeys->EscapeKey()) {
+					if (buttonEvent->IsDown()) {
+						blockEscape = io.WantTextInput || (CanNavigateWithMouse() && ImGui::IsAnyItemActive());
+					} else if (buttonEvent->IsUp()) {
+						if (!io.WantTextInput && !blockEscape) {
+							photoMode->QuitOnEscape();
+						}
+						blockEscape = false;
+					}
+				}
+
+				if (!io.WantTextInput) {
+					if (hotKey == hotKeys->TakePhotoKey()) {
 						if (buttonEvent->IsDown()) {
-							blockEscape = io.WantTextInput || (CanNavigateWithMouse() && ImGui::IsAnyItemActive());
-						} else if (buttonEvent->IsUp()) {
-							if (!io.WantTextInput && !blockEscape) {
-								photoMode->QuitOnEscape();
-							}
-							blockEscape = false;
+							QueueScreenshot(hotKey != GetDefaultScreenshotKey());
+						} else if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > keyHeldDuration) {
+							QueueScreenshot(true);
 						}
-					}
-
-					if (!io.WantTextInput) {
-						if (hotKey == hotKeys->TakePhotoKey()) {
-							if (buttonEvent->IsDown()) {
-								QueueScreenshot(hotKey != GetDefaultScreenshotKey());
-							} else if (MANAGER(Screenshot)->AllowMultiScreenshots() && buttonEvent->HeldDuration() > keyHeldDuration) {
-								QueueScreenshot(true);
-							}
-						} else if (hotKey == hotKeys->ToggleMenusKey() && buttonEvent->IsDown()) {
-							photoMode->ToggleUI();
-						} else if (!photoMode->IsHidden()) {
-							if (hotKey == hotKeys->NextTabKey() && buttonEvent->IsDown()) {
-								photoMode->NavigateTab(false);
-							} else if (hotKey == hotKeys->PreviousTabKey() && buttonEvent->IsDown()) {
-								photoMode->NavigateTab(true);
-							} else if (hotKey == hotKeys->FreezeTimeKey() && buttonEvent->IsDown()) {
-								RE::Main::GetSingleton()->freezeTime = !RE::Main::GetSingleton()->freezeTime;
-							} else if (hotKey == hotKeys->ResetKey()) {
-								if (buttonEvent->IsUp()) {
-									photoMode->Revert(false);
-								} else if (buttonEvent->HeldDuration() > keyHeldDuration) {
-									photoMode->DoResetAll();
-								}
+					} else if (hotKey == hotKeys->ToggleMenusKey() && buttonEvent->IsDown()) {
+						photoMode->ToggleUI();
+					} else if (!photoMode->IsHidden()) {
+						if (hotKey == hotKeys->NextTabKey() && buttonEvent->IsDown()) {
+							photoMode->NavigateTab(false);
+						} else if (hotKey == hotKeys->PreviousTabKey() && buttonEvent->IsDown()) {
+							photoMode->NavigateTab(true);
+						} else if (hotKey == hotKeys->FreezeTimeKey() && buttonEvent->IsDown()) {
+							RE::Main::GetSingleton()->freezeTime = !RE::Main::GetSingleton()->freezeTime;
+						} else if (hotKey == hotKeys->ResetKey()) {
+							if (buttonEvent->IsUp()) {
+								photoMode->Revert(false);
+							} else if (buttonEvent->HeldDuration() > keyHeldDuration) {
+								photoMode->DoResetAll();
 							}
 						}
 					}
+				}
 
-					if (!photoMode->IsHidden()) {
-						if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {
-							io.AddKeyEvent(ImGuiKey_Tab, buttonEvent->IsDown());
-						} else {
-							SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
-						}
+				if (!photoMode->IsHidden()) {
+					if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {
+						io.AddKeyEvent(ImGuiKey_Tab, buttonEvent->IsDown());
+					} else {
+						SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
 					}
 				}
 			}
 		}
 
 		return EventResult::kContinue;
+	}
+
+	void Manager::NavigateGrid(std::int32_t a_dx, std::int32_t a_dy)
+	{
+		constexpr auto initialDelay = std::chrono::milliseconds(350);
+		constexpr auto repeatRate = std::chrono::milliseconds(80);
+
+		const auto now = std::chrono::steady_clock::now();
+		const bool changed = a_dx != galleryNav.dx || a_dy != galleryNav.dy;
+
+		if ((a_dx == 0 && a_dy == 0) || (!changed && now < galleryNav.nextStep)) {
+			galleryNav.dx = a_dx;
+			galleryNav.dy = a_dy;
+			return;
+		}
+
+		galleryNav = { a_dx, a_dy, now + (changed ? initialDelay : repeatRate) };
+		MANAGER(Gallery)->Navigate(a_dx, a_dy);
+	}
+
+	void Manager::NavigateGridController(float a_x, float a_y)
+	{
+		constexpr float engageZone = 0.55f;
+		constexpr float releaseZone = 0.35f;
+
+		const bool   active = galleryNav.dx != 0 || galleryNav.dy != 0;
+		std::int32_t dx = 0;
+		std::int32_t dy = 0;
+		if (std::max(std::fabs(a_x), std::fabs(a_y)) >= (active ? releaseZone : engageZone)) {
+			if (std::fabs(a_x) >= std::fabs(a_y)) {
+				dx = a_x > 0.0f ? +1 : -1;
+			} else {
+				dy = a_y > 0.0f ? -1 : +1;
+			}
+		}
+
+		NavigateGrid(dx, dy);
 	}
 }

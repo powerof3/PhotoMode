@@ -1,6 +1,7 @@
 set(headers ${headers}
 	src/Cache.h
 	src/Console.h
+	src/Gallery/Manager.h
 	src/Graphics.h
 	src/Hooks.h
 	src/IGCSBridge/Bridge.h
@@ -14,6 +15,7 @@ set(headers ${headers}
 	src/ImGui/Util.h
 	src/ImGui/Widgets.h
 	src/Input.h
+	src/MenuIntegration.h
 	src/PCH.h
 	src/Papyrus.h
 	src/PhotoMode/Favorites.h
@@ -28,5 +30,6 @@ set(headers ${headers}
 	src/Screenshots/LoadScreen.h
 	src/Screenshots/Manager.h
 	src/Settings.h
+	src/Shared.h
 	src/Translation.h
 )

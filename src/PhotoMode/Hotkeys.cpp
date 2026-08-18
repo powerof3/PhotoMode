@@ -1,5 +1,6 @@
 #include "Hotkeys.h"
 
+#include "Gallery/Manager.h"
 #include "ImGui/IconsFonts.h"
 #include "Input.h"
 #include "Manager.h"
@@ -8,7 +9,8 @@ namespace PhotoMode::Hotkeys
 {
 	void Manager::LoadHotKeys(const CSimpleIniA& a_ini)
 	{
-		togglePhotoMode.LoadKeys(a_ini);
+		togglePhotoMode.LoadKeys(a_ini, "iOpenPhotoMode");
+		toggleGallery.LoadKeys(a_ini, "iOpenGallery");
 
 		reset.LoadKeys(a_ini, "iReset");
 		takePhoto.LoadKeys(a_ini, "iTakePhoto");
@@ -17,6 +19,9 @@ namespace PhotoMode::Hotkeys
 		previousTab.LoadKeys(a_ini, "iPreviousTab");
 		freezeTime.LoadKeys(a_ini, "iFreezeTime");
 		panCamera.LoadKeys(a_ini, "iPanCamera");
+		galleryEnlarge.LoadKeys(a_ini, "iGalleryEnlarge");
+		galleryDelete.LoadKeys(a_ini, "iGalleryDelete");
+		galleryLoadScreen.LoadKeys(a_ini, "iGalleryLoadScreen");
 	}
 
 	void Manager::TogglePhotoMode(RE::InputEvent* const* a_event)
@@ -27,6 +32,17 @@ namespace PhotoMode::Hotkeys
 
 		togglePhotoMode.ProcessKeyPress(a_event, []() {
 			MANAGER(PhotoMode)->ToggleActive();
+		});
+	}
+
+	void Manager::ToggleGallery(RE::InputEvent* const* a_event)
+	{
+		if (toggleGallery.IsInvalid()) {
+			return;
+		}
+		
+		toggleGallery.ProcessKeyPress(a_event, []() {
+			MANAGER(Gallery)->ToggleActive();
 		});
 	}
 
@@ -65,10 +81,10 @@ namespace PhotoMode::Hotkeys
 		}
 	}
 
-	void Manager::KeyCombo::LoadKeys(const CSimpleIniA& a_ini)
+	void Manager::KeyCombo::LoadKeys(const CSimpleIniA& a_ini, std::string_view a_settingPrefix)
 	{
-		keyboard.LoadKeys(a_ini, "iOpenPhotoModeKey");
-		gamePad.LoadKeys(a_ini, "iOpenPhotoModeGamePad");
+		keyboard.LoadKeys(a_ini, std::format("{}Key", a_settingPrefix));
+		gamePad.LoadKeys(a_ini, std::format("{}GamePad", a_settingPrefix));
 	}
 
 	bool Manager::KeyCombo::IsInvalid() const
@@ -156,6 +172,21 @@ namespace PhotoMode::Hotkeys
 		return panCamera.GetKey();
 	}
 
+	std::uint32_t Manager::GalleryEnlargeKey() const
+	{
+		return galleryEnlarge.GetKey();
+	}
+
+	std::uint32_t Manager::GalleryDeleteKey() const
+	{
+		return galleryDelete.GetKey();
+	}
+
+	std::uint32_t Manager::GalleryLoadScreenKey() const
+	{
+		return galleryLoadScreen.GetKey();
+	}
+
 	std::uint32_t Manager::EscapeKey()
 	{
 		return MANAGER(Input)->IsInputKBM() ? KEY::kEscape : SKSE::InputMap::kGamepadButtonOffset_B;
@@ -191,13 +222,38 @@ namespace PhotoMode::Hotkeys
 		return MANAGER(IconFont)->GetIcon(freezeTime.GetKey());
 	}
 
+	const IconFont::IconTexture* Manager::GalleryEnlargeIcon() const
+	{
+		return MANAGER(IconFont)->GetIcon(galleryEnlarge.GetKey());
+	}
+
+	const IconFont::IconTexture* Manager::GalleryDeleteIcon() const
+	{
+		return MANAGER(IconFont)->GetIcon(galleryDelete.GetKey());
+	}
+
+	const IconFont::IconTexture* Manager::GalleryLoadScreenIcon() const
+	{
+		return MANAGER(IconFont)->GetIcon(galleryLoadScreen.GetKey());
+	}
+
 	const IconFont::IconTexture* Manager::PanCameraIcon() const
 	{
 		return MANAGER(IconFont)->GetIcon(panCamera.GetKey());
 	}
 
+	const IconFont::IconTexture* Manager::EscapeIcon()
+	{
+		return MANAGER(IconFont)->GetIcon(EscapeKey());
+	}
+
 	std::set<const IconFont::IconTexture*> Manager::TogglePhotoModeIcons() const
 	{
 		return MANAGER(IconFont)->GetIcons(togglePhotoMode.GetKeys());
+	}
+
+	std::set<const IconFont::IconTexture*> Manager::ToggleGalleryIcons() const
+	{
+		return MANAGER(IconFont)->GetIcons(toggleGallery.GetKeys());
 	}
 }

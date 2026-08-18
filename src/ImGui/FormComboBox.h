@@ -8,7 +8,7 @@
 namespace ImGui
 {
 	constexpr auto allMods = "$PM_ALL"sv;
-	constexpr auto favForms = "$PM_Favorites"sv;
+	constexpr auto favForms = "$PM_FAVORITES"sv;
 	constexpr auto ffForms = "$PM_FF_Forms"sv;
 
 	template <class T>

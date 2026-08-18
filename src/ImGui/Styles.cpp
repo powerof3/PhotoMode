@@ -119,11 +119,12 @@ namespace ImGui
 
 	void Styles::OnStyleRefresh()
 	{
-		if (!refreshStyle) {
-			return;
-		}
-
 		LoadStyles();
+
+		MANAGER(IconFont)->LoadSettings();
+
+		MANAGER(IconFont)->LoadFonts();
+		MANAGER(IconFont)->LoadIcons();
 
 		ImGuiStyle style;
 		auto&      colors = style.Colors;
@@ -169,20 +170,6 @@ namespace ImGui
 
 		style.ScaleAllSizes(Renderer::GetResolutionScale());
 		ImGui::GetStyle() = style;
-
-		// reload fonts/icons
-
-		MANAGER(IconFont)->LoadSettings();
-
-		MANAGER(IconFont)->ReloadFonts();
-		MANAGER(IconFont)->ResizeIcons();
-
-		refreshStyle = false;
-	}
-
-	void Styles::RefreshStyle()
-	{
-		refreshStyle = true;
 	}
 
 	ImU32 GetUserStyleColorU32(USER_STYLE a_style)

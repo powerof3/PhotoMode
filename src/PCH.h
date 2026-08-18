@@ -14,6 +14,7 @@
 
 #include <codecvt>
 #include <wrl/client.h>
+#include <shellapi.h>
 
 #include <DirectXMath.h>
 #include <DirectXTex.h>
@@ -151,3 +152,4 @@ namespace stl
 #include "Cache.h"
 #include "Translation.h"
 #include "Version.h"
+#include "Shared.h"
