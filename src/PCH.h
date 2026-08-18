@@ -13,8 +13,9 @@
 #include "SKSE/SKSE.h"
 
 #include <codecvt>
-#include <shellapi.h>
 #include <wrl/client.h>
+
+#include <shellapi.h>
 
 #include <DirectXMath.h>
 #include <DirectXTex.h>
