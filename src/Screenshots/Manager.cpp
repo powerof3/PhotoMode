@@ -426,19 +426,19 @@ namespace Screenshot
 				if (SUCCEEDED(hr)) {
 					Texture::AlphaBlendImage(inputImage.GetImages(), overlayImage.GetImages(), blendedImage, alpha);
 
-					TakeScreenshotAsTexture(blendedImage, inputImage);
+					TakeScreenshotAsTexture(renderer, blendedImage, inputImage);
 					Texture::SaveToPNG(blendedImage, pngPath, forceSRGB);
 					SaveThumbnail(blendedImage, pngPath);
 
 					overlayImage.Release();
 					blendedImage.Release();
 				} else {
-					TakeScreenshotAsTexture(inputImage, inputImage);
+					TakeScreenshotAsTexture(renderer, inputImage, inputImage);
 					Texture::SaveToPNG(inputImage, pngPath, forceSRGB);
 					SaveThumbnail(inputImage, pngPath);
 				}
 			} else {
-				TakeScreenshotAsTexture(inputImage, inputImage);
+				TakeScreenshotAsTexture(renderer, inputImage, inputImage);
 				Texture::SaveToPNG(inputImage, pngPath, forceSRGB);
 				SaveThumbnail(inputImage, pngPath);
 			}
@@ -451,47 +451,54 @@ namespace Screenshot
 		return skipVanillaScreenshot;
 	}
 
-	void Manager::TakeScreenshotAsTexture(const DirectX::ScratchImage& a_ssImage, const DirectX::ScratchImage& a_paintingImage)
+	void Manager::TakeScreenshotAsTexture(RE::BSGraphics::Renderer* a_renderer, const DirectX::ScratchImage& a_ssImage, const DirectX::ScratchImage& a_paintingImage)
 	{
 		if (!takeScreenshotAsDDS || a_ssImage.GetMetadata().width % 4 != 0 || a_ssImage.GetMetadata().height % 4 != 0) {
 			return;
 		}
 
-		const auto renderer = RE::BSGraphics::Renderer::GetSingleton();
-
 		// regular
 		Image screenshotImage(screenshotFolder, GetIndex());
+
+		bool result = false;
 		if (compressTextures) {
 			DirectX::ScratchImage outputImage;
-
-			Texture::CompressTexture(renderer, a_ssImage, outputImage);
-			Texture::SaveToDDS(outputImage, screenshotImage.path);
-
+			result = Texture::CompressTexture(a_renderer, a_ssImage, outputImage) &&
+			         Texture::SaveToDDS(outputImage, screenshotImage.path);
 			outputImage.Release();
 		} else {
-			Texture::SaveToDDS(a_ssImage, screenshotImage.path);
+			result = Texture::SaveToDDS(a_ssImage, screenshotImage.path);
 		}
-		screenshots.AddImage(screenshotImage);
+		if (result) {
+			screenshots.AddImage(screenshotImage);
+		} else {
+			logger::warn("Screenshots: failed to save {}", screenshotImage.path);
+		}
 
 		// painting
 		if (applyPaintFilter) {
 			Image paintingImage(paintingFolder, GetIndex());
 
 			DirectX::ScratchImage outputImage;
-			Texture::OilPaintingFilter(a_paintingImage.GetImages(), paintFilter.radius, paintFilter.intensity, outputImage);
+			result = Texture::OilPaintingFilter(a_paintingImage.GetImages(), paintFilter.radius, paintFilter.intensity, outputImage);
 
-			if (compressTextures) {
-				DirectX::ScratchImage compressedImage;
-				Texture::CompressTexture(renderer, outputImage, compressedImage);  // NOLINT(readability-suspicious-call-argument)
-				Texture::SaveToDDS(compressedImage, paintingImage.path);
-				compressedImage.Release();
-			} else {
-				Texture::SaveToDDS(outputImage, paintingImage.path);
+			if (result) {
+				if (compressTextures) {
+					DirectX::ScratchImage compressedImage;
+					result = Texture::CompressTexture(a_renderer, outputImage, compressedImage) &&
+					         Texture::SaveToDDS(compressedImage, paintingImage.path);
+					compressedImage.Release();
+				} else {
+					result = Texture::SaveToDDS(outputImage, paintingImage.path);
+				}
 			}
 
 			outputImage.Release();
-
-			paintings.AddImage(paintingImage);
+			if (result) {
+				paintings.AddImage(paintingImage);
+			} else {
+				logger::warn("Screenshots: failed to save {}", paintingImage.path);
+			}
 		}
 	}
 

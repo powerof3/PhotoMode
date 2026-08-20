@@ -6,6 +6,7 @@
 #include "PhotoMode/Manager.h"
 #include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
+#include "MenuIntegration.h"
 
 namespace PhotoMode
 {
@@ -155,7 +156,7 @@ namespace Input
 	{
 		static void thunk(RE::BSTEventSource<RE::InputEvent*>* a_dispatcher, RE::InputEvent* const* a_events)
 		{
-			if (a_events && MANAGER(Gallery)->IsActive() && !RE::UI::GetSingleton()->IsMenuOpen(RE::Console::MENU_NAME)) {
+			if (a_events && MANAGER(Gallery)->IsActive() && !MANAGER(MenuIntegration)->GetConsoleOpen()) {
 				MANAGER(Input)->ProcessGalleryEvents(a_events);
 				constexpr RE::InputEvent* const dummy[] = { nullptr };
 				func(a_dispatcher, dummy);

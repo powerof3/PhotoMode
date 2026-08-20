@@ -45,5 +45,7 @@ namespace Console
 
 		ConsoleCommandHandler<StartPhotoMode>::Install();
 		ConsoleCommandHandler<StartPhotoGallery>::Install();
+
+		logger::info("{:*^30}", "DATA");
 	}
 }

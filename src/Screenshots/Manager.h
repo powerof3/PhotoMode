@@ -92,7 +92,7 @@ namespace Screenshot
 		void ApplyExclusion(std::int32_t a_index);
 
 	private:
-		void TakeScreenshotAsTexture(const DirectX::ScratchImage& a_ssImage, const DirectX::ScratchImage& a_paintingImage);
+		void TakeScreenshotAsTexture(RE::BSGraphics::Renderer* a_renderer, const DirectX::ScratchImage& a_ssImage, const DirectX::ScratchImage& a_paintingImage);
 		void SaveThumbnail(const DirectX::ScratchImage& a_ssImage, const std::string& a_pngPath);
 
 		// members

@@ -215,6 +215,119 @@
       ]
     },
     {
+      "pageDisplayName": "$PM_GalleryControls_Page",
+      "cursorFillMode": "topToBottom",
+      "content": [
+        {
+          "text": "$PM_OpenGallery_Header",
+          "type": "header"
+        },
+        {
+          "id": "iOpenGalleryKey:Controls",
+          "text": "$PM_PrimaryKey_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iOpenGalleryKeyModifier:Controls",
+          "text": "$PM_ModifierKey_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "text": "$PM_MiscKeybinds_Header",
+          "type": "header"
+        },
+        {
+          "id": "iGalleryEnlargeKey:Controls",
+          "text": "$PM_GalleryEnlarge_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iGalleryDeleteKey:Controls",
+          "text": "$PM_Delete",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iGalleryLoadScreenKey:Controls",
+          "text": "$PM_GalleryLoadScreen_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "text": "$PM_OpenPhotoMode_Gamepad_Header",
+          "type": "header",
+          "position": 1
+        },
+        {
+          "id": "iOpenGalleryGamePad:Controls",
+          "text": "$PM_PrimaryKey_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iOpenGalleryGamePadModifier:Controls",
+          "text": "$PM_ModifierKey_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "text": "$PM_MiscKeybinds_GamePad_Header",
+          "type": "header"
+        },
+         {
+          "id": "iGalleryEnlargeGamepad:Controls",
+          "text": "$PM_GalleryEnlarge_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iGalleryDeleteGamepad:Controls",
+          "text": "$PM_Delete",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "id": "iGalleryLoadScreenGamepad:Controls",
+          "text": "$PM_GalleryLoadScreen_Key_Text",
+          "type": "keymap",
+          "ignoreConflicts": true,
+          "valueOptions": {
+            "sourceType": "ModSettingInt"
+          }
+        }
+      ]
+    },
+    {
       "pageDisplayName": "$PM_SettingsPage",
       "cursorFillMode": "topToBottom",
       "content": [
@@ -248,9 +361,6 @@
           "valueOptions": {
             "sourceType": "ModSettingBool"
           }
-        },
-        {
-          "type": "empty"
         },
         {
           "text": "$PM_ScreenshotsHeader",
@@ -338,9 +448,6 @@
           }
         },
         {
-          "type": "empty"
-        },
-        {
           "text": "$PM_LoadScreenHeader",
           "type": "header"
         },
@@ -380,6 +487,46 @@
             "step": 1,
             "formatString": "{0} %",
             "sourceType": "ModSettingInt"
+          }
+        },
+        {
+          "text": "$PM_Gallery_Header",
+          "type": "header"
+        },
+        {
+          "id": "bOpenFromPauseMenu:Gallery",
+          "text": "$PM_OpenFromPauseMenu_Text",
+          "type": "toggle",
+          "help": "$PM_GalleryOpenFromPauseMenu_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "id": "bUnpauseMenu:Gallery",
+          "text": "$PM_UnpauseMenu_Text",
+          "type": "toggle",
+          "help": "$PM_UnpauseMenu_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "id": "bBlurMenu:Gallery",
+          "text": "$PM_BlurMenu_Text",
+          "type": "toggle",
+          "help": "$PM_BlurMenu_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "id": "bSendPhotosToRecycleBin:Gallery",
+          "text": "$PM_GalleryRecycle_Text",
+          "type": "toggle",
+          "help": "$PM_GalleryRecycle_Help",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
           }
         }
       ]

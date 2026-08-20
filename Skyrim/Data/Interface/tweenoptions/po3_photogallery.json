@@ -1,0 +1,7 @@
+{
+	"papyrus_event":"OpenTween_PhotoGallery",
+	"menuName":"PHOTO GALLERY",
+	"icon":"map",
+	"priority": 10,
+	"category": "bottom"
+}
