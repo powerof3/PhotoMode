@@ -3,10 +3,10 @@
 #include "Gallery/Manager.h"
 #include "IGCSBridge/Bridge.h"  // IGCSDOF: direct IgcsConnector bridge
 #include "Input.h"
+#include "MenuIntegration.h"
 #include "PhotoMode/Manager.h"
 #include "Screenshots/LoadScreen.h"
 #include "Screenshots/Manager.h"
-#include "MenuIntegration.h"
 
 namespace PhotoMode
 {
