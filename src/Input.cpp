@@ -604,6 +604,7 @@ namespace Input
 		const auto hotKeys = MANAGER(PhotoMode::Hotkeys);
 
 		auto cursorMenu = RE::UI::GetSingleton()->GetMenu<RE::CursorMenu>();
+		auto userEvents = RE::UserEvents::GetSingleton();
 
 		using namespace SKSE::InputMap;
 
@@ -649,41 +650,39 @@ namespace Input
 					continue;
 				}
 
-				if (!io.WantTextInput) {
-					if (hotKey == hotKeys->EscapeKey() || hotKey == KEY::kTab) {
-						if (buttonEvent->IsDown()) {
-							gallery->GoBack();
+				if (hotKey == hotKeys->EscapeKey() || hotKey == KEY::kTab) {
+					if (buttonEvent->IsDown()) {
+						gallery->GoBack();
+					}
+				} else if (hotKey == hotKeys->GalleryEnlargeKey() || hotKey == KEY::kEnter || hotKey == kGamepadButtonOffset_A) {
+					if (buttonEvent->IsDown()) {
+						gallery->ToggleEnlarge();
+					}
+				} else if (hotKey == hotKeys->GalleryDeleteKey() || hotKey == KEY::kDelete) {
+					if (buttonEvent->IsDown()) {
+						gallery->RequestDelete();
+					}
+				} else if (hotKey == hotKeys->GalleryLoadScreenKey() && buttonEvent->IsDown()) {
+					gallery->ToggleLoadScreenForSelected();
+				} else if (hotKey == hotKeys->ToggleMenusKey() && buttonEvent->IsDown()) {
+					gallery->ToggleUI();
+				} else {
+					const auto nav = [&](std::int32_t a_dx, std::int32_t a_dy) {
+						if (buttonEvent->IsPressed()) {
+							NavigateGrid(a_dx, a_dy);
+						} else if (buttonEvent->IsUp()) {
+							NavigateGrid(0, 0);
 						}
-					} else if (hotKey == hotKeys->GalleryEnlargeKey() || hotKey == KEY::kEnter || hotKey == kGamepadButtonOffset_A) {
-						if (buttonEvent->IsDown()) {
-							gallery->ToggleEnlarge();
-						}
-					} else if (hotKey == hotKeys->GalleryDeleteKey() || hotKey == KEY::kDelete) {
-						if (buttonEvent->IsDown()) {
-							gallery->RequestDelete();
-						}
-					} else if (hotKey == hotKeys->GalleryLoadScreenKey() && buttonEvent->IsDown()) {
-						gallery->ToggleLoadScreenForSelected();
-					} else if (hotKey == hotKeys->ToggleMenusKey() && buttonEvent->IsDown()) {
-						gallery->ToggleUI();
-					} else {
-						const auto nav = [&](std::int32_t a_dx, std::int32_t a_dy) {
-							if (buttonEvent->IsPressed()) {
-								NavigateGrid(a_dx, a_dy);
-							} else if (buttonEvent->IsUp()) {
-								NavigateGrid(0, 0);
-							}
-						};
+					};
 
-						if (hotKey == KEY::kUp || hotKey == SKSE::InputMap::kGamepadButtonOffset_DPAD_UP) {
-							nav(0, -1);
-						} else if (hotKey == KEY::kDown || hotKey == SKSE::InputMap::kGamepadButtonOffset_DPAD_DOWN) {
-							nav(0, +1);
-						} else if (hotKey == KEY::kLeft || hotKey == SKSE::InputMap::kGamepadButtonOffset_DPAD_LEFT) {
-							nav(-1, 0);
-						} else if (hotKey == KEY::kRight || hotKey == SKSE::InputMap::kGamepadButtonOffset_DPAD_RIGHT) {
-							nav(+1, 0);
-						}
+					if (hotKey == KEY::kUp || hotKey == SKSE::InputMap::kGamepadButtonOffset_DPAD_UP) {
+						nav(0, -1);
+					} else if (hotKey == KEY::kDown || hotKey == SKSE::InputMap::kGamepadButtonOffset_DPAD_DOWN) {
+						nav(0, +1);
+					} else if (hotKey == KEY::kLeft || hotKey == SKSE::InputMap::kGamepadButtonOffset_DPAD_LEFT) {
+						nav(-1, 0);
+					} else if (hotKey == KEY::kRight || hotKey == SKSE::InputMap::kGamepadButtonOffset_DPAD_RIGHT) {
+						nav(+1, 0);
 					}
 				}
 
@@ -693,9 +692,14 @@ namespace Input
 					SendKeyEvent(key, buttonEvent->Value(), buttonEvent->IsPressed());
 				}
 
-				if (buttonEvent->QUserEvent() == RE::UserEvents::GetSingleton()->screenshot) {
+				const auto& userEvent = buttonEvent->QUserEvent();
+				if (userEvent == userEvents->screenshot) {
 					if (buttonEvent->IsDown()) {
 						RE::MenuControls::GetSingleton()->QueueScreenshot();
+					}
+				} else if (userEvent == userEvents->console) {
+					if (buttonEvent->IsDown()) {
+						RE::UIMessageQueue::GetSingleton()->AddMessage(RE::Console::MENU_NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr);
 					}
 				}
 			}

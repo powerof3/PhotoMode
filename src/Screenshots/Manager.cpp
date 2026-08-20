@@ -154,17 +154,23 @@ namespace Screenshot
 		return images.back().index + 1;
 	}
 
-	void Collection::DeleteImagesWithIndex(std::int32_t a_index)
+	void Collection::DeleteImagesWithIndex(std::int32_t a_index, bool a_recycle)
 	{
+		const static auto root = std::filesystem::current_path(); 
+		
 		std::erase_if(images, [&](const Image& a_image) {
 			if (a_image.index != a_index) {
 				return false;
 			}
-			std::error_code ec;
-			if (!std::filesystem::remove(a_image.path, ec) || ec) {
-				logger::warn("\t\tFailed to delete {} ({})", a_image.path, ec.message());
+			auto finalPath = root / a_image.path;
+			if (a_recycle) {
+				Shared::RecycleFile(finalPath.wstring());
 			} else {
-				logger::info("\tDeleting texture ({})", a_image.path);
+				if (!Shared::RemoveFile(finalPath)) {
+					logger::warn("\t\tFailed to delete {}", finalPath.string());
+				} else {
+					logger::info("\tDeleting texture ({})", finalPath.string());
+				}
 			}
 			return true;
 		});
@@ -518,11 +524,11 @@ namespace Screenshot
 		return paintings.GetRandomPath();
 	}
 
-	void Manager::DeleteImagesWithIndex(std::int32_t a_index)
+	void Manager::DeleteImagesWithIndex(std::int32_t a_index, bool a_recycle)
 	{
 		excludedImages.erase(a_index);
 
-		screenshots.DeleteImagesWithIndex(a_index);
-		paintings.DeleteImagesWithIndex(a_index);
+		screenshots.DeleteImagesWithIndex(a_index, a_recycle);
+		paintings.DeleteImagesWithIndex(a_index, a_recycle);
 	}
 }

@@ -123,8 +123,10 @@ namespace PhotoMode::IGCSBridge
 	{
 		if (initialized)
 			return;
-		statusFile = GetTempFile(L"Skyrim_IGCSDOF_status.txt");
 		initialized = true;
+
+		/*statusFile = GetTempFile(L"Skyrim_IGCSDOF_status.txt");
+
 
 		// Create/truncate the small status file immediately, before any Photo Mode event.
 		{
@@ -135,7 +137,7 @@ namespace PhotoMode::IGCSBridge
 			}
 		}
 
-		logger::info("[Skyrim IGCSDOF] Status file: {}", statusFile.string());
+		logger::info("[Skyrim IGCSDOF] Status file: {}", statusFile.string());*/
 		AppendDiagnostic("Direct IGCS integration initialized; V20 native Photo Mode ZXY matrix basis. Uses the exact FromEulerAnglesZXY matrix convention discovered in Skyrim Photo Mode. Sample rotation remains fixed; V19 toe-in convergence is disabled.");
 	}
 
@@ -575,8 +577,8 @@ namespace PhotoMode::IGCSBridge
 		axis = axis * (1.0f / sinAngle);
 		const float angle = std::atan2(sinAngle, cosAngle);
 		auto        rotate = [&](const RE::NiPoint3& v) {
-            const float c = std::cos(angle), ss = std::sin(angle);
-            return v * c + axis.Cross(v) * ss + axis * (axis.Dot(v) * (1.0f - c));
+			const float c = std::cos(angle), ss = std::sin(angle);
+			return v * c + axis.Cross(v) * ss + axis * (axis.Dot(v) * (1.0f - c));
 		};
 		const RE::NiPoint3 newRight = Normalize(rotate(base.right));
 		const RE::NiPoint3 newForward = Normalize(rotate(base.forward));
@@ -1008,20 +1010,20 @@ namespace PhotoMode::IGCSBridge
 
 	void Bridge::WriteStatus(std::string_view text) const
 	{
-		std::ofstream output(statusFile, std::ios::app);
+		/*std::ofstream output(statusFile, std::ios::app);
 		if (output)
-			output << text << '\n';
+			output << text << '\n';*/
 		logger::info("[Skyrim IGCSDOF Direct] {}", text);
 	}
 
 	void Bridge::AppendDiagnostic(std::string_view text) const
 	{
-		if constexpr (!kVerboseDiagnostics)
-			return;
-		std::ofstream output(statusFile, std::ios::app);
+		if constexpr (kVerboseDiagnostics) {
+			/*std::ofstream output(statusFile, std::ios::app);
 		if (output)
-			output << text << '\n';
-		logger::info("[Skyrim IGCSDOF DIAG] {}", text);
+			output << text << '\n';*/
+			logger::info("[Skyrim IGCSDOF DIAG] {}", text);
+		}
 	}
 }
 

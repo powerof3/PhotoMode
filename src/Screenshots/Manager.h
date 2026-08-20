@@ -36,7 +36,7 @@ namespace Screenshot
 		const std::string& GetRandomPath();
 		std::int32_t       GetHighestIndex() const;
 
-		void         DeleteImagesWithIndex(std::int32_t a_index);
+		void         DeleteImagesWithIndex(std::int32_t a_index, bool a_recycle);
 		bool         ContainsIndex(std::int32_t a_index) const;
 		Image*       GetImageWithIndex(std::int32_t a_index);
 		const Image* GetImageWithIndex(std::int32_t a_index) const;
@@ -66,7 +66,7 @@ namespace Screenshot
 		const std::filesystem::path& GetPhotoDirectory() const;
 		const std::filesystem::path& GetThumbnailDirectory() const;
 
-		void DeleteImagesWithIndex(std::int32_t a_index);
+		void DeleteImagesWithIndex(std::int32_t a_index, bool a_recycle);
 
 		// opt out of loading screens
 		void ToggleLoadScreenForIndex(std::int32_t a_index);

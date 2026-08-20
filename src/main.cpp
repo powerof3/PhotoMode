@@ -38,7 +38,9 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 
 			MANAGER(LoadScreen)->InitLoadScreenObjects();
 			MANAGER(Screenshot)->LoadScreenshots();
+			
 			MANAGER(PhotoMode)->OnDataLoad();
+			MANAGER(Gallery)->OnDataLoad();
 
 			MANAGER(Favorites)->LoadFavorites();
 
@@ -128,4 +130,14 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	SKSE::GetPapyrusInterface()->Register(Papyrus::Register);
 
 	return true;
+}
+
+extern "C" DLLEXPORT std::uint8_t IsPhotoModeActive()
+{
+	return MANAGER(PhotoMode)->IsActive();
+}
+
+extern "C" DLLEXPORT std::uint32_t IsPhotoGalleryActive()
+{
+	return MANAGER(Gallery)->IsActive();
 }

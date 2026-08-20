@@ -15,7 +15,7 @@ namespace MenuIntegration
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
 		photoMode.openFromPause = a_ini.GetBoolValue("Settings", "bOpenFromPauseMenu", photoMode.openFromPause);
-		photoGallery.openFromPause = a_ini.GetBoolValue("Settings", "bOpenGalleryFromPauseMenu", photoGallery.openFromPause);
+		photoGallery.openFromPause = a_ini.GetBoolValue("Gallery", "bOpenFromPauseMenu", photoGallery.openFromPause);
 	}
 
 	void Manager::UpdateListVisuals(RE::GFxMovieView* a_view, RE::GFxValue& a_listObj, std::uint32_t a_numItems)
@@ -167,7 +167,9 @@ namespace MenuIntegration
 			return EventResult::kContinue;
 		}
 
-		if (a_evn->menuName == RE::JournalMenu::MENU_NAME) {
+		if (a_evn->menuName == RE::Console::MENU_NAME) {
+			consoleOpen = a_evn->opening;
+		} else if (a_evn->menuName == RE::JournalMenu::MENU_NAME) {
 			if (a_evn->opening) {
 				if (photoMode.openFromPause || photoGallery.openFromPause) {
 					SetupJournalMenu();

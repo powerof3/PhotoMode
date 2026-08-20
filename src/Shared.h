@@ -60,9 +60,6 @@ namespace Shared
 	inline std::expected<void, std::error_code> GetOrCreateDirectory(const std::filesystem::path& a_dir)
 	{
 		std::error_code ec;
-		if (std::filesystem::exists(a_dir, ec)) {
-			return {};
-		}
 		std::filesystem::create_directories(a_dir, ec);
 		if (ec) {
 			return std::unexpected(ec);
@@ -84,6 +81,11 @@ namespace Shared
 	void ForEachFile(const std::filesystem::path& a_dir, std::string_view a_extension, F&& a_func)
 	{
 		std::error_code ec;
+		if (!std::filesystem::exists(a_dir, ec) || ec) {
+			logger::info("{} does not exist", a_dir.string());
+			return;
+		}
+		
 		for (const auto& entry : std::filesystem::directory_iterator(a_dir, ec)) {
 			if (entry.is_regular_file(ec) && entry.path().extension() == a_extension) {
 				a_func(entry.path());
@@ -92,7 +94,7 @@ namespace Shared
 	}
 
 	// https://stackoverflow.com/questions/70257751/move-a-file-or-folder-to-the-recyclebin-trash-c17
-	inline bool RecycleSaves(const std::wstring& path)
+	inline bool RecycleFile(const std::wstring& path)
 	{
 		const std::wstring widestr = path + L'\0';
 
@@ -107,13 +109,16 @@ namespace Shared
 	}
 
 	// std::filesystem::remove doesn't remove files managed by Root Builder
+	// update: nope, doesn't work either
 	inline bool RemoveFile(const std::filesystem::path& a_path)
 	{
+		std::error_code ec;
+		std::filesystem::permissions(a_path, std::filesystem::perms::owner_write, std::filesystem::perm_options::add, ec);
+		
 		const HANDLE handle = ::CreateFileW(a_path.c_str(), DELETE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING, FILE_FLAG_DELETE_ON_CLOSE, nullptr);
 		if (handle == INVALID_HANDLE_VALUE) {
 			std::error_code ec;
-			std::filesystem::remove(a_path, ec);
-			return !ec;
+			return std::filesystem::remove(a_path, ec);
 		}
 		::CloseHandle(handle);
 		return true;

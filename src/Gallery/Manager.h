@@ -81,16 +81,17 @@ namespace Gallery
 		void ToggleEnlarge();
 		void ToggleUI();
 		void RequestDelete();
-
 		void ToggleLoadScreenForSelected();
 
 		void Navigate(std::int32_t a_dx, std::int32_t a_dy);
+
+		void OnDataLoad();
 
 	private:
 		static constexpr std::int32_t columns{ 4 };
 		static constexpr std::int32_t visibleRows{ 3 };
 		static constexpr std::int32_t prefetchRows{ 3 };
-		static constexpr std::int32_t retainRows{ 6 };
+		static constexpr std::int32_t retainRows{ 4 };
 
 		struct LoadRequest
 		{
@@ -150,11 +151,15 @@ namespace Gallery
 		bool   hideEnlargedUI{ false };
 
 		bool recyclePhotos{ false };
+		bool unpauseMenu{ false };
+		bool blurMenu{ false };
 
 		// texture streaming
 		std::vector<std::jthread>   streamingThreads{};
 		mutable std::mutex          queueLock{};
 		std::condition_variable_any queueCV{};
 		std::deque<LoadRequest>     loadQueue{};
+
+		RE::TESGlobal* activeGlobal{ nullptr };
 	};
 }

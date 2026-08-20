@@ -25,7 +25,9 @@ namespace Console
 				function->executeFunction = &T::Execute;
 				function->conditionFunction = nullptr;
 
-				logger::info("Installed {} console command", T::LONG_NAME);
+				logger::info("[{}] Installed console command", T::LONG_NAME);
+			} else {
+				logger::warn("[{}] Unable to find original {} command", T::LONG_NAME, T::OG_COMMAND);
 			}
 		}
 	};

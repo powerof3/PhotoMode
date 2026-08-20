@@ -1,6 +1,7 @@
 #include "Papyrus.h"
 
 #include "PhotoMode/Manager.h"
+#include "Gallery/Manager.h"
 
 #include "Settings.h"
 
@@ -17,42 +18,23 @@ namespace Papyrus
 	}
 
 	static bool TogglePhotoMode(STATIC_ARGS, bool a_show)
+	{	
+		return ToggleMenu<PhotoMode::Manager>(STATIC_VARS, a_show);
+	}
+
+	static bool TogglePhotoGallery(STATIC_ARGS, bool a_show)
 	{
-		auto* manager = PhotoMode::Manager::GetSingleton();
-		if (!manager) {
-			a_vm->TraceStack("[Photo Mode]: Failed to get the Photo Mode Manager.", a_stackID);
-			return false;
-		}
-
-		if (manager->IsActive() && a_show) {
-			if (a_vm) {
-				a_vm->TraceStack("[Photo Mode]: Attempted to open menu while it was already open.", a_stackID);
-			}
-			return false;
-		} else if (!manager->IsActive() && !a_show) {
-			if (a_vm) {
-				a_vm->TraceStack("[Photo Mode]: Attempted to close menu while it was not open.", a_stackID);
-			}
-			return false;
-		}
-
-		if (a_show) {
-			manager->Activate();
-		} else {
-			manager->Deactivate();
-		}
-
-		return true;
+		return ToggleMenu<Gallery::Manager>(STATIC_VARS, a_show);
 	}
 
 	static bool IsPhotoModeActive(STATIC_ARGS)
 	{
-		auto* manager = PhotoMode::Manager::GetSingleton();
-		if (!manager) {
-			return false;
-		}
+		return IsMenuActive<PhotoMode::Manager>();
+	}
 
-		return manager->IsActive();
+	static bool IsPhotoGalleryActive(STATIC_ARGS)
+	{
+		return IsMenuActive<Gallery::Manager>();
 	}
 
 	bool Register(RE::BSScript::IVirtualMachine* a_vm)
@@ -65,6 +47,8 @@ namespace Papyrus
 
 		a_vm->RegisterFunction("TogglePhotoMode"sv, script, TogglePhotoMode);
 		a_vm->RegisterFunction("IsPhotoModeActive"sv, script, IsPhotoModeActive);
+		a_vm->RegisterFunction("TogglePhotoGallery"sv, script, TogglePhotoGallery);
+		a_vm->RegisterFunction("IsPhotoGalleryActive"sv, script, IsPhotoGalleryActive);
 		a_vm->RegisterFunction("GetVersion"sv, script, GetVersion);
 
 		logger::info("Registered {} class", MCM);

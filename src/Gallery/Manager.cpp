@@ -7,6 +7,7 @@
 #include "ImGui/Util.h"
 #include "ImGui/Widgets.h"
 #include "Input.h"
+#include "MenuIntegration.h"
 #include "PhotoMode/Hotkeys.h"
 #include "PhotoMode/Manager.h"
 #include "Screenshots/Manager.h"
@@ -22,22 +23,32 @@ namespace Gallery
 			return false;
 		}
 
-		image = std::make_unique<ImGui::Texture>(*stl::utf8_to_utf16(a_path.string()));
-
-		const bool loaded = image && image->LoadImpl(a_scale, {}, a_thumbnailOut.empty());
-
-		if (loaded && !a_thumbnailOut.empty() && image->image) {
-			Texture::SaveToPNG(*image->image, a_thumbnailOut.string(), MANAGER(Screenshot)->GetForceSRGB());
-			image->image.reset();
+		std::error_code ec;
+		if (!a_thumbnailOut.empty() && std::filesystem::exists(a_thumbnailOut, ec)) {
+			image = std::make_unique<ImGui::Texture>(*stl::utf8_to_utf16(a_thumbnailOut.string()));
+			if (image && image->LoadImpl(1.0f)) {
+				state.store(TextureState::kReady, std::memory_order_release);
+				return true;
+			}
+			std::filesystem::remove(a_thumbnailOut, ec);
 		}
 
-		expected = TextureState::kLoading;
-		if (loaded && state.compare_exchange_strong(expected, TextureState::kReady, std::memory_order_acq_rel)) {
+		image = std::make_unique<ImGui::Texture>(*stl::utf8_to_utf16(a_path.string()));
+		const bool loaded = image && image->LoadImpl(a_scale, {}, a_thumbnailOut.empty());
+
+		if (loaded) {
+			if (!a_thumbnailOut.empty() && image->image) {
+				if (!Texture::SaveToPNG(*image->image, a_thumbnailOut.string(), MANAGER(Screenshot)->GetForceSRGB())) {
+					std::filesystem::remove(a_thumbnailOut, ec);
+				}
+				image->image.reset();
+			}
+			state.store(TextureState::kReady, std::memory_order_release);
 			return true;
 		}
 
 		image.reset();
-		state.store(loaded ? TextureState::kUnloaded : TextureState::kFailed, std::memory_order_release);
+		state.store(TextureState::kFailed, std::memory_order_release);
 		return false;
 	}
 
@@ -85,18 +96,9 @@ namespace Gallery
 	{
 		if (a_fullRes) {
 			full.Load(pngPath, 1.0f);
-			return;
+		} else {
+			thumbnail.Load(pngPath, thumbnailScale, thumbnailPath);
 		}
-
-		std::error_code ec;
-		if (std::filesystem::exists(thumbnailPath, ec)) {
-			if (thumbnail.Load(thumbnailPath, 1.0f)) {
-				return;
-			}
-			std::filesystem::remove(thumbnailPath, ec);
-		}
-
-		thumbnail.Load(pngPath, thumbnailScale, thumbnailPath);
 	}
 
 	const std::filesystem::path Photo::GetThumbnailPath() const
@@ -109,22 +111,14 @@ namespace Gallery
 		if (!Shared::CanShowMenu()) {
 			return false;
 		}
-
-		if (const auto* controlMap = RE::ControlMap::GetSingleton();
-			!controlMap || controlMap->textEntryCount) {
-			return false;
-		}
-
-		if (MANAGER(PhotoMode)->IsActive()) {
-			return false;
-		}
-
-		return true;
+		return !MANAGER(PhotoMode)->IsActive();
 	}
 
 	void Manager::LoadMCMSettings(const CSimpleIniA& a_ini)
 	{
-		recyclePhotos = a_ini.GetBoolValue("Controls", "bSendPhotosToRecycleBin", recyclePhotos);
+		recyclePhotos = a_ini.GetBoolValue("Gallery", "bSendPhotosToRecycleBin", recyclePhotos);
+		unpauseMenu = a_ini.GetBoolValue("Gallery", "bUnpauseMenu", unpauseMenu);
+		blurMenu = a_ini.GetBoolValue("Gallery", "bBlurMenu", blurMenu);
 	}
 
 	bool Manager::IsActive() const
@@ -138,6 +132,8 @@ namespace Gallery
 			return;
 		}
 
+		RE::PlaySound("UIMenuOK");
+
 		CollectPhotos();
 		StartStreaming();
 
@@ -148,13 +144,19 @@ namespace Gallery
 		enlargedPhotoIndex = -1;
 		showDeleteMsg = false;
 
-		RE::PlaySound("UIMenuOK");
-
 		MANAGER(Input)->ToggleCursor(true);
-		RE::Main::GetSingleton()->freezeTime = true;
+		if (!unpauseMenu) {
+			RE::Main::GetSingleton()->freezeTime = true;
+		}
+		if (blurMenu) {
+			RE::UIBlurManager::GetSingleton()->IncrementBlurCount();
+		}
 		RE::SendHUDMessage::PushHUDMode("WorldMapMode");
 
 		activated = true;
+		if (activeGlobal) {
+			activeGlobal->value = 1.0f;
+		}
 	}
 
 	void Manager::Deactivate()
@@ -170,13 +172,19 @@ namespace Gallery
 		MANAGER(Input)->ResetInputDevices();
 
 		RE::Main::GetSingleton()->freezeTime = false;
-
+		if (blurMenu) {
+			RE::UIBlurManager::GetSingleton()->DecrementBlurCount();
+		}
 		RE::SendHUDMessage::PopHUDMode("WorldMapMode");
+
 		MANAGER(Input)->ToggleCursor(false);
 
 		enlargedPhotoIndex = -1;
 		showDeleteMsg = false;
 		activated = false;
+		if (activeGlobal) {
+			activeGlobal->value = 0.0f;
+		}
 
 		RE::PlaySound("UIMenuCancel");
 	}
@@ -185,7 +193,9 @@ namespace Gallery
 	{
 		if (activated) {
 			Deactivate();
-		} else if (CanShowMenu()) {
+			return;
+		}
+		if (const auto* controlMap = RE::ControlMap::GetSingleton(); controlMap && controlMap->textEntryCount <= 0 && CanShowMenu()) {
 			Activate();
 		}
 	}
@@ -203,17 +213,20 @@ namespace Gallery
 	void Manager::CollectPhotos()
 	{
 		// Documents/My Games/Skyrim Special Edition/Photos
-		auto& photoDir = MANAGER(Screenshot)->GetPhotoDirectory();
+		const auto& photoDir = MANAGER(Screenshot)->GetPhotoDirectory();
 		CollectPhotos(photoDir);
 
 		// vanilla dir (root)
-		std::filesystem::path basePath{ *"sScreenShotBaseName:Display"_ini };
-		auto                  vanillaDir = basePath.parent_path();
-		if (!vanillaDir.is_absolute()) {
-			vanillaDir = std::filesystem::current_path() / vanillaDir;
+		static std::filesystem::path vanillaDir;
+		if (vanillaDir.empty()) {
+			std::filesystem::path basePath{ *"sScreenShotBaseName:Display"_ini };
+			vanillaDir = basePath.parent_path();
+			if (!vanillaDir.is_absolute()) {
+				vanillaDir = std::filesystem::current_path() / vanillaDir;
+			}
 		}
 		std::error_code ec;
-		if (!std::filesystem::equivalent(vanillaDir, photoDir, ec) || ec) {
+		if (!std::filesystem::equivalent(vanillaDir, photoDir, ec)) {
 			CollectPhotos(vanillaDir);
 		}
 
@@ -237,8 +250,9 @@ namespace Gallery
 
 	void Manager::CalcGridAspectRatio()
 	{
+		gridAspectRatio = 16.0f / 9.0f;
+
 		if (photos.empty()) {
-			gridAspectRatio = 16.0f / 9.0f;
 			return;
 		}
 
@@ -246,10 +260,9 @@ namespace Gallery
 		for (const auto& photo : photos) {
 			counts[photo->aspectRatio]++;
 		}
+
 		const auto mostCommon = std::ranges::max_element(counts, {}, [](const auto& a_pair) { return a_pair.second; });
-		if (mostCommon != counts.end() && mostCommon->first > 0) {
-			gridAspectRatio = mostCommon->first;
-		}
+		gridAspectRatio = mostCommon->first;
 	}
 
 	std::int32_t Manager::GetActiveIndex()
@@ -279,26 +292,26 @@ namespace Gallery
 
 		// png
 		if (recyclePhotos) {
-			Shared::RecycleSaves(photo->pngPath.wstring());
+			Shared::RecycleFile(photo->pngPath.wstring());
 		} else {
 			if (!Shared::RemoveFile(photo->pngPath)) {
-				logger::warn("\tGallery: failed to delete PNG ({})", photo->pngPath.string());
+				logger::warn("Gallery: failed to delete PNG ({})", photo->pngPath.string());
 			} else {
-				logger::info("\tGallery: deleted PNG: ({})", photo->pngPath.string());
+				logger::info("Gallery: deleted PNG ({})", photo->pngPath.string());
 			}
 		}
 
 		// loadscreen images
-		MANAGER(Screenshot)->DeleteImagesWithIndex(photo->index);
+		MANAGER(Screenshot)->DeleteImagesWithIndex(photo->index, recyclePhotos);
 
 		//thumbnail
 		if (recyclePhotos) {
-			Shared::RecycleSaves(photo->thumbnailPath.wstring());
+			Shared::RecycleFile(photo->thumbnailPath.wstring());
 		} else {
-			if (!std::filesystem::remove(photo->thumbnailPath, ec) || ec) {
-				logger::warn("\tGallery: failed to delete thumbnail ({})", ec.message());
+			if (!Shared::RemoveFile(photo->thumbnailPath)) {
+				logger::warn("Gallery: failed to delete thumbnail ({})", photo->thumbnailPath.string());
 			} else {
-				logger::info("\tGallery: deleted thumbnail: {}", photo->thumbnailPath.string());
+				logger::info("Gallery: deleted thumbnail ({})", photo->thumbnailPath.string());
 			}
 		}
 
@@ -376,7 +389,6 @@ namespace Gallery
 		}
 
 		const auto count = static_cast<std::int32_t>(photos.size());
-
 		const auto queue_photos = [&](std::int32_t a_firstRow, std::int32_t a_lastRow) {
 			const auto first = std::max(a_firstRow, 0) * columns;
 			const auto last = std::min((a_lastRow + 1) * columns, count);
@@ -413,7 +425,7 @@ namespace Gallery
 		const auto keepFirst = (firstVisibleRow - retainRows) * columns;
 		const auto keepLast = (lastVisibleRow + retainRows + 1) * columns;
 
-		for (std::int32_t i = 0; i < photos.size(); i++) {
+		for (std::int32_t i = 0; i < static_cast<std::int32_t>(photos.size()); i++) {
 			if (i < keepFirst || i >= keepLast) {
 				photos[i]->UnloadThumbnail();
 			}
@@ -449,9 +461,13 @@ namespace Gallery
 
 		if (enlargedPhotoIndex == -1) {
 			enlargedPhotoIndex = selectedPhotoIndex;
+			RE::Main::GetSingleton()->freezeTime = true;
 			hideEnlargedUI = false;
 		} else {
 			enlargedPhotoIndex = -1;
+			if (!unpauseMenu) {
+				RE::Main::GetSingleton()->freezeTime = false;
+			}
 			hideEnlargedUI = true;
 		}
 	}
@@ -615,9 +631,14 @@ namespace Gallery
 		const auto maxTopRow = std::max(0, totalRows - visibleRows);
 
 		const auto mousePos = ImGui::GetMousePos();
-		mouseMoved = std::abs(mousePos.x - lastMousePos.x) > 1.0f || std::abs(mousePos.y - lastMousePos.y) > 1.0f;
-		if (mouseMoved) {
-			lastMousePos = mousePos;
+
+		if (static auto menuMgr = MANAGER(MenuIntegration); menuMgr->GetConsoleOpen()) {
+			mouseMoved = false;
+		} else {
+			mouseMoved = std::abs(mousePos.x - lastMousePos.x) > 1.0f || std::abs(mousePos.y - lastMousePos.y) > 1.0f;
+			if (mouseMoved) {
+				lastMousePos = mousePos;
+			}
 		}
 
 		if (const auto wheel = ImGui::GetIO().MouseWheel; wheel != 0.0f) {
@@ -938,5 +959,10 @@ namespace Gallery
 			ImGui::ButtonBar(items, 1.0f);
 		}
 		ImGui::EndChild();
+	}
+
+	void Manager::OnDataLoad()
+	{
+		activeGlobal = RE::TESForm::LookupByEditorID<RE::TESGlobal>("PhotoGallery_IsActive");
 	}
 }

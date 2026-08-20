@@ -28,7 +28,7 @@ namespace Texture
 		const std::size_t height = a_baseImg->height;
 		const std::size_t pixelSize = DirectX::BitsPerPixel(a_baseImg->format) / 8;
 
-		auto processRows = [&](const std::size_t startRow, const std::size_t endRow) {
+		detail::ParallelizeRows(height, [&](const std::size_t startRow, const std::size_t endRow) {
 			for (std::size_t y = startRow; y < endRow; y++) {
 				std::uint8_t*       resultPixel = resultImage->pixels + (y * resultImage->rowPitch);
 				const std::uint8_t* basePixel = a_baseImg->pixels + (y * a_baseImg->rowPitch);
@@ -45,25 +45,7 @@ namespace Texture
 					}
 				}
 			}
-		};
-
-		const auto numThreads = std::thread::hardware_concurrency();
-
-		std::vector<std::jthread> threads;
-		threads.reserve(numThreads);
-
-		const std::size_t rowsPerThread = height / numThreads;
-
-		for (std::size_t i = 0; i < numThreads; ++i) {
-			std::size_t startRow = i * rowsPerThread;
-			std::size_t endRow = (i == numThreads - 1) ? height : (i + 1) * rowsPerThread;
-
-			threads.emplace_back(std::jthread(processRows, startRow, endRow));
-		}
-
-		for (auto& thread : threads) {
-			thread.join();
-		}
+		});
 	}
 
 	// https://www.codeproject.com/Articles/471994/OilPaintEffect
@@ -82,7 +64,7 @@ namespace Texture
 		const auto& width = a_srcImage->width;
 		const auto& bytesInARow = a_srcImage->rowPitch;
 
-		auto processRows = [&](const std::size_t startRow, const std::size_t endRow) {
+		detail::ParallelizeRows(height, [&](const std::size_t startRow, const std::size_t endRow) {
 			std::array<std::int32_t, 256> intensityCount{};
 			std::array<std::int32_t, 256> avgR{};
 			std::array<std::int32_t, 256> avgG{};
@@ -137,30 +119,12 @@ namespace Texture
 				}
 				currRowOffset += bytesInARow;
 			}
-		};
-
-		const auto numThreads = std::thread::hardware_concurrency();
-
-		std::vector<std::jthread> threads;
-		threads.reserve(numThreads);
-
-		const std::size_t rowsPerThread = height / numThreads;
-
-		for (std::size_t i = 0; i < numThreads; ++i) {
-			std::size_t startRow = i * rowsPerThread;
-			std::size_t endRow = (i == numThreads - 1) ? height : (i + 1) * rowsPerThread;
-
-			threads.emplace_back(std::jthread(processRows, startRow, endRow));
-		}
-
-		for (auto& thread : threads) {
-			thread.join();
-		}
+		});
 
 		return true;
 	}
 
-	void CompressTexture(const RE::BSGraphics::Renderer* a_this, const DirectX::ScratchImage& a_inputImage, DirectX::ScratchImage& a_outputImage)
+	bool CompressTexture(const RE::BSGraphics::Renderer* a_this, const DirectX::ScratchImage& a_inputImage, DirectX::ScratchImage& a_outputImage)
 	{
 		// Compress texture
 		const ComPtr<ID3D11Device> device{ reinterpret_cast<ID3D11Device*>(a_this->data.forwarder) };
@@ -172,28 +136,34 @@ namespace Texture
 			a_outputImage);
 		if (FAILED(hr)) {
 			logger::info("Failed to compress dds");
+			return false;
 		}
+		return true;
 	}
 
-	void SaveToDDS(const DirectX::ScratchImage& a_inputImage, std::string_view a_path)
+	bool SaveToDDS(const DirectX::ScratchImage& a_inputImage, std::string_view a_path)
 	{
 		// Save texture
 		const auto wPath = stl::utf8_to_utf16(a_path);
 		auto       hr = DirectX::SaveToDDSFile(a_inputImage.GetImages(), 1, a_inputImage.GetMetadata(), DirectX::DDS_FLAGS_NONE, wPath->c_str());
 		if (FAILED(hr)) {
 			logger::info("Failed to save dds");
+			return false;
 		}
+		return true;
 	}
 
-	void SaveToPNG(const DirectX::ScratchImage& a_inputImage, std::string_view a_path, bool a_forceSRGB)
+	bool SaveToPNG(const DirectX::ScratchImage& a_inputImage, std::string_view a_path, bool a_forceSRGB)
 	{
-		// Save texture
+		// Save PNG
 		const auto wPath = stl::utf8_to_utf16(a_path);
 		auto       hr = DirectX::SaveToWICFile(*a_inputImage.GetImage(0, 0, 0), a_forceSRGB ? DirectX::WIC_FLAGS_FORCE_SRGB : DirectX::WIC_FLAGS_NONE,
-				  DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), wPath->c_str());
+			DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), wPath->c_str());
 		if (FAILED(hr)) {
 			logger::info("Failed to save png");
+			return false;
 		}
+		return true;
 	}
 }
 

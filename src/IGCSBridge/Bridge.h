@@ -58,7 +58,7 @@ namespace PhotoMode::IGCSBridge
 		static RE::NiPoint3 Normalize(const RE::NiPoint3& a_value);
 		static bool         IsFinite(const RE::NiPoint3& a_value);
 
-		std::filesystem::path statusFile;
+		//std::filesystem::path statusFile;
 		std::uint8_t*         cameraToolsBuffer{ nullptr };
 		bool                  initialized{ false };
 		bool                  connectorSearchLogged{ false };

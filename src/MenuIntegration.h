@@ -81,6 +81,8 @@ namespace MenuIntegration
 
 		void UpdateListVisuals(RE::GFxMovieView* a_view, RE::GFxValue& a_listObj, std::uint32_t a_numItems);
 
+		bool GetConsoleOpen() const { return consoleOpen; }
+
 	private:
 		template <class F>
 		struct MenuSettings
@@ -125,6 +127,7 @@ namespace MenuIntegration
 
 		bool skyUI6Installed{ false };
 		bool photoModeInjected{ false };
+		bool consoleOpen{ false };
 	};
 
 	template <class F>

@@ -149,13 +149,13 @@ namespace LoadScreen
 	}
 }
 
-namespace Gallery
+namespace Input
 {
 	struct ProcessInputQueue
 	{
 		static void thunk(RE::BSTEventSource<RE::InputEvent*>* a_dispatcher, RE::InputEvent* const* a_events)
 		{
-			if (a_events && MANAGER(Gallery)->IsActive()) {
+			if (a_events && MANAGER(Gallery)->IsActive() && !RE::UI::GetSingleton()->IsMenuOpen(RE::Console::MENU_NAME)) {
 				MANAGER(Input)->ProcessGalleryEvents(a_events);
 				constexpr RE::InputEvent* const dummy[] = { nullptr };
 				func(a_dispatcher, dummy);
@@ -178,5 +178,5 @@ void Hooks::Install()
 	PhotoMode::InstallHooks();
 	Screenshot::InstallHooks();
 	LoadScreen::InstallHooks();
-	Gallery::InstallHooks();
+	Input::InstallHooks();
 }
