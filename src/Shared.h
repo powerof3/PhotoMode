@@ -85,7 +85,7 @@ namespace Shared
 			logger::info("{} does not exist", a_dir.string());
 			return;
 		}
-		
+
 		for (const auto& entry : std::filesystem::directory_iterator(a_dir, ec)) {
 			if (entry.is_regular_file(ec) && entry.path().extension() == a_extension) {
 				a_func(entry.path());
@@ -114,7 +114,7 @@ namespace Shared
 	{
 		std::error_code ec;
 		std::filesystem::permissions(a_path, std::filesystem::perms::owner_write, std::filesystem::perm_options::add, ec);
-		
+
 		const HANDLE handle = ::CreateFileW(a_path.c_str(), DELETE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING, FILE_FLAG_DELETE_ON_CLOSE, nullptr);
 		if (handle == INVALID_HANDLE_VALUE) {
 			std::error_code ec;

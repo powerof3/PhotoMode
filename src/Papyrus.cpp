@@ -1,7 +1,7 @@
 #include "Papyrus.h"
 
-#include "PhotoMode/Manager.h"
 #include "Gallery/Manager.h"
+#include "PhotoMode/Manager.h"
 
 #include "Settings.h"
 
@@ -18,7 +18,7 @@ namespace Papyrus
 	}
 
 	static bool TogglePhotoMode(STATIC_ARGS, bool a_show)
-	{	
+	{
 		return ToggleMenu<PhotoMode::Manager>(STATIC_VARS, a_show);
 	}
 

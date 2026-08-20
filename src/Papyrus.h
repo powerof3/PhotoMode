@@ -36,7 +36,7 @@ namespace Papyrus
 		return true;
 	}
 
-	template<class T>
+	template <class T>
 	bool IsMenuActive()
 	{
 		auto* manager = T::GetSingleton();

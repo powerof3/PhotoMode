@@ -59,16 +59,16 @@ namespace PhotoMode::IGCSBridge
 		static bool         IsFinite(const RE::NiPoint3& a_value);
 
 		//std::filesystem::path statusFile;
-		std::uint8_t*         cameraToolsBuffer{ nullptr };
-		bool                  initialized{ false };
-		bool                  connectorSearchLogged{ false };
-		bool                  connectorConnectedLogged{ false };
-		bool                  photoModeActive{ false };
-		bool                  sessionActive{ false };
-		CameraSnapshot        sessionBase{};
-		CameraSnapshot        currentSample{};
-		float                 currentLeftRight{ 0.0f };
-		float                 currentUpDown{ 0.0f };
+		std::uint8_t*  cameraToolsBuffer{ nullptr };
+		bool           initialized{ false };
+		bool           connectorSearchLogged{ false };
+		bool           connectorConnectedLogged{ false };
+		bool           photoModeActive{ false };
+		bool           sessionActive{ false };
+		CameraSnapshot sessionBase{};
+		CameraSnapshot currentSample{};
+		float          currentLeftRight{ 0.0f };
+		float          currentUpDown{ 0.0f };
 
 		// Legacy V19 focus-anchor fields retained for diagnostics/rollback; V20 does not apply toe-in.
 		float        focusScreenX{ 0.536f };

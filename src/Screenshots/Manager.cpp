@@ -156,8 +156,8 @@ namespace Screenshot
 
 	void Collection::DeleteImagesWithIndex(std::int32_t a_index, bool a_recycle)
 	{
-		const static auto root = std::filesystem::current_path(); 
-		
+		const static auto root = std::filesystem::current_path();
+
 		std::erase_if(images, [&](const Image& a_image) {
 			if (a_image.index != a_index) {
 				return false;

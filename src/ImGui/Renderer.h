@@ -18,7 +18,7 @@ namespace ImGui::Renderer
 		ImGui::NewFrame();
 		{
 			GImGui->NavWindowingTarget = nullptr;  // disable windowing
-			
+
 			a_func();
 		}
 		ImGui::EndFrame();

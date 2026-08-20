@@ -38,7 +38,7 @@ void OnInit(SKSE::MessagingInterface::Message* a_msg)
 
 			MANAGER(LoadScreen)->InitLoadScreenObjects();
 			MANAGER(Screenshot)->LoadScreenshots();
-			
+
 			MANAGER(PhotoMode)->OnDataLoad();
 			MANAGER(Gallery)->OnDataLoad();
 

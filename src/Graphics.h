@@ -7,7 +7,7 @@ namespace Texture
 		template <class F>
 		void ParallelizeRows(std::size_t a_height, F&& a_func)
 		{
-			const auto numThreads = std::thread::hardware_concurrency();
+			const auto        numThreads = std::thread::hardware_concurrency();
 			const std::size_t rowsPerThread = a_height / numThreads;
 
 			std::vector<std::jthread> threads;
@@ -20,7 +20,7 @@ namespace Texture
 			}
 		}
 	}
-	
+
 	std::string Sanitize(std::string& a_path);
 
 	void AlphaBlendImage(const DirectX::Image* a_baseImg, const DirectX::Image* a_overlayImg, DirectX::ScratchImage& a_outImage, float a_intensity);

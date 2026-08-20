@@ -577,8 +577,8 @@ namespace PhotoMode::IGCSBridge
 		axis = axis * (1.0f / sinAngle);
 		const float angle = std::atan2(sinAngle, cosAngle);
 		auto        rotate = [&](const RE::NiPoint3& v) {
-			const float c = std::cos(angle), ss = std::sin(angle);
-			return v * c + axis.Cross(v) * ss + axis * (axis.Dot(v) * (1.0f - c));
+            const float c = std::cos(angle), ss = std::sin(angle);
+            return v * c + axis.Cross(v) * ss + axis * (axis.Dot(v) * (1.0f - c));
 		};
 		const RE::NiPoint3 newRight = Normalize(rotate(base.right));
 		const RE::NiPoint3 newForward = Normalize(rotate(base.forward));
