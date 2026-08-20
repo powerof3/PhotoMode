@@ -123,7 +123,7 @@
           }
         },
         {
-          "text": "$PM_OpenPhotoMode_Gamepad_Header",
+          "text": "$PM_OpenPhotoMode_GamePad_Header",
           "type": "header",
           "position": 1
         },
@@ -272,7 +272,7 @@
           }
         },
         {
-          "text": "$PM_OpenPhotoMode_Gamepad_Header",
+          "text": "$PM_OpenPhotoMode_GamePad_Header",
           "type": "header",
           "position": 1
         },
@@ -299,7 +299,7 @@
           "type": "header"
         },
          {
-          "id": "iGalleryEnlargeGamepad:Controls",
+          "id": "iGalleryEnlargeGamePad:Controls",
           "text": "$PM_GalleryEnlarge_Key_Text",
           "type": "keymap",
           "ignoreConflicts": true,
@@ -308,7 +308,7 @@
           }
         },
         {
-          "id": "iGalleryDeleteGamepad:Controls",
+          "id": "iGalleryDeleteGamePad:Controls",
           "text": "$PM_Delete",
           "type": "keymap",
           "ignoreConflicts": true,
@@ -317,7 +317,7 @@
           }
         },
         {
-          "id": "iGalleryLoadScreenGamepad:Controls",
+          "id": "iGalleryLoadScreenGamePad:Controls",
           "text": "$PM_GalleryLoadScreen_Key_Text",
           "type": "keymap",
           "ignoreConflicts": true,
