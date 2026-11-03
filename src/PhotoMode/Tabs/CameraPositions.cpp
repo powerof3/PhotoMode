@@ -113,7 +113,7 @@ namespace PhotoMode
 			positionsLoaded = true;
 		}
 
-		ImGui::SeparatorText("$PM_CameraPositions_Header"_T);
+		ImGui::SeparatorTextWidget("$PM_CameraPositions_Header"_T);
 
 		ImGui::PushID("CameraPositions");
 		{
@@ -121,7 +121,7 @@ namespace PhotoMode
 
 			if (!positions.empty()) {
 				ImGui::AlignTextToFramePadding();
-				ImGui::Text("$PM_CameraPositions_Select"_T);
+				ImGui::TextWidget("$PM_CameraPositions_Select"_T);
 
 				ImGui::SameLine();
 
@@ -149,8 +149,8 @@ namespace PhotoMode
 				}
 				ImGui::EndDisabled();
 			} else {
-				ImGui::Text("$PM_CameraPositions_None"_T);
-				ImGui::Text("$PM_CameraPositions_Help"_T);
+				ImGui::TextWidget("$PM_CameraPositions_None"_T);
+				ImGui::TextWidget("$PM_CameraPositions_Help"_T);
 			}
 
 			ImGui::Spacing();

@@ -108,6 +108,7 @@ namespace PhotoMode
 		MANAGER(Input)->LoadDefaultKeys();
 
 		activated = true;
+		MANAGER(UIAPI)->OnActivate();
 		// IGCSDOF: expose the native Photo Mode camera only while Photo Mode is active.
 		IGCSBridge::Bridge::GetSingleton()->OnPhotoModeActivated();
 		if (activeGlobal) {
@@ -198,6 +199,7 @@ namespace PhotoMode
 		MANAGER(Input)->ResetInputDevices();
 
 		activated = false;
+		MANAGER(UIAPI)->OnDeactivate();
 		if (activeGlobal) {
 			activeGlobal->value = 0.0f;
 		}
@@ -338,6 +340,9 @@ namespace PhotoMode
 
 	bool Manager::IsCursorHoveringOverWindow() const
 	{
+		if (MANAGER(UIAPI)->IsReplaced(PhotoModeAPI::kReplaceControls)) {
+			return MANAGER(UIAPI)->IsCursorOverUI();
+		}
 		return isCursorHoveringOverWindow;
 	}
 
@@ -352,11 +357,23 @@ namespace PhotoMode
 				overlaysTab.DrawOverlays();
 				CameraGrid::Draw();
 
-				DrawBar();
-				DrawControls();
+				if (!MANAGER(UIAPI)->IsReplaced(PhotoModeAPI::kReplaceButtonBar)) {
+					DrawBar();
+				}
+				if (!MANAGER(UIAPI)->IsReplaced(PhotoModeAPI::kReplaceControls)) {
+					DrawControls();
+				}
 			}
 		}
 		ImGui::End();
+
+		if (MANAGER(UIAPI)->IsReplaced(PhotoModeAPI::kReplaceControls)) {
+			MANAGER(UIAPI)->Update([this] {
+				if (!IsHidden()) {
+					DrawControls();
+				}
+			});
+		}
 	}
 
 	void Manager::DrawOverlays()

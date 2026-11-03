@@ -49,6 +49,8 @@ namespace PhotoMode
 		bool IsCursorHoveringOverWindow() const;
 
 	private:
+		friend class UIAPI::Manager;
+
 		enum TAB_TYPE : std::int8_t
 		{
 			kCamera,

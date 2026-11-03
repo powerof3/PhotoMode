@@ -10,6 +10,7 @@
 #include "Screenshots/Manager.h"
 #include "Settings.h"
 #include "Translation.h"
+#include "UIAPI/Manager.h"
 
 void OnInit(SKSE::MessagingInterface::Message* a_msg)
 {
@@ -137,4 +138,9 @@ extern "C" DLLEXPORT std::uint8_t IsPhotoModeActive()
 extern "C" DLLEXPORT std::uint32_t IsPhotoGalleryActive()
 {
 	return MANAGER(Gallery)->IsActive();
+}
+
+extern "C" DLLEXPORT PhotoModeAPI::IPhotoMode* RequestPhotoModeUIAPI(PhotoModeAPI::InterfaceVersion a_version)
+{
+	return a_version == PhotoModeAPI::InterfaceVersion::kV1 ? MANAGER(UIAPI) : nullptr;
 }

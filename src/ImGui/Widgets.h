@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Styles.h"
+#include "UIAPI/Manager.h"
 #include "Util.h"
 
 namespace ImGui
@@ -14,6 +15,10 @@ namespace ImGui
 	template <class E>
 	bool EnumSlider(const char* label, E* index, const std::ranges::common_range auto& a_enum, bool a_translate = true)
 	{
+		if (MANAGER(UIAPI)->IsRecording()) {
+			return MANAGER(UIAPI)->EnumSlider(label, index, a_enum, a_translate);
+		}
+
 		bool value_changed = false;
 
 		std::size_t uIndex;
@@ -47,12 +52,20 @@ namespace ImGui
 
 	bool BeginTabItemEx(const char* label, bool* p_open = nullptr, ImGuiTabItemFlags flags = 0);
 
+	bool TreeNodeWidget(const char* label);
+	void SeparatorTextWidget(const char* label);
+	void TextWidget(const char* label);
+
 	bool OutlineButton(const char* label, bool* wasFocused = nullptr);
 
 	bool DragScalarEx(const char* label, ImGuiDataType data_type, void* p_data, float v_speed, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags);
 	template <class T>
 	bool DragOnHover(const char* label, T* v, float v_speed = 1.0f, T v_min = 0, T v_max = 100, const char* format = nullptr, ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp)
 	{
+		if (MANAGER(UIAPI)->IsRecording()) {
+			return MANAGER(UIAPI)->Slider(label, v, v_min, v_max, format, flags, v_speed, true);
+		}
+
 		const auto newLabel = LeftAlignedText(label);
 
 		PushStyleColor(ImGuiCol_FrameBg, GetUserStyleColorU32(USER_STYLE::kFrameBG_Widget));
@@ -79,6 +92,10 @@ namespace ImGui
 	template <class T>
 	bool Slider(const char* label, T* v, T v_min, T v_max, const char* format = nullptr, ImGuiSliderFlags flags = ImGuiSliderFlags_AlwaysClamp)
 	{
+		if (MANAGER(UIAPI)->IsRecording()) {
+			return MANAGER(UIAPI)->Slider(label, v, v_min, v_max, format, flags, 0.0f, false);
+		}
+
 		const auto newLabel = LeftAlignedText(label);
 
 		PushStyleColor(ImGuiCol_FrameBg, GetUserStyleColorU32(USER_STYLE::kFrameBG_Widget));

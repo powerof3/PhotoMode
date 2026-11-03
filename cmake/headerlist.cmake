@@ -32,4 +32,6 @@ set(headers ${headers}
 	src/Settings.h
 	src/Shared.h
 	src/Translation.h
+	src/UIAPI/Manager.h
+	src/UIAPI/PhotoModeUIAPI.h
 )

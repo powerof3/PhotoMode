@@ -221,7 +221,7 @@ namespace PhotoMode
 
 						ImGui::Spacing();
 
-						if (ImGui::TreeNode("$PM_Phoneme"_T)) {
+						if (ImGui::TreeNodeWidget("$PM_Phoneme"_T)) {
 							for (std::uint32_t i = 0; i < phonemes.size(); i++) {
 								if (ImGui::Slider(TRANSLATE(phonemes[i]), &mfgData.phonemeData[i].strength, 0, 100)) {
 									mfgData.phonemeData[i].ApplyPhenome(i, character);
@@ -231,7 +231,7 @@ namespace PhotoMode
 							ImGui::TreePop();
 						}
 
-						if (ImGui::TreeNode("$PM_Modifier"_T)) {
+						if (ImGui::TreeNodeWidget("$PM_Modifier"_T)) {
 							for (std::uint32_t i = 0; i < modifiers.size(); i++) {
 								if (ImGui::Slider(TRANSLATE(modifiers[i]), &mfgData.modifierData[i].strength, 0, 100)) {
 									mfgData.modifierData[i].ApplyModifier(i, character);
