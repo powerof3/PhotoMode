@@ -13,6 +13,7 @@
 #include "Screenshots/Manager.h"
 #include "Settings.h"
 #include "Shared.h"
+#include "UIAPI/Manager.h"
 
 namespace Gallery
 {
@@ -157,6 +158,7 @@ namespace Gallery
 		if (activeGlobal) {
 			activeGlobal->value = 1.0f;
 		}
+		MANAGER(UIAPI)->OnGalleryActivate();
 	}
 
 	void Manager::Deactivate()
@@ -182,6 +184,7 @@ namespace Gallery
 		enlargedPhotoIndex = -1;
 		showDeleteMsg = false;
 		activated = false;
+		MANAGER(UIAPI)->OnGalleryDeactivate();
 		if (activeGlobal) {
 			activeGlobal->value = 0.0f;
 		}
@@ -472,6 +475,33 @@ namespace Gallery
 		}
 	}
 
+	void Manager::EnlargePhoto(std::int32_t a_index)
+	{
+		RE::PlaySound("UIMenuFocus");
+		selectedPhotoIndex = a_index;
+		enlargedPhotoIndex = a_index;
+		hideEnlargedUI = false;
+	}
+
+	void Manager::UpdateVisibleRows()
+	{
+		const auto totalRows = static_cast<std::int32_t>((photos.size() + columns - 1) / columns);
+		const auto maxTopRow = std::max(0, totalRows - visibleRows);
+
+		if (scrollToSelection && selectedPhotoIndex != -1) {
+			const auto selRow = selectedPhotoIndex / columns;
+			if (selRow < firstVisibleRow) {
+				firstVisibleRow = selRow;
+			} else if (selRow > firstVisibleRow + visibleRows - 1) {
+				firstVisibleRow = selRow - visibleRows + 1;
+			}
+			scrollToSelection = false;
+		}
+
+		firstVisibleRow = std::clamp(firstVisibleRow, 0, maxTopRow);
+		lastVisibleRow = std::min(firstVisibleRow + visibleRows - 1, std::max(0, totalRows - 1));
+	}
+
 	void Manager::StepEnlarged(std::int32_t a_direction)
 	{
 		if (photos.empty() || enlargedPhotoIndex == -1) {
@@ -547,6 +577,13 @@ namespace Gallery
 		}
 
 		ClampIndices();
+
+		if (MANAGER(UIAPI)->IsReplaced(PhotoModeAPI::kReplaceGallery)) {
+			MANAGER(UIAPI)->UpdateGallery();
+			PrefetchTextures();
+			FlushTextures();
+			return;
+		}
 
 		if (enlargedPhotoIndex != -1) {
 			DrawEnlarged();
@@ -673,18 +710,7 @@ namespace Gallery
 			}
 		}
 
-		if (scrollToSelection && selectedPhotoIndex != -1) {
-			const auto selRow = selectedPhotoIndex / columns;
-			if (selRow < firstVisibleRow) {
-				firstVisibleRow = selRow;
-			} else if (selRow > firstVisibleRow + visibleRows - 1) {
-				firstVisibleRow = selRow - visibleRows + 1;
-			}
-			scrollToSelection = false;
-		}
-
-		firstVisibleRow = std::clamp(firstVisibleRow, 0, maxTopRow);
-		lastVisibleRow = std::min(firstVisibleRow + visibleRows - 1, std::max(0, totalRows - 1));
+		UpdateVisibleRows();
 
 		for (std::int32_t row = 0; row < visibleRows; row++) {
 			for (std::int32_t col = 0; col < columns; col++) {
@@ -762,10 +788,7 @@ namespace Gallery
 
 		// enlarge
 		if (clicked && !showDeleteMsg) {
-			RE::PlaySound("UIMenuFocus");
-			selectedPhotoIndex = a_photoIdx;
-			enlargedPhotoIndex = a_photoIdx;
-			hideEnlargedUI = false;
+			EnlargePhoto(a_photoIdx);
 		}
 
 		if (imageDrawn && photo->hasLoadScreenDDS && photo->index != -1) {

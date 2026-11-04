@@ -5,6 +5,7 @@
 #include "PhotoMode/Hotkeys.h"
 #include "PhotoMode/Manager.h"
 #include "Screenshots/Manager.h"
+#include "UIAPI/Manager.h"
 
 namespace Input
 {
@@ -608,6 +609,8 @@ namespace Input
 		auto       userEvents = RE::UserEvents::GetSingleton();
 		auto       cursorMenu = RE::UI::GetSingleton()->GetMenu<RE::CursorMenu>();
 
+		MANAGER(UIAPI)->OnGalleryInput(a_evn);
+
 		for (auto event = *a_evn; event; event = event->next) {
 			if (!SetInputDevice(event->GetDevice())) {
 				continue;
@@ -730,6 +733,7 @@ namespace Input
 
 		bool cursorMenuOpen = RE::UI::GetSingleton()->IsMenuOpen(RE::CursorMenu::MENU_NAME);
 		bool cursorOverWindow = cursorInit && MANAGER(PhotoMode)->IsCursorHoveringOverWindow();
+		bool imguiReplaced = MANAGER(UIAPI)->IsReplaced(PhotoModeAPI::kReplaceControls);  // the ImGui panel only runs invisibly, don't feed it
 
 		for (auto event = *a_evn; event; event = event->next) {
 			if (!SetInputDevice(event->GetDevice())) {
@@ -766,7 +770,7 @@ namespace Input
 
 			// process inputs
 			if (const auto charEvent = event->AsCharEvent()) {
-				if (!io.KeyCtrl) {
+				if (!imguiReplaced && !io.KeyCtrl) {
 					io.AddInputCharacter(charEvent->keyCode);
 				}
 			} else if (const auto buttonEvent = event->AsButtonEvent()) {
@@ -828,7 +832,7 @@ namespace Input
 					}
 				}
 
-				if (!photoMode->IsHidden()) {
+				if (!imguiReplaced && !photoMode->IsHidden()) {
 					if (inputDevice == DEVICE::kKeyboard && hotKey == KEY::kTab) {
 						io.AddKeyEvent(ImGuiKey_Tab, buttonEvent->IsDown());
 					} else {

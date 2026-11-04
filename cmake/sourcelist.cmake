@@ -28,5 +28,6 @@ set(sources ${sources}
 	src/Screenshots/Manager.cpp
 	src/Settings.cpp
 	src/Translation.cpp
+	src/UIAPI/Manager.cpp
 	src/main.cpp
 )

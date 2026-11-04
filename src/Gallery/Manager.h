@@ -2,6 +2,11 @@
 
 #include "ImGui/Graphics.h"
 
+namespace UIAPI
+{
+	class Manager;
+}
+
 namespace Gallery
 {
 	struct Photo
@@ -88,6 +93,8 @@ namespace Gallery
 		void OnDataLoad();
 
 	private:
+		friend class UIAPI::Manager;
+
 		static constexpr std::int32_t columns{ 4 };
 		static constexpr std::int32_t visibleRows{ 3 };
 		static constexpr std::int32_t prefetchRows{ 3 };
@@ -116,6 +123,8 @@ namespace Gallery
 		void FlushTextures();
 		bool IsEnlargedOrNeighbor(std::int32_t a_index) const;
 
+		void EnlargePhoto(std::int32_t a_index);
+		void UpdateVisibleRows();  // follows the selection, clamps the scroll
 		void StepEnlarged(std::int32_t a_direction);
 
 		void        DrawHeader();

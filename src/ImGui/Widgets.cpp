@@ -23,6 +23,10 @@ namespace ImGui
 
 	bool ComboWithFilter(const char* label, int* current_item, const std::vector<std::string>& items, const StringSet* a_favorites, std::string* a_favToggled, int popup_max_height_in_items /*= -1*/)
 	{
+		if (MANAGER(UIAPI)->IsRecording()) {
+			return MANAGER(UIAPI)->Combo(label, current_item, items, a_favorites, a_favToggled);
+		}
+
 		ImGuiContext& g = *GImGui;
 
 		ImGuiWindow* window = GetCurrentWindow();
@@ -266,6 +270,10 @@ namespace ImGui
 
 	bool CheckBox(const char* label, bool* a_toggle)
 	{
+		if (MANAGER(UIAPI)->IsRecording()) {
+			return MANAGER(UIAPI)->CheckBox(label, a_toggle);
+		}
+
 		bool selected = false;
 
 		static auto checkbox = MANAGER(IconFont)->GetCheckbox();
@@ -566,6 +574,10 @@ namespace ImGui
 
 	bool BeginTabItemEx(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 	{
+		if (MANAGER(UIAPI)->IsRecording()) {
+			return MANAGER(UIAPI)->TabItem(label, flags);
+		}
+
 		static ImGuiID lastActiveTab = 0;
 		ImGuiID        id = ImGui::GetID(label);
 
@@ -597,8 +609,39 @@ namespace ImGui
 		return isActive;
 	}
 
+	bool TreeNodeWidget(const char* label)
+	{
+		if (MANAGER(UIAPI)->IsRecording()) {
+			return MANAGER(UIAPI)->TreeNode(label);
+		}
+
+		return TreeNode(label);
+	}
+
+	void SeparatorTextWidget(const char* label)
+	{
+		if (MANAGER(UIAPI)->IsRecording()) {
+			return MANAGER(UIAPI)->Header(label);
+		}
+
+		SeparatorText(label);
+	}
+
+	void TextWidget(const char* label)
+	{
+		if (MANAGER(UIAPI)->IsRecording()) {
+			return MANAGER(UIAPI)->Text(label);
+		}
+
+		TextUnformatted(label);
+	}
+
 	bool OutlineButton(const char* label, bool* wasFocused)
 	{
+		if (MANAGER(UIAPI)->IsRecording()) {
+			return MANAGER(UIAPI)->Button(label);
+		}
+
 		ImGuiWindow* window = GetCurrentWindow();
 		if (window->SkipItems)
 			return false;
